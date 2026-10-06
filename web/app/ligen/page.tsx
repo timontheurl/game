@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CountUp from "@/components/CountUp";
 import { Flag } from "@/components/PlayerCard";
 import { getLeagueStatuses } from "@/lib/data";
 
@@ -43,10 +44,14 @@ export default function LigenPage() {
                     <b>{seasons.length}</b> {seasons.length === 1 ? "Saison" : "Saisons"}
                   </span>
                   <span>
-                    <b>{goals.toLocaleString("de-AT")}</b> Tore
+                    <b>
+                      <CountUp value={goals} />
+                    </b> Tore
                   </span>
                   <span>
-                    <b>{pre.toLocaleString("de-AT")}</b> Pre-Assists
+                    <b>
+                      <CountUp value={pre} />
+                    </b> Pre-Assists
                   </span>
                 </span>
                 {leader && (

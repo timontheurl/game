@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CountUp from "@/components/CountUp";
 import GoalCard from "@/components/GoalCard";
 import PlayerCard, { Flag } from "@/components/PlayerCard";
 import { countryNameDe } from "@/lib/cards";
@@ -15,7 +16,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: entries[0] ? `${entries[0].row.name} – Pre-Assists` : "Spieler" };
 }
 
-const fmt = (n: number, digits = 2) => n.toFixed(digits).replace(".", ",");
 
 export default async function PlayerPage({ params }: { params: Promise<{ slug: string }> }) {
   const entries = getPlayer((await params).slug);
@@ -28,18 +28,19 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         for (const g of preGoals) partners.set(g.scorer, (partners.get(g.scorer) ?? 0) + 1);
         const topPartners = [...partners.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
         const rank = season.players.filter((p) => p.preAssists > r.preAssists).length + 1;
-        const per90 = (v: number) => (r.minutes > 0 ? fmt((v / r.minutes) * 90) : "–");
 
-        const rows: [string, string | number][] = [
-          ["Pre-Assists", r.preAssists],
-          ["Platz in der Liga", `${rank}.`],
-          ["Pre-Assists pro 90 Min.", per90(r.preAssists)],
-          ["Pre-Assist xG", fmt(r.preAssistXg)],
-          ["Assists", r.assists],
-          ["Tore", r.goals],
-          ["Torbeteiligungen", r.involvements],
-          ["Einsätze", r.matches],
-          ["Minuten", r.minutes.toLocaleString("de-AT")],
+        const per90v = r.minutes > 0 ? (r.preAssists / r.minutes) * 90 : 0;
+        // [Bezeichnung, Wert, Nachkommastellen, Nachsatz]
+        const rows: [string, number, number, string][] = [
+          ["Pre-Assists", r.preAssists, 0, ""],
+          ["Platz in der Liga", rank, 0, "."],
+          ["Pre-Assists pro 90 Min.", per90v, 2, ""],
+          ["Pre-Assist xG", r.preAssistXg, 2, ""],
+          ["Assists", r.assists, 0, ""],
+          ["Tore", r.goals, 0, ""],
+          ["Torbeteiligungen", r.involvements, 0, ""],
+          ["Einsätze", r.matches, 0, ""],
+          ["Minuten", r.minutes, 0, ""],
         ];
 
         return (
@@ -66,10 +67,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                   )}
                 </div>
                 <dl className="stat-table">
-                  {rows.map(([k, v]) => (
+                  {rows.map(([k, v, d, suffix]) => (
                     <div key={k}>
                       <dt>{k}</dt>
-                      <dd>{v}</dd>
+                      <dd>
+                        <CountUp value={v} decimals={d} />
+                        {suffix}
+                      </dd>
                     </div>
                   ))}
                 </dl>

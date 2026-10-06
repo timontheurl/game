@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CountUp from "@/components/CountUp";
 import PlayerCard from "@/components/PlayerCard";
 import RankingTable from "@/components/RankingTable";
 import { getSeason, getSeasons, playerSlug, seasonLabel, toCard, topCombos, type Season } from "@/lib/data";
@@ -35,13 +36,19 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
         </div>
         <div className="banner-facts">
           <span>
-            <b>{meta.matches}</b> Spiele
+            <b>
+              <CountUp value={meta.matches} />
+            </b> Spiele
           </span>
           <span>
-            <b>{meta.goals}</b> Tore
+            <b>
+              <CountUp value={meta.goals} />
+            </b> Tore
           </span>
           <span>
-            <b>{meta.preAssists}</b> mit Pre-Assist
+            <b>
+              <CountUp value={meta.preAssists} />
+            </b> mit Pre-Assist
           </span>
         </div>
       </section>

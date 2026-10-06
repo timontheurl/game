@@ -27,6 +27,9 @@ body {
 }
 
 body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background:
     radial-gradient(1200px 500px at 50% -120px, rgba(255, 122, 26, 0.08), transparent 70%),
     var(--bg);
@@ -269,6 +272,8 @@ h3 {
 
 /* ---------- Layout ---------- */
 .page {
+  flex: 1;
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 16px 48px;
@@ -405,28 +410,25 @@ h3 {
   stroke-linecap: round;
 }
 
-.ill-pass {
+.ill-pass line {
   stroke-width: 6;
   stroke-linecap: round;
 }
 
+.ill-pass polygon {
+  stroke: none;
+}
+
 .ill-pass.pre {
   stroke: var(--accent);
+  fill: var(--accent);
 }
 .ill-pass.ast {
   stroke: #ffc58f;
+  fill: #ffc58f;
 }
 .ill-pass.goal {
   stroke: #fff;
-}
-
-.ill-head-pre {
-  fill: var(--accent);
-}
-.ill-head-ast {
-  fill: #ffc58f;
-}
-.ill-head-goal {
   fill: #fff;
 }
 
@@ -806,7 +808,29 @@ h3 {
   color: var(--text);
   background: linear-gradient(170deg, #ffb066, var(--accent) 45%, #b9480a);
   clip-path: var(--shape);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.2s ease;
+}
+
+/* Glanz, der dem Mauszeiger folgt */
+.pcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 236, 214, 0.22), transparent 48%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pcard.is-tilting {
+  --lift: -6px;
+  transition: transform 0.08s linear, filter 0.2s ease;
+}
+
+.pcard.is-tilting::after {
+  opacity: 1;
 }
 
 /* Innenfläche: oben dunkel mit orangem Schimmer, unten ein eigenes Band – der Rand bleibt als Linie */
@@ -823,7 +847,7 @@ h3 {
 }
 
 .pcard:hover {
-  transform: translateY(-4px);
+  --lift: -4px;
   filter: drop-shadow(0 8px 18px rgba(255, 122, 26, 0.35));
   color: var(--text);
 }
@@ -1475,28 +1499,27 @@ td.name a {
   stroke-linecap: round;
 }
 
-.pitch-line.pre {
+.pitch-arrow.pre {
   stroke: var(--pre);
-}
-.pitch-line.assist {
-  stroke: var(--assist);
-}
-.pitch-line.shot {
-  stroke: var(--goal);
-}
-.pitch-line.carry {
-  stroke: rgba(255, 255, 255, 0.75);
-  stroke-width: 0.5;
-}
-
-.arrow-head.pre {
   fill: var(--pre);
 }
-.arrow-head.assist {
+.pitch-arrow.assist {
+  stroke: var(--assist);
   fill: var(--assist);
 }
-.arrow-head.shot {
+.pitch-arrow.shot {
+  stroke: var(--goal);
   fill: var(--goal);
+}
+
+.pitch-head {
+  stroke: none;
+}
+
+.pitch-carry {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 0.5;
+  stroke-dasharray: 1.2 1.2;
 }
 
 .pitch-dot circle {
@@ -1730,5 +1753,193 @@ td.name a {
 
   .footer-inner nav {
     margin-left: 0;
+  }
+}
+
+/* ---------- Motion ---------- */
+.page-enter {
+  animation: page-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+.countup {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    translate: 0 26px;
+    transition:
+      opacity 0.6s ease var(--reveal-delay, 0ms),
+      translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+  }
+
+  .reveal.is-in {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Einstieg der Startseite */
+  .intro h1,
+  .intro-text p,
+  .intro-text .text-link,
+  .intro-figure {
+    animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .intro-text p:nth-of-type(1) {
+    animation-delay: 0.12s;
+  }
+  .intro-text p:nth-of-type(2) {
+    animation-delay: 0.22s;
+  }
+  .intro-text .text-link {
+    animation-delay: 0.32s;
+  }
+  .intro-figure {
+    animation-delay: 0.18s;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+
+  /* Spielzug-Grafiken zeichnen sich beim Einblenden */
+  .reveal .pitch-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .reveal .pitch-head,
+  .reveal .pitch-carry,
+  .reveal .pitch-dot {
+    opacity: 0;
+  }
+  .reveal.is-in .pitch-line {
+    animation: draw 0.45s ease-out forwards;
+    animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.2s);
+  }
+  .reveal.is-in .pitch-head,
+  .reveal.is-in .pitch-carry {
+    animation: appear 0.2s ease-out forwards;
+    animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.55s);
+  }
+  .reveal.is-in .pitch-carry {
+    animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.2s);
+  }
+  .reveal.is-in .pitch-dot {
+    animation: pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+    animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.1s);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes appear {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Erklärgrafik: Szene in der Schleife (6 s) */
+  .ill-pass line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .ill-pass.pre line {
+    animation: ill-draw-pre 6s linear infinite;
+  }
+  .ill-pass.ast line {
+    animation: ill-draw-ast 6s linear infinite;
+  }
+  .ill-pass.goal line {
+    animation: ill-draw-goal 6s linear infinite;
+  }
+  .ill-pass.pre polygon,
+  .ill-label.pre {
+    animation: ill-show-pre 6s linear infinite;
+  }
+  .ill-pass.ast polygon,
+  .ill-label.ast {
+    animation: ill-show-ast 6s linear infinite;
+  }
+  .ill-pass.goal polygon,
+  .ill-label.goal {
+    animation: ill-show-goal 6s linear infinite;
+  }
+  .ill-goal {
+    animation: ill-net 6s linear infinite;
+  }
+  .ill-run {
+    animation: ill-run 6s linear infinite;
+  }
+
+  @keyframes ill-draw-pre {
+    0%, 6% { stroke-dashoffset: 1; opacity: 1; }
+    28%, 92% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ill-draw-ast {
+    0%, 36% { stroke-dashoffset: 1; opacity: 1; }
+    50%, 92% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ill-draw-goal {
+    0%, 56% { stroke-dashoffset: 1; opacity: 1; }
+    66%, 92% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ill-show-pre {
+    0%, 26% { opacity: 0; }
+    30%, 92% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes ill-show-ast {
+    0%, 48% { opacity: 0; }
+    52%, 92% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes ill-show-goal {
+    0%, 64% { opacity: 0; }
+    68%, 92% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes ill-net {
+    0%, 65% { fill: transparent; }
+    68% { fill: rgba(255, 122, 26, 0.55); }
+    80%, 100% { fill: transparent; }
+  }
+  @keyframes ill-run {
+    0% { opacity: 0; }
+    6%, 28% { opacity: 1; }
+    40%, 100% { opacity: 0.25; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ill-ball {
+    display: none;
   }
 }
