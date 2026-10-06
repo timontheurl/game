@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { clubSlug } from "@/lib/cards";
 import type { PlayerRow } from "@/lib/data";
 
 type SortKey = "preAssists" | "assists" | "goals" | "involvements" | "preAssistXg" | "minutes";
@@ -20,9 +21,11 @@ const COLUMNS: { key: SortKey; label: string; title: string }[] = [
 export default function RankingTable({
   players,
   teams,
+  hideTeam = false,
 }: {
   players: PlayerRow[];
   teams: Record<string, string>;
+  hideTeam?: boolean;
 }) {
   const [sort, setSort] = useState<SortKey>("preAssists");
   const [team, setTeam] = useState("alle");
@@ -72,14 +75,16 @@ export default function RankingTable({
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Spieler suchen"
         />
-        <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team filtern">
-          <option value="alle">Alle Teams</option>
-          {teamOptions.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+        {!hideTeam && (
+          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team filtern">
+            <option value="alle">Alle Teams</option>
+            {teamOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           value={minMinutes}
           onChange={(e) => setMinMinutes(Number(e.target.value))}
@@ -102,7 +107,7 @@ export default function RankingTable({
             <tr>
               <th className="num">#</th>
               <th>Spieler</th>
-              <th className="hide-sm">Team</th>
+              {!hideTeam && <th className="hide-sm">Team</th>}
               {COLUMNS.map((c) => (
                 <th key={c.key} className={`num ${["minutes", "preAssistXg", "involvements"].includes(c.key) ? "hide-sm" : ""}`}>
                   <button
@@ -128,9 +133,15 @@ export default function RankingTable({
                   <td className="num muted">{rank}</td>
                   <td className="name">
                     <Link href={`/spieler/${p.slug}/`}>{p.name}</Link>
-                    <div className="sub show-sm">{teams[String(p.team)]}</div>
+                    {!hideTeam && <div className="sub show-sm">{teams[String(p.team)]}</div>}
                   </td>
-                  <td className="hide-sm muted">{teams[String(p.team)]}</td>
+                  {!hideTeam && (
+                    <td className="hide-sm muted">
+                      <Link href={`/verein/${clubSlug(teams[String(p.team)])}/`} className="team-link">
+                        {teams[String(p.team)]}
+                      </Link>
+                    </td>
+                  )}
                   {COLUMNS.map((c) => (
                     <td
                       key={c.key}

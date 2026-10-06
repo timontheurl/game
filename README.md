@@ -6,13 +6,33 @@ Website mit Ranglisten, Spielerprofilen und Passketten zum **Pre-Assist**: dem P
 Pre-Assist  →  Assist  →  Tor
 ```
 
+## Funktionen
+
+| Seite | Inhalt |
+|---|---|
+| `/` | Einstieg mit animierter Erklärgrafik, Top 3 je Liga |
+| `/ligen`, `/liga/[key]` | Alle Ligen, auch geplante (Daten folgen) |
+| `/wettbewerb/[slug]` | Rangliste einer Saison, Vereine, häufigste Torketten |
+| `/vereine`, `/verein/[slug]` | Vereine nach Pre-Assists, Kader, Startpunkte der Pre-Assists |
+| `/spieler/[slug]` | Spielerkarte, Kennzahlen, Pass-Arten, Saisonverlauf, alle Spielzüge |
+| `/torketten` | Alle Tore mit Filtern und animierter Wiederholung |
+| `/vergleich` | Zwei Spieler im Duell, Zufallsduell |
+| `/rekorde` | Bestwerte aus allen vollständigen Saisons |
+
+Dazu: Spielersuche, Animationen beim Scrollen, 3D-Karten, Vorschaubilder für geteilte Links, Sitemap.
+
 ## Aufbau
 
 | Ordner | Inhalt |
 |---|---|
-| `pipeline/` | Python-Skript, das Spieldaten lädt und Pre-Assists berechnet |
+| `pipeline/` | Python-Skript, das Spieldaten lädt und Pre-Assists berechnet, plus Tests |
 | `web/` | Next.js-Website (statischer Export), liest die JSON-Dateien aus `web/data/` |
-| `web/lib/site.ts` | Angaben für Impressum und Datenschutz (vor dem Veröffentlichen ausfüllen) |
+| `web/lib/leagues.ts` | Verzeichnis aller Ligen – neue Ligen hier eintragen |
+| `web/lib/site.ts` | Angaben für Impressum und Datenschutz |
+| `.github/workflows/ci.yml` | Tests und Build bei jedem Pull Request |
+
+Eine neue Liga kommt dazu, indem die Pipeline eine Saison mit passendem Slug liefert (z. B. `serie-a-2024-25` für
+die Liga `serie-a`). Ranglisten, Vereins- und Spielerseiten entstehen dann automatisch.
 
 ### Datenquelle
 
@@ -42,6 +62,7 @@ Ausführlich auf der Seite `/methodik` der Website.
 ```bash
 # 1. Daten neu berechnen (optional, die Ergebnisse liegen schon in web/data/)
 python3 pipeline/build_data.py      # nur Standardbibliothek, ~2 Min. beim ersten Lauf
+python3 -m unittest discover -s pipeline   # Tests der Pre-Assist-Erkennung
 
 # 2. Website
 cd web

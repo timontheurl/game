@@ -1,0 +1,10 @@
+import type { MetadataRoute } from "next";
+
+export const dynamic = "force-static";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: { userAgent: "*", allow: "/", disallow: ["/daten/"] },
+    sitemap: "https://www.preassists.at/sitemap.xml",
+  };
+}

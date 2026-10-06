@@ -1,24 +1,35 @@
 import type { Goal, Point } from "@/lib/data";
+import { arrowHead, shorten } from "@/lib/geom";
 
 // StatsBomb-Koordinaten: x 0–120 (Angriff nach rechts), y 0–80.
+// Die Linien zeichnen sich nacheinander, sobald die Grafik ins Bild scrollt (--seq = Reihenfolge).
 
-function Arrow({ from, to, cls, dashed }: { from: Point; to: Point; cls: string; dashed?: boolean }) {
+function Arrow({ from, to, cls, seq }: { from: Point; to: Point; cls: string; seq: number }) {
+  const end = shorten(from, to, 2.4);
+  return (
+    <g className={`pitch-arrow ${cls}`} style={{ "--seq": seq } as React.CSSProperties}>
+      <line x1={from[0]} y1={from[1]} x2={end[0]} y2={end[1]} pathLength={1} className="pitch-line" />
+      <polygon points={arrowHead(from, to, 3, 2.6)} className="pitch-head" />
+    </g>
+  );
+}
+
+function Carry({ from, to, seq }: { from: Point; to: Point; seq: number }) {
   return (
     <line
       x1={from[0]}
       y1={from[1]}
       x2={to[0]}
       y2={to[1]}
-      className={`pitch-line ${cls}`}
-      strokeDasharray={dashed ? "1.2 1.2" : undefined}
-      markerEnd={dashed ? undefined : `url(#arrow-${cls})`}
+      className="pitch-carry"
+      style={{ "--seq": seq } as React.CSSProperties}
     />
   );
 }
 
-function Dot({ at, label, cls }: { at: Point; label: string; cls: string }) {
+function Dot({ at, label, cls, seq }: { at: Point; label: string; cls: string; seq: number }) {
   return (
-    <g className={`pitch-dot ${cls}`}>
+    <g className={`pitch-dot ${cls}`} style={{ "--seq": seq } as React.CSSProperties}>
       <circle cx={at[0]} cy={at[1]} r={2.3} />
       <text x={at[0]} y={at[1] + 0.95} textAnchor="middle">
         {label}
@@ -27,34 +38,13 @@ function Dot({ at, label, cls }: { at: Point; label: string; cls: string }) {
   );
 }
 
-const MARKERS = ["pre", "assist", "shot"];
-
 export default function Pitch({ goal }: { goal: Goal }) {
   const goalTarget: Point = goal.shot.end ?? [120, 40];
+  let seq = 0;
+  const next = () => seq++;
 
   return (
-    <svg
-      viewBox="-2 -2 124 84"
-      className="pitch"
-      role="img"
-      aria-label="Spielzug vom Pre-Assist bis zum Tor"
-    >
-      <defs>
-        {MARKERS.map((m) => (
-          <marker
-            key={m}
-            id={`arrow-${m}`}
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="4"
-            markerHeight="4"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 z" className={`arrow-head ${m}`} />
-          </marker>
-        ))}
-      </defs>
+    <svg viewBox="-2 -2 124 84" className="pitch" role="img" aria-label="Spielzug vom Pre-Assist bis zum Tor">
       <g className="pitch-markings">
         <rect x={0} y={0} width={120} height={80} />
         <line x1={60} y1={0} x2={60} y2={80} />
@@ -67,15 +57,15 @@ export default function Pitch({ goal }: { goal: Goal }) {
         <rect x={0} y={18} width={18} height={44} />
       </g>
 
-      {goal.pre && <Arrow from={goal.pre.start} to={goal.pre.end} cls="pre" />}
-      {goal.pre && goal.assist && <Arrow from={goal.pre.end} to={goal.assist.start} cls="carry" dashed />}
-      {goal.assist && <Arrow from={goal.assist.start} to={goal.assist.end} cls="assist" />}
-      {goal.assist && <Arrow from={goal.assist.end} to={goal.shot.start} cls="carry" dashed />}
-      <Arrow from={goal.shot.start} to={[goalTarget[0], goalTarget[1]]} cls="shot" />
+      {goal.pre && <Arrow from={goal.pre.start} to={goal.pre.end} cls="pre" seq={next()} />}
+      {goal.pre && goal.assist && <Carry from={goal.pre.end} to={goal.assist.start} seq={next()} />}
+      {goal.assist && <Arrow from={goal.assist.start} to={goal.assist.end} cls="assist" seq={next()} />}
+      {goal.assist && <Carry from={goal.assist.end} to={goal.shot.start} seq={next()} />}
+      <Arrow from={goal.shot.start} to={goalTarget} cls="shot" seq={next()} />
 
-      {goal.pre && <Dot at={goal.pre.start} label="1" cls="pre" />}
-      {goal.assist && <Dot at={goal.assist.start} label={goal.pre ? "2" : "1"} cls="assist" />}
-      <Dot at={goal.shot.start} label="T" cls="shot" />
+      {goal.pre && <Dot at={goal.pre.start} label="1" cls="pre" seq={0} />}
+      {goal.assist && <Dot at={goal.assist.start} label={goal.pre ? "2" : "1"} cls="assist" seq={goal.pre ? 2 : 0} />}
+      <Dot at={goal.shot.start} label="T" cls="shot" seq={Math.max(0, seq - 1)} />
     </svg>
   );
 }

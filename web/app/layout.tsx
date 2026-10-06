@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
+import Motion from "@/components/Motion";
 import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
+import SiteNav from "@/components/SiteNav";
 import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
@@ -24,36 +26,44 @@ export const metadata: Metadata = {
   },
   description:
     "Ranglisten, Spielerprofile und Passketten zum Pre-Assist: dem Pass, der zum Assist führt. Premier League, La Liga und Bundesliga.",
+  openGraph: {
+    type: "website",
+    locale: "de_AT",
+    siteName: "PreAssists",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
-const NAV = [
-  { href: "/wettbewerb/premier-league-2015-16/", label: "Premier League" },
-  { href: "/wettbewerb/la-liga-2015-16/", label: "La Liga" },
-  { href: "/wettbewerb/bundesliga-2023-24/", label: "Bundesliga" },
-  { href: "/methodik/", label: "So zählen wir" },
-];
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "PreAssists",
+  url: "https://www.preassists.at",
+  inLanguage: "de",
+  description: "Die Anlaufstelle für Pre-Assists im Fußball: der Pass, der zum Assist führt.",
+};
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+        <a href="#inhalt" className="skip-link">
+          Zum Inhalt springen
+        </a>
         <PitchBackdrop />
+        <Motion />
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/" className="brand" aria-label="PreAssists Startseite">
               <span className="brand-mark">PA</span>
             </Link>
             <Search />
-            <nav className="mainnav">
-              {NAV.map((n) => (
-                <Link key={n.href} href={n.href}>
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
+            <SiteNav />
           </div>
         </header>
-        <main className="page">{children}</main>
+        <main id="inhalt" className="page">{children}</main>
         <footer className="footer">
           <div className="footer-inner">
             <span className="wordmark small">
@@ -64,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Berechnung.
             </span>
             <nav>
+              <Link href="/ligen/">Ligen</Link>
               <Link href="/methodik/">So zählen wir</Link>
               <Link href="/impressum/">Impressum</Link>
               <Link href="/datenschutz/">Datenschutz</Link>
