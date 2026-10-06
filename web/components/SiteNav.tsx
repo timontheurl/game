@@ -9,6 +9,7 @@ export const NAV = [
   { href: "/vereine/", label: "Vereine" },
   { href: "/torketten/", label: "Torketten" },
   { href: "/vergleich/", label: "Vergleich" },
+  { href: "/rekorde/", label: "Rekorde" },
   { href: "/methodik/", label: "So zählen wir" },
 ];
 
