@@ -13,7 +13,11 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const season = getSeason((await params).slug);
-  return { title: season ? `Pre-Assists ${seasonLabel(season.meta)}` : "Wettbewerb" };
+  if (!season) return { title: "Wettbewerb" };
+  return {
+    title: `Pre-Assists ${seasonLabel(season.meta)}`,
+    description: `Rangliste der Pre-Assists in der ${seasonLabel(season.meta)}: alle Spieler, Vereine und die häufigsten Torketten.`,
+  };
 }
 
 function Name({ season, id }: { season: Season; id: number }) {

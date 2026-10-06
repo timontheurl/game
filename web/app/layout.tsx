@@ -26,6 +26,21 @@ export const metadata: Metadata = {
   },
   description:
     "Ranglisten, Spielerprofile und Passketten zum Pre-Assist: dem Pass, der zum Assist führt. Premier League, La Liga und Bundesliga.",
+  openGraph: {
+    type: "website",
+    locale: "de_AT",
+    siteName: "PreAssists",
+  },
+  twitter: { card: "summary_large_image" },
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "PreAssists",
+  url: "https://www.preassists.at",
+  inLanguage: "de",
+  description: "Die Anlaufstelle für Pre-Assists im Fußball: der Pass, der zum Assist führt.",
 };
 
 
@@ -33,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         <PitchBackdrop />
         <Motion />
         <header className="topbar">

@@ -14,7 +14,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const entries = getPlayer((await params).slug);
-  return { title: entries[0] ? `${entries[0].row.name} – Pre-Assists` : "Spieler" };
+  if (!entries[0]) return { title: "Spieler" };
+  const { row, season } = entries[0];
+  return {
+    title: `${row.name} – Pre-Assists`,
+    description: `${row.name} (${season.teams[String(row.team)]}): ${row.preAssists} Pre-Assists, ${row.assists} Assists und ${row.goals} Tore in der ${seasonLabel(season.meta)} – mit allen Spielzügen.`,
+  };
 }
 
 
