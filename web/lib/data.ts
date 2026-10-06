@@ -1,5 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { countryNameDe, type CardData } from "./cards";
+
+export type { CardData } from "./cards";
 
 export type Point = [number, number];
 
@@ -46,6 +49,9 @@ export interface PlayerRow {
   assistXg: number;
   minutes: number;
   matches: number;
+  position: string | null;
+  country: string | null;
+  countryName: string | null;
 }
 
 export interface Match {
@@ -183,4 +189,29 @@ export function describePass(p: PassInfo): string {
   const len = Math.hypot(p.end[0] - p.start[0], p.end[1] - p.start[1]);
   if (len > 30) return "Langer Pass";
   return "Flachpass";
+}
+
+export function toCard(season: Season, row: PlayerRow): CardData {
+  return {
+    slug: row.slug,
+    name: row.name,
+    team: season.teams[String(row.team)],
+    position: row.position,
+    country: row.country,
+    countryName: countryNameDe(row.country, row.countryName),
+    preAssists: row.preAssists,
+    assists: row.assists,
+    goals: row.goals,
+    involvements: row.involvements,
+    preAssistXg: row.preAssistXg,
+    minutes: row.minutes,
+    season: seasonLabel(season.meta),
+  };
+}
+
+export function topCards(limit = 8): CardData[] {
+  return getSeasons()
+    .flatMap((s) => (s.meta.coverage === "full" ? s.players.map((p) => toCard(s, p)) : []))
+    .sort((a, b) => b.preAssists - a.preAssists || b.preAssistXg - a.preAssistXg)
+    .slice(0, limit);
 }

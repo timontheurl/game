@@ -1,109 +1,120 @@
 import Link from "next/link";
+import CardTabs, { type CardTab } from "@/components/CardTabs";
 import Pitch from "@/components/Pitch";
-import { getSeasons, hiddenArchitects, seasonLabel } from "@/lib/data";
+import Search from "@/components/Search";
+import { getSeasons, hiddenArchitects, playerSlug, seasonLabel, toCard, topCards, topCombos } from "@/lib/data";
 
 export default function Home() {
   const seasons = getSeasons();
-  const architects = hiddenArchitects();
-  const totalPre = seasons.reduce((n, s) => n + s.meta.preAssists, 0);
-  const totalGoals = seasons.reduce((n, s) => n + s.meta.goals, 0);
 
-  // Beispiel-Tor für die Erklärgrafik: ein schöner Spielzug aus La Liga
+  const tabs: CardTab[] = [
+    { key: "top", label: "Top Pre-Assists", cards: topCards(16) },
+    ...seasons.map((s) => ({
+      key: s.meta.slug,
+      label: seasonLabel(s.meta),
+      cards: s.players.slice(0, 16).map((p) => toCard(s, p)),
+      href: `/wettbewerb/${s.meta.slug}/`,
+    })),
+    {
+      key: "architects",
+      label: "Stille Architekten",
+      cards: hiddenArchitects(16).map(({ season, row }) => toCard(season, row)),
+    },
+  ];
+
+  const combos = seasons
+    .flatMap((s) => topCombos(s, 6).map((c) => ({ s, c })))
+    .sort((a, b) => b.c.count - a.c.count)
+    .slice(0, 6);
+
   const example = seasons
-    .flatMap((s) => s.goals.map((g) => ({ s, g })))
-    .find(({ g }) => g.pre && g.assist && g.pre.start[0] < 70 && g.assist.through);
+    .flatMap((s) => s.goals)
+    .find((g) => g.pre && g.assist && g.pre.start[0] < 70 && g.assist.through);
+
+  const name = (s: (typeof seasons)[number], id: number) => {
+    const slug = playerSlug(s, id);
+    const n = s.names[String(id)];
+    return slug ? <Link href={`/spieler/${slug}/`}>{n}</Link> : n;
+  };
 
   return (
     <>
       <section className="hero">
-        <div>
-          <p className="eyebrow">Die Anlaufstelle für Pre-Assists</p>
-          <h1>
-            Jeder kennt den Torschützen.
-            <br />
-            <span className="accent">Wir zeigen, wer das Tor möglich gemacht hat.</span>
-          </h1>
-          <p className="lead">
-            Der <strong>Pre-Assist</strong> ist der Pass vor dem Assist – oft der Moment, in dem eine Abwehr
-            geknackt wird. In klassischen Statistiken taucht er nirgends auf. Hier schon.
-          </p>
-          <div className="hero-stats">
-            <div>
-              <strong>{totalPre.toLocaleString("de-AT")}</strong>
-              <span>Pre-Assists erfasst</span>
-            </div>
-            <div>
-              <strong>{totalGoals.toLocaleString("de-AT")}</strong>
-              <span>Tore analysiert</span>
-            </div>
-            <div>
-              <strong>{seasons.length}</strong>
-              <span>Wettbewerbe</span>
-            </div>
+        <h1 className="wordmark">
+          Pre<span>Assists</span>
+        </h1>
+        <p className="hero-sub">Der Pass vor dem Assist. Jedes Tor, bis zum Anfang zurückverfolgt.</p>
+        <Search variant="hero" />
+      </section>
+
+      <section className="section">
+        <CardTabs tabs={tabs} />
+      </section>
+
+      <section className="panels">
+        <div className="panel panel-violet">
+          <div className="panel-head">
+            <h2>Ranglisten</h2>
           </div>
+          <ul className="panel-list">
+            {seasons.map((s) => (
+              <li key={s.meta.slug}>
+                <Link href={`/wettbewerb/${s.meta.slug}/`}>
+                  <span className="pl-title">
+                    {seasonLabel(s.meta)}
+                    <small>
+                      {s.meta.coverage === "team" ? `Nur Spiele von ${s.meta.coverageTeam}` : `${s.meta.matches} Spiele`}
+                    </small>
+                  </span>
+                  <span className="pl-side">
+                    {s.players[0]?.name}
+                    <b>{s.players[0]?.preAssists}</b>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
-        {example && (
-          <figure className="hero-figure">
-            <Pitch goal={example.g} />
-            <figcaption>
-              <span className="legend pre">1 Pre-Assist</span>
-              <span className="legend assist">2 Assist</span>
-              <span className="legend shot">T Tor</span>
-            </figcaption>
-          </figure>
-        )}
-      </section>
 
-      <section>
-        <h2>Pre-Assist-Könige je Wettbewerb</h2>
-        <div className="grid cards">
-          {seasons.map((s) => (
-            <Link key={s.meta.slug} href={`/wettbewerb/${s.meta.slug}/`} className="card">
-              <div className="card-head">
-                <div>
-                  <h3>{seasonLabel(s.meta)}</h3>
-                  <p className="muted small">
-                    {s.meta.country}
-                    {s.meta.coverage === "team" && ` · nur Spiele von ${s.meta.coverageTeam}`}
-                  </p>
-                </div>
-                <span className="badge">{s.meta.preAssists} PA</span>
-              </div>
-              <ol className="top-list">
-                {s.players.slice(0, 5).map((p) => (
-                  <li key={p.id}>
-                    <span>
-                      {p.name} <span className="muted small">{s.teams[String(p.team)]}</span>
+        <div className="panel panel-green">
+          <div className="panel-head">
+            <h2>Torketten</h2>
+            <span className="panel-meta">Pre-Assist → Assist → Tor</span>
+          </div>
+          <ul className="panel-list">
+            {combos.map(({ s, c }) => (
+              <li key={`${s.meta.slug}-${c.pre}-${c.assist}-${c.scorer}`}>
+                <div className="chain-row">
+                  <span className="pl-title">
+                    <span className="chain-names">
+                      <span className="c-pre">{name(s, c.pre)}</span>
+                      <span className="c-sep">›</span>
+                      <span className="c-ast">{name(s, c.assist)}</span>
+                      <span className="c-sep">›</span>
+                      <span className="c-goal">{name(s, c.scorer)}</span>
                     </span>
-                    <strong>{p.preAssists}</strong>
-                  </li>
-                ))}
-              </ol>
-              <span className="card-link">Zur ganzen Rangliste →</span>
-            </Link>
-          ))}
+                    <small>{seasonLabel(s.meta)}</small>
+                  </span>
+                  <b className="pl-count">{c.count}×</b>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
 
-      <section>
-        <h2>Die stillen Architekten</h2>
-        <p className="muted">
-          Spieler mit mehr Pre-Assists als Assists – sie tauchen in keiner Scorerliste auf, stehen aber am Anfang
-          vieler Tore.
-        </p>
-        <div className="grid architects">
-          {architects.map(({ season, row }) => (
-            <Link key={`${season.meta.slug}-${row.id}`} href={`/spieler/${row.slug}/`} className="architect">
-              <strong>{row.name}</strong>
-              <span className="muted small">
-                {season.teams[String(row.team)]} · {seasonLabel(season.meta)}
-              </span>
-              <span className="architect-stats">
-                <span className="pre-color">{row.preAssists} Pre-Assists</span>
-                <span>{row.assists} Assists</span>
-              </span>
-            </Link>
-          ))}
+        <div className="panel panel-teal">
+          <div className="panel-head">
+            <h2>Was ist ein Pre-Assist?</h2>
+          </div>
+          {example && <Pitch goal={example} />}
+          <p className="panel-text">
+            <span className="c-pre">Pre-Assist</span> › <span className="c-ast">Assist</span> ›{" "}
+            <span className="c-goal">Tor</span>. Der Pre-Assist ist der Pass zum Vorlagengeber – oft der Moment, in
+            dem die Abwehr aufgeht.
+          </p>
+          <Link href="/methodik/" className="panel-link">
+            So zählen wir
+          </Link>
         </div>
       </section>
     </>

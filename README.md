@@ -12,6 +12,7 @@ Pre-Assist  →  Assist  →  Tor
 |---|---|
 | `pipeline/` | Python-Skript, das Spieldaten lädt und Pre-Assists berechnet |
 | `web/` | Next.js-Website (statischer Export), liest die JSON-Dateien aus `web/data/` |
+| `web/lib/site.ts` | Angaben für Impressum und Datenschutz (vor dem Veröffentlichen ausfüllen) |
 
 ### Datenquelle
 

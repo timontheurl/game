@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import PlayerCard from "@/components/PlayerCard";
 import RankingTable from "@/components/RankingTable";
-import { getSeason, getSeasons, playerSlug, seasonLabel, topCombos, type Season } from "@/lib/data";
+import { getSeason, getSeasons, playerSlug, seasonLabel, toCard, topCombos, type Season } from "@/lib/data";
 
 export function generateStaticParams() {
   return getSeasons().map((s) => ({ slug: s.meta.slug }));
@@ -24,62 +25,65 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   if (!season) notFound();
   const { meta } = season;
   const combos = topCombos(season);
-  const share = meta.goals ? Math.round((meta.preAssists / meta.goals) * 100) : 0;
 
   return (
     <>
-      <section className="page-head">
-        <p className="eyebrow">{meta.country}</p>
-        <h1>Pre-Assists {seasonLabel(meta)}</h1>
-        {meta.coverage === "team" && (
-          <p className="notice">
-            Für diese Saison sind nur die {meta.matches} Spiele von <strong>{meta.coverageTeam}</strong> als
-            offene Daten verfügbar. Die Rangliste zeigt daher nur Spieler von {meta.coverageTeam}.
-          </p>
-        )}
-        <div className="stat-row">
-          <div>
-            <strong>{meta.matches}</strong>
-            <span>Spiele</span>
-          </div>
-          <div>
-            <strong>{meta.goals}</strong>
-            <span>Tore</span>
-          </div>
-          <div>
-            <strong>{meta.assists}</strong>
-            <span>mit Assist</span>
-          </div>
-          <div>
-            <strong>{meta.preAssists}</strong>
-            <span>mit Pre-Assist ({share} %)</span>
-          </div>
+      <section className="banner">
+        <div>
+          <span className="banner-kicker">{meta.country}</span>
+          <h1>{seasonLabel(meta)}</h1>
+        </div>
+        <div className="banner-facts">
+          <span>
+            <b>{meta.matches}</b> Spiele
+          </span>
+          <span>
+            <b>{meta.goals}</b> Tore
+          </span>
+          <span>
+            <b>{meta.preAssists}</b> mit Pre-Assist
+          </span>
         </div>
       </section>
 
-      <section>
-        <h2>Rangliste</h2>
+      {meta.coverage === "team" && (
+        <p className="notice">
+          Für diese Saison gibt es nur die Spiele von <b>{meta.coverageTeam}</b> als offene Daten. Die Rangliste zeigt
+          deshalb nur Spieler von {meta.coverageTeam}.
+        </p>
+      )}
+
+      <section className="section">
+        <h2 className="section-title">Top 8</h2>
+        <div className="card-grid">
+          {season.players.slice(0, 8).map((p) => (
+            <PlayerCard key={p.id} card={toCard(season, p)} />
+          ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">Alle Spieler</h2>
         <RankingTable players={season.players} teams={season.teams} />
       </section>
 
       {combos.length > 0 && (
-        <section>
-          <h2>Häufigste Torketten</h2>
-          <p className="muted">Pre-Assist → Assist → Tor: welche Trios am häufigsten zusammen getroffen haben.</p>
-          <ul className="combos">
+        <section className="section">
+          <h2 className="section-title">Häufigste Torketten</h2>
+          <ul className="combo-list">
             {combos.map((c) => (
               <li key={`${c.pre}-${c.assist}-${c.scorer}`}>
-                <span className="combo-count">{c.count}×</span>
-                <span className="combo-chain">
-                  <span className="pre-color">
+                <b className="pl-count">{c.count}×</b>
+                <span className="chain-names">
+                  <span className="c-pre">
                     <Name season={season} id={c.pre} />
                   </span>
-                  <span className="sep">→</span>
-                  <span className="assist-color">
+                  <span className="c-sep">›</span>
+                  <span className="c-ast">
                     <Name season={season} id={c.assist} />
                   </span>
-                  <span className="sep">→</span>
-                  <span className="shot-color">
+                  <span className="c-sep">›</span>
+                  <span className="c-goal">
                     <Name season={season} id={c.scorer} />
                   </span>
                 </span>

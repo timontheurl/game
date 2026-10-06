@@ -27,7 +27,7 @@ BASE_URL = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
 ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 OUT_DIR = ROOT / "web" / "data"
-CACHE_VERSION = 2
+CACHE_VERSION = 3
 
 # Welche Saisons auf der Website erscheinen. coverage: "full" = alle Spiele der Liga,
 # "team" = nur Spiele eines Teams (StatsBomb hat nur diese freigegeben).
@@ -42,6 +42,47 @@ SEASONS = [
      "name": "La Liga", "country": "Spanien", "season": "2015/16",
      "coverage": "full"},
 ]
+
+# StatsBomb-Positionen -> deutsche Kürzel
+POSITIONS = {
+    "Goalkeeper": "TW",
+    "Right Back": "RV", "Left Back": "LV", "Right Wing Back": "RV", "Left Wing Back": "LV",
+    "Right Center Back": "IV", "Center Back": "IV", "Left Center Back": "IV",
+    "Right Defensive Midfield": "ZDM", "Center Defensive Midfield": "ZDM", "Left Defensive Midfield": "ZDM",
+    "Right Center Midfield": "ZM", "Center Midfield": "ZM", "Left Center Midfield": "ZM",
+    "Right Midfield": "RM", "Left Midfield": "LM",
+    "Right Attacking Midfield": "ZOM", "Center Attacking Midfield": "ZOM", "Left Attacking Midfield": "ZOM",
+    "Right Wing": "RF", "Left Wing": "LF",
+    "Right Center Forward": "ST", "Center Forward": "ST", "Left Center Forward": "ST", "Secondary Striker": "HS",
+}
+
+# StatsBomb-Ländernamen -> Codes für die Flaggen (flag-icons)
+COUNTRY_CODES = {
+    "Albania": "al", "Algeria": "dz", "Angola": "ao", "Argentina": "ar", "Armenia": "am", "Australia": "au",
+    "Austria": "at", "Belgium": "be", "Benin": "bj", "Bosnia and Herzegovina": "ba", "Brazil": "br",
+    "Bulgaria": "bg", "Burkina Faso": "bf", "Burundi": "bi", "Cameroon": "cm", "Canada": "ca",
+    "Cape Verde Islands": "cv", "Central African Republic": "cf", "Chile": "cl", "China PR": "cn",
+    "Colombia": "co", "Congo": "cg", "Congo DR": "cd", "Costa Rica": "cr", "Côte d'Ivoire": "ci",
+    "Croatia": "hr", "Curaçao": "cw", "Cyprus": "cy", "Czech Republic": "cz", "Denmark": "dk",
+    "Ecuador": "ec", "Egypt": "eg", "England": "gb-eng", "Equatorial Guinea": "gq", "Estonia": "ee",
+    "Finland": "fi", "France": "fr", "Gabon": "ga", "Gambia": "gm", "Georgia": "ge", "Germany": "de",
+    "Ghana": "gh", "Greece": "gr", "Guinea": "gn", "Guinea-Bissau": "gw", "Haiti": "ht", "Honduras": "hn",
+    "Hungary": "hu", "Iceland": "is", "Iran": "ir", "Israel": "il", "Italy": "it", "Jamaica": "jm",
+    "Japan": "jp", "Kenya": "ke", "Korea Republic": "kr", "Kosovo": "xk", "Mali": "ml", "Malta": "mt",
+    "Mexico": "mx", "Montenegro": "me", "Morocco": "ma", "Netherlands": "nl", "New Zealand": "nz",
+    "Nigeria": "ng", "North Macedonia": "mk", "Northern Ireland": "gb-nir", "Norway": "no", "Panama": "pa",
+    "Paraguay": "py", "Peru": "pe", "Poland": "pl", "Portugal": "pt", "Republic of Ireland": "ie",
+    "Ireland": "ie", "Romania": "ro", "Russia": "ru", "Scotland": "gb-sct", "Senegal": "sn", "Serbia": "rs",
+    "Sierra Leone": "sl", "Slovakia": "sk", "Slovenia": "si", "South Africa": "za", "Spain": "es",
+    "Sweden": "se", "Switzerland": "ch", "Togo": "tg", "Trinidad and Tobago": "tt", "Tunisia": "tn",
+    "Turkey": "tr", "Ukraine": "ua", "United States": "us", "United States of America": "us",
+    "Uruguay": "uy", "Venezuela": "ve", "Wales": "gb-wls", "Zambia": "zm", "Zimbabwe": "zw",
+    "Uzbekistan": "uz", "Luxembourg": "lu", "Lithuania": "lt", "Latvia": "lv", "Belarus": "by",
+    "Mozambique": "mz", "Madagascar": "mg", "Martinique": "mq", "Guadeloupe": "gp", "French Guiana": "gf",
+    "Congo, (Kinshasa)": "cd", "Venezuela\xa0(Bolivarian Republic)": "ve", "Korea\xa0(South)": "kr",
+    "Cape Verde": "cv", "Comoros": "km", "Mauritania": "mr", "Libya": "ly", "Syria": "sy", "Iraq": "iq", "Saudi Arabia": "sa",
+    "Qatar": "qa", "Bolivia": "bo", "Faroe Islands": "fo", "Liechtenstein": "li", "Moldova": "md",
+}
 
 PERIOD_START = {1: 0, 2: 45, 3: 90, 4: 105, 5: 120}
 
@@ -72,8 +113,8 @@ def clock_to_minutes(clock: str) -> float:
     return int(m) + int(s) / 60
 
 
-def played_minutes(lineups, events) -> dict[int, float]:
-    """Gespielte Minuten je Spieler inkl. Nachspielzeit."""
+def played_minutes(lineups, events) -> tuple[dict[int, float], dict[int, dict[str, float]]]:
+    """Gespielte Minuten je Spieler inkl. Nachspielzeit, plus Minuten je Position."""
     period_len: dict[int, float] = {}
     for e in events:
         if e["type"]["name"] == "Half End":
@@ -94,6 +135,7 @@ def played_minutes(lineups, events) -> dict[int, float]:
         )
 
     minutes: dict[int, float] = {}
+    positions: dict[int, dict[str, float]] = {}
     for team in lineups:
         for pl in team["lineup"]:
             intervals = []
@@ -102,6 +144,9 @@ def played_minutes(lineups, events) -> dict[int, float]:
                 end = to_played(pos["to"], pos["to_period"])
                 if end > start:
                     intervals.append((start, end))
+                    pos_short = POSITIONS.get(pos["position"], "?")
+                    per_pos = positions.setdefault(pl["player_id"], {})
+                    per_pos[pos_short] = round(per_pos.get(pos_short, 0) + end - start, 1)
             total, cur_end = 0.0, -1.0
             for s, e in sorted(intervals):
                 s = max(s, cur_end)
@@ -110,7 +155,7 @@ def played_minutes(lineups, events) -> dict[int, float]:
                     cur_end = e
             if total > 0:
                 minutes[pl["player_id"]] = round(total, 1)
-    return minutes
+    return minutes, positions
 
 
 def find_pre_assist(events: list[dict], pos: int) -> dict | None:
@@ -182,6 +227,7 @@ def process_match(match: dict) -> dict:
                 "name": pl.get("player_nickname") or pl["player_name"],
                 "full_name": pl["player_name"],
                 "team": team["team_id"],
+                "country": (pl.get("country") or {}).get("name"),
             }
 
     goals = []
@@ -210,6 +256,7 @@ def process_match(match: dict) -> dict:
             "pre": pass_info(pre) if pre else None,
         })
 
+    minutes, positions = played_minutes(lineups, events)
     result = {
         "v": CACHE_VERSION,
         "match": {
@@ -224,7 +271,8 @@ def process_match(match: dict) -> dict:
         "teams": {str(match["home_team"]["home_team_id"]): match["home_team"]["home_team_name"],
                   str(match["away_team"]["away_team_id"]): match["away_team"]["away_team_name"]},
         "players": players,
-        "minutes": played_minutes(lineups, events),
+        "minutes": minutes,
+        "positions": positions,
         "goals": goals,
     }
     cache_file.write_text(json.dumps(result))
@@ -244,6 +292,7 @@ def build_season(cfg: dict) -> dict:
     stats: dict[int, dict] = defaultdict(lambda: {
         "goals": 0, "assists": 0, "preAssists": 0, "preAssistXg": 0.0,
         "assistXg": 0.0, "minutes": 0.0, "matches": 0,
+        "positions": defaultdict(float),
     })
     goals_out = []
 
@@ -257,6 +306,8 @@ def build_season(cfg: dict) -> dict:
             stats[pid]["minutes"] += mins
             stats[pid]["matches"] += 1
             team_counts[pid][r["players"][pid_str]["team"]] += 1
+            for pos, pm in r["positions"].get(pid_str, {}).items():
+                stats[pid]["positions"][pos] += pm
         m = r["match"]
         for g in r["goals"]:
             stats[g["scorer"]]["goals"] += 1
@@ -297,6 +348,9 @@ def build_season(cfg: dict) -> dict:
             "assistXg": round(s["assistXg"], 2),
             "minutes": round(s["minutes"]),
             "matches": s["matches"],
+            "position": max(s["positions"].items(), key=lambda kv: kv[1])[0] if s["positions"] else None,
+            "country": COUNTRY_CODES.get(meta.get("country") or "", None),
+            "countryName": meta.get("country"),
         })
     players_out.sort(key=lambda p: (-p["preAssists"], -p["involvements"], p["name"]))
 

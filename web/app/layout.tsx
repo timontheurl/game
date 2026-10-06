@@ -1,41 +1,71 @@
 import type { Metadata } from "next";
+import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
+import Search from "@/components/Search";
+import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
+// next/font lädt die Schriften beim Build herunter und liefert sie selbst aus –
+// Besucher verbinden sich nicht mit Google.
+const barlow = Barlow({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-body" });
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin", "latin-ext"],
+  weight: ["600", "700", "800"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.preassists.at"),
   title: {
-    default: "PreAssist – Die Pässe vor dem Assist",
-    template: "%s · PreAssist",
+    default: "PreAssists – Wer spielt den Pass vor dem Assist?",
+    template: "%s · PreAssists",
   },
   description:
-    "Die Anlaufstelle für Pre-Assists im Fußball: Ranglisten, Spielerprofile und Passketten – wer den Pass vor dem Assist spielt.",
+    "Ranglisten, Spielerprofile und Passketten zum Pre-Assist: dem Pass, der zum Assist führt. Premier League, La Liga und Bundesliga.",
 };
+
+const NAV = [
+  { href: "/wettbewerb/premier-league-2015-16/", label: "Premier League" },
+  { href: "/wettbewerb/la-liga-2015-16/", label: "La Liga" },
+  { href: "/wettbewerb/bundesliga-2023-24/", label: "Bundesliga" },
+  { href: "/methodik/", label: "So zählen wir" },
+];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de">
+    <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
-        <header className="site-header">
-          <div className="container header-inner">
-            <Link href="/" className="logo">
-              <span className="logo-mark">P</span>
-              <span>
-                Pre<strong>Assist</strong>
-              </span>
+        <header className="topbar">
+          <div className="topbar-inner">
+            <Link href="/" className="brand" aria-label="PreAssists Startseite">
+              <span className="brand-mark">PA</span>
             </Link>
-            <nav>
-              <Link href="/wettbewerb/premier-league-2015-16/">Premier League</Link>
-              <Link href="/wettbewerb/la-liga-2015-16/">La Liga</Link>
-              <Link href="/wettbewerb/bundesliga-2023-24/">Bundesliga</Link>
-              <Link href="/methodik/">Methodik</Link>
+            <Search />
+            <nav className="mainnav">
+              {NAV.map((n) => (
+                <Link key={n.href} href={n.href}>
+                  {n.label}
+                </Link>
+              ))}
             </nav>
           </div>
         </header>
-        <main className="container">{children}</main>
-        <footer className="site-footer">
-          <div className="container">
-            Daten: <a href="https://github.com/statsbomb/open-data">StatsBomb Open Data</a> (Hudl StatsBomb).
-            Pre-Assists eigene Berechnung – siehe <Link href="/methodik/">Methodik</Link>.
+        <main className="page">{children}</main>
+        <footer className="footer">
+          <div className="footer-inner">
+            <span className="wordmark small">
+              Pre<span>Assists</span>
+            </span>
+            <span className="footer-note">
+              Daten: <a href="https://github.com/statsbomb/open-data">StatsBomb Open Data</a>. Pre-Assists eigene
+              Berechnung.
+            </span>
+            <nav>
+              <Link href="/methodik/">So zählen wir</Link>
+              <Link href="/impressum/">Impressum</Link>
+              <Link href="/datenschutz/">Datenschutz</Link>
+            </nav>
           </div>
         </footer>
       </body>

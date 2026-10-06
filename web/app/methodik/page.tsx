@@ -5,7 +5,6 @@ export const metadata: Metadata = { title: "Methodik" };
 export default function MethodikPage() {
   return (
     <article className="prose">
-      <p className="eyebrow">Methodik</p>
       <h1>Wie wir Pre-Assists zählen</h1>
 
       <p>
