@@ -29,7 +29,6 @@ body {
 body {
   background:
     radial-gradient(1200px 500px at 50% -120px, rgba(255, 122, 26, 0.08), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 80px, transparent 80px 160px),
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
@@ -346,24 +345,23 @@ h3 {
 }
 
 .pcard {
-  --shape: polygon(16% 0, 84% 0, 100% 6%, 100% 90%, 50% 100%, 0 90%, 0 6%);
+  --shape: polygon(0 5%, 7% 1.2%, 20% 0, 80% 0, 93% 1.2%, 100% 5%, 100% 87%, 50% 100%, 0 87%);
+  --split: 50%;
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
-  max-width: 170px;
+  max-width: 180px;
   margin: 0 auto;
-  aspect-ratio: 0.7;
-  padding: 9% 8% 12%;
+  aspect-ratio: 0.63;
   color: var(--text);
-  background: linear-gradient(170deg, #ffb066, var(--accent) 40%, #b9480a);
+  background: linear-gradient(170deg, #ffb066, var(--accent) 45%, #b9480a);
   clip-path: var(--shape);
   transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-/* dunkle, leicht durchscheinende Innenfläche – der Rand bleibt als orange Linie stehen */
+/* Innenfläche: oben dunkel mit orangem Schimmer, unten ein eigenes Band – der Rand bleibt als Linie */
 .pcard::before {
   content: "";
   position: absolute;
@@ -371,8 +369,9 @@ h3 {
   z-index: -1;
   clip-path: var(--shape);
   background:
-    radial-gradient(120% 70% at 50% 0%, rgba(255, 122, 26, 0.22), transparent 60%),
-    linear-gradient(180deg, rgba(28, 24, 22, 0.94), rgba(14, 15, 18, 0.97));
+    linear-gradient(180deg, transparent var(--split), rgba(255, 122, 26, 0.13) var(--split)),
+    radial-gradient(110% 60% at 70% 0%, rgba(255, 122, 26, 0.28), transparent 65%),
+    linear-gradient(180deg, rgba(30, 25, 22, 0.95), rgba(15, 15, 18, 0.97));
 }
 
 .pcard:hover {
@@ -381,31 +380,43 @@ h3 {
   color: var(--text);
 }
 
+.pcard-upper {
+  position: relative;
+  height: var(--split);
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 122, 26, 0.45);
+}
+
 .pcard-watermark {
   position: absolute;
-  top: 2%;
-  left: 50%;
-  transform: translateX(-38%) skewX(-10deg);
-  z-index: -1;
+  top: -4%;
+  right: 4%;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 9.5em;
+  font-style: italic;
+  font-size: 8.5em;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 2px rgba(255, 122, 26, 0.35);
-  background: linear-gradient(180deg, rgba(255, 122, 26, 0.22), transparent 85%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  -webkit-text-stroke: 2px rgba(255, 122, 26, 0.3);
   pointer-events: none;
 }
 
-.pcard-top {
+.pcard-bust {
   position: absolute;
-  top: 8%;
-  left: 11%;
+  right: 2%;
+  bottom: 0;
+  width: 66%;
+  height: 88%;
+}
+
+.pcard-side {
+  position: absolute;
+  top: 7%;
+  left: 8%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.2em;
   line-height: 0.95;
 }
 
@@ -413,104 +424,157 @@ h3 {
   font-family: var(--display);
   font-weight: 800;
   font-size: 2.3em;
+  color: var(--accent);
 }
 
 .pcard-pos {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 0.9em;
-  color: var(--accent);
+  font-size: 0.95em;
+  color: #ffc58f;
+  margin-bottom: 0.15em;
 }
 
-.pcard-figure {
-  width: 50%;
-  margin: 8% 0 0 12%;
-  color: #f4f1ee;
-  opacity: 0.92;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+.pcard-badge {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  background: #ffc58f;
+  border-radius: 2px;
+}
+
+.pcard .flag {
+  display: block;
+  width: 1.55em;
+  height: 1.15em;
+}
+
+.pcard-club {
+  display: grid;
+  place-items: center;
+  width: 2.2em;
+  height: 2.2em;
+  padding-bottom: 0.3em;
+  background: #ffc58f;
+  color: #2a1406;
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 0.66em;
+  letter-spacing: -0.02em;
+}
+
+.pcard-lower {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4% 9% 0;
 }
 
 .pcard-name {
-  margin-top: 7%;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 1.12em;
-  line-height: 1.05;
-  text-align: center;
+  font-size: 1.08em;
+  line-height: 1.1;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.pcard-rule {
+  width: 86%;
+  height: 1px;
+  margin: 3.5% 0;
+  background: var(--accent);
+  flex: none;
+}
+
+.pcard-rule.short {
+  width: 24%;
+  margin: 3% 0 0;
+}
+
 .pcard-stats {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  width: 100%;
-  margin-top: 5%;
-  text-align: center;
-  line-height: 1.1;
+  grid-template-columns: 1fr 1px 1fr;
+  column-gap: 9%;
+  width: 82%;
 }
 
-.pcard-stats > span {
+.pcard-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 0.12em;
 }
 
-.pcard-stats small {
-  font-family: var(--display);
-  font-size: 0.62em;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-}
-
-.pcard-stats b {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 1em;
-}
-
-.pcard-stats > span:first-child b {
-  color: var(--accent);
-}
-
-.pcard-foot {
+.pcard-col > span {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: auto;
-  max-width: 82%;
-  font-size: 0.66em;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.pcard .flag {
-  flex: none;
-  width: 1.5em;
-  height: 1.1em;
-  border-radius: 2px;
-}
-
-.pcard-club {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  align-items: baseline;
+  gap: 0.3em;
+  font-family: var(--display);
+  line-height: 1.1;
   white-space: nowrap;
 }
 
+.pcard-col b {
+  font-weight: 800;
+  font-size: 1em;
+  min-width: 1.6em;
+  text-align: right;
+}
+
+.pcard-col small {
+  font-weight: 700;
+  font-size: 0.78em;
+  color: #ffc58f;
+}
+
+.pcard-col:first-child > span:first-child b {
+  color: var(--accent);
+}
+
+.pcard-divider {
+  background: var(--accent);
+}
+
 .pcard-md {
-  font-size: clamp(12px, 1.2vw, 15px);
+  font-size: clamp(12px, 1.15vw, 15px);
 }
 
 .pcard-lg {
   max-width: 280px;
-  font-size: 23px;
+  font-size: 22px;
 }
 
 .pcard-lg::before {
   inset: 3px;
+}
+
+/* ---------- Spielfeld-Hintergrund ---------- */
+.pitch-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, #000 35%, transparent 100%);
+}
+
+.pitch-backdrop svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pitch-backdrop g {
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 2.5;
+}
+
+.pitch-backdrop .spots {
+  fill: rgba(255, 255, 255, 0.09);
+  stroke: none;
 }
 
 /* ---------- Panels ---------- */
@@ -1218,7 +1282,7 @@ td.name a {
   }
 
   .pcard-md {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .player-hero {

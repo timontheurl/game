@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
+import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
 import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
+        <PitchBackdrop />
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/" className="brand" aria-label="PreAssists Startseite">
