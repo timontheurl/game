@@ -964,6 +964,192 @@ h3 {
   color: var(--text);
 }
 
+/* ---------- Pills ---------- */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pill {
+  font: inherit;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid #454c55;
+  border-radius: 999px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.pill:hover {
+  border-color: var(--text);
+}
+
+.pill.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+/* ---------- Torketten-Explorer ---------- */
+.explorer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.explorer-count {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.explorer-count b {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  color: var(--text);
+}
+
+.explorer-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.chain-item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(27, 30, 35, 0.85);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chain-item:hover {
+  border-color: #5a616b;
+}
+
+.chain-item.is-active {
+  border-color: var(--accent);
+  background: linear-gradient(120deg, rgba(255, 122, 26, 0.14), rgba(27, 30, 35, 0.9) 60%);
+}
+
+.chain-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ci-meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.ci-tags {
+  display: flex;
+  gap: 6px;
+}
+
+.ci-tags span {
+  font-size: 0.75rem;
+  color: #c9d0d7;
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 1px 7px;
+}
+
+.explorer-stage {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(20, 21, 25, 0.92);
+  border: 1px solid var(--line);
+}
+
+.stage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.replay-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.replay-pitch .pitch-line {
+  stroke-width: 0.8;
+}
+
+.replay-ball {
+  fill: #fff;
+  stroke: #0b0c0e;
+  stroke-width: 0.35;
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.7));
+}
+
+.replay-goal {
+  fill: transparent;
+  stroke: var(--pitch-line);
+  stroke-width: 0.35;
+  transition: fill 0.25s ease;
+}
+
+.replay-goal.is-scored {
+  fill: var(--accent);
+}
+
+.replay-label circle {
+  stroke: #0b0c0e;
+  stroke-width: 0.3;
+}
+
+.replay-label text {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 2.6px;
+  paint-order: stroke;
+  stroke: #0b0c0e;
+  stroke-width: 0.6px;
+}
+
+.replay-label.pre circle,
+.replay-label.pre text {
+  fill: var(--pre);
+}
+.replay-label.assist circle,
+.replay-label.assist text {
+  fill: var(--assist);
+}
+.replay-label.shot circle,
+.replay-label.shot text {
+  fill: var(--goal);
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -1864,6 +2050,7 @@ td.name a {
   .intro,
   .coming-soon,
   .club-split,
+  .explorer-grid,
   .league-row,
   .league-row.is-reversed {
     grid-template-columns: 1fr;
@@ -1909,6 +2096,11 @@ td.name a {
 
   .club-facts {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .explorer-stage {
+    position: static;
+    order: -1;
   }
 
   .pa-thirds-legend {

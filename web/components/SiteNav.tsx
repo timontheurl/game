@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 export const NAV = [
   { href: "/ligen/", label: "Ligen" },
   { href: "/vereine/", label: "Vereine" },
+  { href: "/torketten/", label: "Torketten" },
   { href: "/methodik/", label: "So zählen wir" },
 ];
 

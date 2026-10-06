@@ -1,3 +1,5 @@
+import type { PassInfo } from "./data";
+
 // Reine Hilfsfunktionen ohne Dateizugriff – dürfen auch im Browser laufen.
 
 export function initials(name: string): string {
@@ -59,4 +61,25 @@ export function slugify(text: string): string {
 
 export function clubSlug(name: string): string {
   return slugify(name);
+}
+
+export function formatClock(period: number, minute: number): string {
+  const limit = { 1: 45, 2: 90, 3: 105, 4: 120 }[period];
+  if (limit !== undefined && minute >= limit) return `${limit}+${minute - limit + 1}'`;
+  return `${minute + 1}'`;
+}
+
+export function describePass(p: PassInfo): string {
+  if (p.type === "Corner") return "Ecke";
+  if (p.type === "Free Kick") return "Freistoß";
+  if (p.type === "Throw-in") return "Einwurf";
+  if (p.type === "Goal Kick") return "Abstoß";
+  if (p.cutback) return "Rückpass";
+  if (p.cross) return "Flanke";
+  if (p.through) return "Steilpass";
+  if (p.height === "High Pass") return "Hoher Ball";
+  if (p.height === "Low Pass") return "Halbhoher Pass";
+  const len = Math.hypot(p.end[0] - p.start[0], p.end[1] - p.start[1]);
+  if (len > 30) return "Langer Pass";
+  return "Flachpass";
 }

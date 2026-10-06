@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { clubSlug, countryNameDe, type CardData } from "./cards";
+
+export { describePass, formatClock } from "./cards";
 import { LEAGUES, leagueForSeason, type League } from "./leagues";
 
 export type { CardData } from "./cards";
@@ -156,27 +158,6 @@ export function topCombos(season: Season, limit = 8, teamId?: number): Combo[] {
     map.set(key, c);
   }
   return [...map.values()].sort((a, b) => b.count - a.count).slice(0, limit);
-}
-
-export function formatClock(period: number, minute: number): string {
-  const limit = { 1: 45, 2: 90, 3: 105, 4: 120 }[period];
-  if (limit !== undefined && minute >= limit) return `${limit}+${minute - limit + 1}'`;
-  return `${minute + 1}'`;
-}
-
-export function describePass(p: PassInfo): string {
-  if (p.type === "Corner") return "Ecke";
-  if (p.type === "Free Kick") return "Freistoß";
-  if (p.type === "Throw-in") return "Einwurf";
-  if (p.type === "Goal Kick") return "Abstoß";
-  if (p.cutback) return "Rückpass";
-  if (p.cross) return "Flanke";
-  if (p.through) return "Steilpass";
-  if (p.height === "High Pass") return "Hoher Ball";
-  if (p.height === "Low Pass") return "Halbhoher Pass";
-  const len = Math.hypot(p.end[0] - p.start[0], p.end[1] - p.start[1]);
-  if (len > 30) return "Langer Pass";
-  return "Flachpass";
 }
 
 export function toCard(season: Season, row: PlayerRow): CardData {
