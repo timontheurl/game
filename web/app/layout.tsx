@@ -3,6 +3,7 @@ import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
+import SiteNav from "@/components/SiteNav";
 import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
@@ -26,12 +27,6 @@ export const metadata: Metadata = {
     "Ranglisten, Spielerprofile und Passketten zum Pre-Assist: dem Pass, der zum Assist führt. Premier League, La Liga und Bundesliga.",
 };
 
-const NAV = [
-  { href: "/wettbewerb/premier-league-2015-16/", label: "Premier League" },
-  { href: "/wettbewerb/la-liga-2015-16/", label: "La Liga" },
-  { href: "/wettbewerb/bundesliga-2023-24/", label: "Bundesliga" },
-  { href: "/methodik/", label: "So zählen wir" },
-];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,13 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="brand-mark">PA</span>
             </Link>
             <Search />
-            <nav className="mainnav">
-              {NAV.map((n) => (
-                <Link key={n.href} href={n.href}>
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
+            <SiteNav />
           </div>
         </header>
         <main className="page">{children}</main>
@@ -64,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Berechnung.
             </span>
             <nav>
+              <Link href="/ligen/">Ligen</Link>
               <Link href="/methodik/">So zählen wir</Link>
               <Link href="/impressum/">Impressum</Link>
               <Link href="/datenschutz/">Datenschutz</Link>

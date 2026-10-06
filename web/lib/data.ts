@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { countryNameDe, type CardData } from "./cards";
+import { LEAGUES, leagueForSeason, type League } from "./leagues";
 
 export type { CardData } from "./cards";
 
@@ -194,4 +195,17 @@ export function toCard(season: Season, row: PlayerRow): CardData {
     matches: row.matches,
     season: seasonLabel(season.meta),
   };
+}
+
+export interface LeagueStatus {
+  league: League;
+  seasons: Season[];
+}
+
+/** Alle Ligen mit ihren verfügbaren Saisons (leer = Daten folgen). */
+export function getLeagueStatuses(): LeagueStatus[] {
+  return LEAGUES.map((league) => ({
+    league,
+    seasons: getSeasons().filter((s) => leagueForSeason(s.meta.slug)?.key === league.key),
+  }));
 }
