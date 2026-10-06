@@ -1,0 +1,7 @@
+pipeline/.cache/
+__pycache__/
+node_modules/
+web/.next/
+web/out/
+*.tsbuildinfo
+next-env.d.ts
