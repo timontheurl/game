@@ -1,5 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { countryNameDe, type CardData } from "./cards";
+
+export type { CardData } from "./cards";
 
 export type Point = [number, number];
 
@@ -46,6 +49,9 @@ export interface PlayerRow {
   assistXg: number;
   minutes: number;
   matches: number;
+  position: string | null;
+  country: string | null;
+  countryName: string | null;
 }
 
 export interface Match {
@@ -150,20 +156,6 @@ export function topCombos(season: Season, limit = 8): Combo[] {
   return [...map.values()].sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
-/** Spieler, deren Pre-Assists die eigenen Assists übertreffen – die „stillen Vorbereiter“. */
-export function hiddenArchitects(limit = 6) {
-  const rows: { season: Season; row: PlayerRow }[] = [];
-  for (const season of getSeasons()) {
-    if (season.meta.coverage !== "full") continue;
-    for (const row of season.players) {
-      if (row.preAssists >= 4 && row.preAssists > row.assists) rows.push({ season, row });
-    }
-  }
-  return rows
-    .sort((a, b) => b.row.preAssists - b.row.assists - (a.row.preAssists - a.row.assists))
-    .slice(0, limit);
-}
-
 export function formatClock(period: number, minute: number): string {
   const limit = { 1: 45, 2: 90, 3: 105, 4: 120 }[period];
   if (limit !== undefined && minute >= limit) return `${limit}+${minute - limit + 1}'`;
@@ -183,4 +175,23 @@ export function describePass(p: PassInfo): string {
   const len = Math.hypot(p.end[0] - p.start[0], p.end[1] - p.start[1]);
   if (len > 30) return "Langer Pass";
   return "Flachpass";
+}
+
+export function toCard(season: Season, row: PlayerRow): CardData {
+  return {
+    slug: row.slug,
+    name: row.name,
+    team: season.teams[String(row.team)],
+    position: row.position,
+    country: row.country,
+    countryName: countryNameDe(row.country, row.countryName),
+    preAssists: row.preAssists,
+    assists: row.assists,
+    goals: row.goals,
+    involvements: row.involvements,
+    preAssistXg: row.preAssistXg,
+    minutes: row.minutes,
+    matches: row.matches,
+    season: seasonLabel(season.meta),
+  };
 }

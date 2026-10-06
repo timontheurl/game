@@ -1,111 +1,97 @@
 import Link from "next/link";
-import Pitch from "@/components/Pitch";
-import { getSeasons, hiddenArchitects, seasonLabel } from "@/lib/data";
+import AssistIllustration from "@/components/AssistIllustration";
+import PlayerCard from "@/components/PlayerCard";
+import { getSeasons, seasonLabel, toCard, type PlayerRow, type Season } from "@/lib/data";
+
+function joinNames(names: string[]) {
+  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`;
+}
+
+/** Kurzer Text zur Spitze der Rangliste, aus den Daten erzeugt. */
+function leagueText(season: Season, top: PlayerRow[]) {
+  const { meta } = season;
+  const team = (p: PlayerRow) => season.teams[String(p.team)];
+  const best = top[0];
+  const leaders = top.filter((p) => p.preAssists === best.preAssists);
+  const share = meta.goals ? Math.round((meta.preAssists / meta.goals) * 100) : 0;
+
+  let lead: string;
+  if (leaders.length > 1) {
+    lead = `${joinNames(leaders.map((p) => p.name))} teilen sich die Spitze mit je ${best.preAssists} Pre-Assists.`;
+  } else {
+    const extra =
+      best.assists === 0
+        ? " – und das ganz ohne eigenen Assist."
+        : best.assists < best.preAssists
+          ? `, mehr als Assists (${best.assists}).`
+          : `, dazu kommen ${best.assists} Assists.`;
+    lead = `${best.name} (${team(best)}) führt mit ${best.preAssists} Pre-Assists${extra}`;
+  }
+
+  const rest = top.filter((p) => !leaders.includes(p));
+  const follow = rest.length
+    ? `Dahinter: ${joinNames(rest.map((p) => `${p.name} (${p.preAssists})`))}.`
+    : "";
+
+  const context =
+    meta.coverage === "team"
+      ? `Ausgewertet sind die ${meta.matches} Spiele von ${meta.coverageTeam}. Bei ${share} % der Tore in diesen Spielen gab es einen Pre-Assist.`
+      : `In ${meta.matches} Spielen fielen ${meta.goals.toLocaleString("de-AT")} Tore. Bei ${share} % davon gab es einen Pre-Assist.`;
+
+  return { lead, follow, context };
+}
 
 export default function Home() {
   const seasons = getSeasons();
-  const architects = hiddenArchitects();
-  const totalPre = seasons.reduce((n, s) => n + s.meta.preAssists, 0);
-  const totalGoals = seasons.reduce((n, s) => n + s.meta.goals, 0);
-
-  // Beispiel-Tor für die Erklärgrafik: ein schöner Spielzug aus La Liga
-  const example = seasons
-    .flatMap((s) => s.goals.map((g) => ({ s, g })))
-    .find(({ g }) => g.pre && g.assist && g.pre.start[0] < 70 && g.assist.through);
 
   return (
     <>
-      <section className="hero">
-        <div>
-          <p className="eyebrow">Die Anlaufstelle für Pre-Assists</p>
+      <section className="intro">
+        <div className="intro-text">
           <h1>
-            Jeder kennt den Torschützen.
-            <br />
-            <span className="accent">Wir zeigen, wer das Tor möglich gemacht hat.</span>
+            Jedes Tor hat eine <span>Vorgeschichte.</span>
           </h1>
-          <p className="lead">
-            Der <strong>Pre-Assist</strong> ist der Pass vor dem Assist – oft der Moment, in dem eine Abwehr
-            geknackt wird. In klassischen Statistiken taucht er nirgends auf. Hier schon.
+          <p className="intro-lead">
+            Der Torschütze bekommt die Schlagzeile, der Vorlagengeber die Erwähnung. Das Entscheidende passiert aber oft
+            einen Pass früher: der Steckpass, der die Abwehrkette aufreißt, bevor der Querleger zum Tor kommt.
           </p>
-          <div className="hero-stats">
-            <div>
-              <strong>{totalPre.toLocaleString("de-AT")}</strong>
-              <span>Pre-Assists erfasst</span>
-            </div>
-            <div>
-              <strong>{totalGoals.toLocaleString("de-AT")}</strong>
-              <span>Tore analysiert</span>
-            </div>
-            <div>
-              <strong>{seasons.length}</strong>
-              <span>Wettbewerbe</span>
-            </div>
-          </div>
+          <p>
+            Dieser Pass vor dem Assist ist der <strong>Pre-Assist</strong>. Ohne ihn gibt es keine Torvorlage und kein
+            Tor – trotzdem taucht er in keiner gängigen Statistik auf. Hier zählen wir ihn: für jedes Tor, jeden Spieler
+            und jede Liga.
+          </p>
+          <Link href="/methodik/" className="text-link">
+            So zählen wir Pre-Assists
+          </Link>
         </div>
-        {example && (
-          <figure className="hero-figure">
-            <Pitch goal={example.g} />
-            <figcaption>
-              <span className="legend pre">1 Pre-Assist</span>
-              <span className="legend assist">2 Assist</span>
-              <span className="legend shot">T Tor</span>
-            </figcaption>
-          </figure>
-        )}
+        <figure className="intro-figure">
+          <AssistIllustration />
+        </figure>
       </section>
 
-      <section>
-        <h2>Pre-Assist-Könige je Wettbewerb</h2>
-        <div className="grid cards">
-          {seasons.map((s) => (
-            <Link key={s.meta.slug} href={`/wettbewerb/${s.meta.slug}/`} className="card">
-              <div className="card-head">
-                <div>
-                  <h3>{seasonLabel(s.meta)}</h3>
-                  <p className="muted small">
-                    {s.meta.country}
-                    {s.meta.coverage === "team" && ` · nur Spiele von ${s.meta.coverageTeam}`}
-                  </p>
-                </div>
-                <span className="badge">{s.meta.preAssists} PA</span>
-              </div>
-              <ol className="top-list">
-                {s.players.slice(0, 5).map((p) => (
-                  <li key={p.id}>
-                    <span>
-                      {p.name} <span className="muted small">{s.teams[String(p.team)]}</span>
-                    </span>
-                    <strong>{p.preAssists}</strong>
-                  </li>
-                ))}
-              </ol>
-              <span className="card-link">Zur ganzen Rangliste →</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2>Die stillen Architekten</h2>
-        <p className="muted">
-          Spieler mit mehr Pre-Assists als Assists – sie tauchen in keiner Scorerliste auf, stehen aber am Anfang
-          vieler Tore.
-        </p>
-        <div className="grid architects">
-          {architects.map(({ season, row }) => (
-            <Link key={`${season.meta.slug}-${row.id}`} href={`/spieler/${row.slug}/`} className="architect">
-              <strong>{row.name}</strong>
-              <span className="muted small">
-                {season.teams[String(row.team)]} · {seasonLabel(season.meta)}
-              </span>
-              <span className="architect-stats">
-                <span className="pre-color">{row.preAssists} Pre-Assists</span>
-                <span>{row.assists} Assists</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {seasons.map((season, i) => {
+        const top = season.players.slice(0, 3);
+        const text = leagueText(season, top);
+        return (
+          <section key={season.meta.slug} className={`league-row ${i % 2 ? "is-reversed" : ""}`}>
+            <div className="league-box">
+              {top.map((p) => (
+                <PlayerCard key={p.id} card={toCard(season, p)} />
+              ))}
+            </div>
+            <div className="league-text">
+              <span className="league-kicker">Top 3 · {season.meta.country}</span>
+              <h2>{seasonLabel(season.meta)}</h2>
+              <p className="league-lead">{text.lead}</p>
+              {text.follow && <p>{text.follow}</p>}
+              <p className="muted">{text.context}</p>
+              <Link href={`/wettbewerb/${season.meta.slug}/`} className="text-link">
+                Ganze Rangliste
+              </Link>
+            </div>
+          </section>
+        );
+      })}
     </>
   );
 }
