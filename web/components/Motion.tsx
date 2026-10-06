@@ -14,6 +14,9 @@ const AUTO_REVEAL = [
   ".stat-table > div",
   ".combo-list li",
   ".banner",
+  ".pa-map",
+  ".club-tile",
+  ".club-facts > div",
   ".reveal",
 ].join(",");
 

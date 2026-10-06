@@ -36,3 +36,27 @@ export function countryNameDe(code: string | null, fallback: string | null): str
     return fallback;
   }
 }
+
+/** Kurzform für das Vereinswappen, z. B. „Real Madrid“ → „RM“, „Barcelona“ → „BAR“. */
+export function clubShort(name: string): string {
+  const words = name.split(/\s+/).filter((w) => w.length > 2 || /\d/.test(w));
+  if (words.length <= 1) return name.slice(0, 3).toUpperCase();
+  return words
+    .slice(0, 3)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
+export function slugify(text: string): string {
+  return text
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function clubSlug(name: string): string {
+  return slugify(name);
+}

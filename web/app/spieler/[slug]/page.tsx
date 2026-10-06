@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import CountUp from "@/components/CountUp";
 import GoalCard from "@/components/GoalCard";
 import PlayerCard, { Flag } from "@/components/PlayerCard";
-import { countryNameDe } from "@/lib/cards";
+import { clubSlug, countryNameDe } from "@/lib/cards";
 import { getPlayer, getPlayerSlugs, playerSlug, seasonLabel, toCard } from "@/lib/data";
 
 export function generateStaticParams() {
@@ -58,7 +58,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                   <Link href={`/wettbewerb/${season.meta.slug}/`} className="tag">
                     {seasonLabel(season.meta)}
                   </Link>
-                  <span className="tag">{season.teams[String(r.team)]}</span>
+                  <Link href={`/verein/${clubSlug(season.teams[String(r.team)])}/`} className="tag">
+                    {season.teams[String(r.team)]}
+                  </Link>
                   {r.position && <span className="tag">{r.position}</span>}
                   {r.country && (
                     <span className="tag">

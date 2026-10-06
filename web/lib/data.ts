@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { countryNameDe, type CardData } from "./cards";
+import { clubSlug, countryNameDe, type CardData } from "./cards";
 import { LEAGUES, leagueForSeason, type League } from "./leagues";
 
 export type { CardData } from "./cards";
@@ -145,9 +145,10 @@ export interface Combo {
 }
 
 /** Häufigste Ketten Pre-Assist → Assist → Tor in einer Saison. */
-export function topCombos(season: Season, limit = 8): Combo[] {
+export function topCombos(season: Season, limit = 8, teamId?: number): Combo[] {
   const map = new Map<string, Combo>();
   for (const g of season.goals) {
+    if (teamId !== undefined && g.team !== teamId) continue;
     if (!g.pre || !g.assist) continue;
     const key = `${g.pre.player}-${g.assist.player}-${g.scorer}`;
     const c = map.get(key) ?? { pre: g.pre.player, assist: g.assist.player, scorer: g.scorer, count: 0 };
@@ -208,4 +209,61 @@ export function getLeagueStatuses(): LeagueStatus[] {
     league,
     seasons: getSeasons().filter((s) => leagueForSeason(s.meta.slug)?.key === league.key),
   }));
+}
+
+export interface ClubSeason {
+  season: Season;
+  teamId: number;
+  name: string;
+  players: PlayerRow[];
+  goals: Goal[];
+}
+
+export interface Club {
+  slug: string;
+  name: string;
+  seasons: ClubSeason[];
+}
+
+let clubCache: Club[] | null = null;
+
+/** Alle Vereine mit mindestens einem erfassten Spieler, über alle Saisons zusammengefasst. */
+export function getClubs(): Club[] {
+  if (clubCache) return clubCache;
+  const bySlug = new Map<string, Club>();
+  for (const season of getSeasons()) {
+    const teamIds = new Set(season.players.map((p) => p.team));
+    for (const teamId of teamIds) {
+      const name = season.teams[String(teamId)];
+      const slug = clubSlug(name);
+      const club = bySlug.get(slug) ?? { slug, name, seasons: [] };
+      club.seasons.push({
+        season,
+        teamId,
+        name,
+        players: season.players.filter((p) => p.team === teamId),
+        goals: season.goals.filter((g) => g.team === teamId),
+      });
+      bySlug.set(slug, club);
+    }
+  }
+  clubCache = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "de"));
+  return clubCache;
+}
+
+export function getClub(slug: string): Club | undefined {
+  return getClubs().find((c) => c.slug === slug);
+}
+
+/** Vereine einer Saison, sortiert nach Pre-Assists. */
+export function seasonClubs(season: Season) {
+  return getClubs()
+    .flatMap((c) => c.seasons.filter((cs) => cs.season === season).map((cs) => ({ club: c, cs })))
+    .map(({ club, cs }) => ({
+      club,
+      goals: cs.goals.length,
+      preAssists: cs.goals.filter((g) => g.pre).length,
+      leader: [...cs.players].sort((a, b) => b.preAssists - a.preAssists)[0],
+    }))
+    .sort((a, b) => b.preAssists - a.preAssists || b.goals - a.goals);
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CardData } from "@/lib/cards";
+import { clubShort, type CardData } from "@/lib/cards";
 
 export function Flag({ code, title }: { code: string | null; title?: string | null }) {
   if (!code) return null;
@@ -23,17 +23,6 @@ function Silhouette() {
       />
     </svg>
   );
-}
-
-/** Kurzform für das Vereinswappen, z. B. „Real Madrid“ → „RM“, „Barcelona“ → „BAR“. */
-function clubShort(name: string): string {
-  const words = name.split(/\s+/).filter((w) => w.length > 2 || /\d/.test(w));
-  if (words.length <= 1) return name.slice(0, 3).toUpperCase();
-  return words
-    .slice(0, 3)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
 }
 
 const de = (n: number, digits: number) => n.toFixed(digits).replace(".", ",");

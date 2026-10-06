@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import CountUp from "@/components/CountUp";
 import PlayerCard from "@/components/PlayerCard";
 import RankingTable from "@/components/RankingTable";
-import { getSeason, getSeasons, playerSlug, seasonLabel, toCard, topCombos, type Season } from "@/lib/data";
+import ClubBadge from "@/components/ClubBadge";
+import { getSeason, getSeasons, playerSlug, seasonClubs, seasonLabel, toCard, topCombos, type Season } from "@/lib/data";
 
 export function generateStaticParams() {
   return getSeasons().map((s) => ({ slug: s.meta.slug }));
@@ -68,6 +69,32 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           ))}
         </div>
       </section>
+
+      {season.meta.coverage === "full" && (
+        <section className="section">
+          <h2 className="section-title">Vereine</h2>
+          <div className="club-grid">
+            {seasonClubs(season).map(({ club, goals, preAssists, leader }, i) => (
+              <Link key={club.slug} href={`/verein/${club.slug}/`} className="club-tile">
+                <span className="ct-rank">{i + 1}</span>
+                <ClubBadge name={club.name} size={40} />
+                <span className="ct-main">
+                  <span className="ct-name">{club.name}</span>
+                  {leader && (
+                    <span className="ct-leader">
+                      {leader.name} · {leader.preAssists}
+                    </span>
+                  )}
+                </span>
+                <span className="ct-num">
+                  <b>{preAssists}</b>
+                  <small>von {goals} Toren</small>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <h2 className="section-title">Alle Spieler</h2>

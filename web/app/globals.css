@@ -787,6 +787,183 @@ h3 {
   border-color: var(--text);
 }
 
+/* ---------- Vereine ---------- */
+.club-badge .cb-shield {
+  fill: var(--accent);
+}
+.club-badge .cb-inner {
+  fill: #1c1612;
+}
+.club-badge .cb-text {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 13px;
+  fill: #ffc58f;
+}
+
+.club-title {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.club-facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.club-facts > div {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(27, 30, 35, 0.85);
+  border: 1px solid var(--line);
+}
+
+.club-facts b {
+  font-family: var(--display);
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.club-facts > div > span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.club-facts .is-accent b {
+  color: var(--accent);
+}
+
+.club-split {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sub-title {
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  color: #ffc58f;
+  margin: 26px 0 10px;
+}
+
+.club-split .sub-title {
+  margin-top: 0;
+}
+
+.club-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 8px;
+}
+
+.club-tile {
+  display: grid;
+  grid-template-columns: 1.6rem auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(27, 30, 35, 0.85);
+  border: 1px solid var(--line);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.club-tile:hover {
+  border-color: var(--accent);
+  transform: translateX(3px);
+  color: var(--text);
+}
+
+.ct-rank {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--muted);
+  text-align: right;
+}
+
+.ct-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ct-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ct-leader {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.ct-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.05;
+}
+
+.ct-num b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.ct-num small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.team-link:hover {
+  color: var(--accent);
+}
+
+/* Pre-Assist-Karte */
+.pa-map {
+  margin: 0;
+}
+
+.pa-thirds line {
+  stroke: rgba(255, 122, 26, 0.25);
+  stroke-width: 0.3;
+  stroke-dasharray: 1 1;
+}
+
+.pa-shot line {
+  stroke: rgba(255, 122, 26, 0.35);
+  stroke-width: 0.35;
+}
+
+.pa-shot circle {
+  fill: var(--accent);
+  stroke: #0b0c0e;
+  stroke-width: 0.3;
+}
+
+.pa-thirds-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.pa-thirds-legend b {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -1686,6 +1863,7 @@ td.name a {
 @media (max-width: 900px) {
   .intro,
   .coming-soon,
+  .club-split,
   .league-row,
   .league-row.is-reversed {
     grid-template-columns: 1fr;
@@ -1727,6 +1905,15 @@ td.name a {
 
   .stat-table {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .club-facts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pa-thirds-legend {
+    flex-direction: column;
+    gap: 2px;
   }
 
   .hide-sm {
@@ -1840,6 +2027,14 @@ td.name a {
     animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.1s);
     transform-box: fill-box;
     transform-origin: center;
+  }
+
+  .reveal .pa-shot {
+    opacity: 0;
+  }
+  .reveal.is-in .pa-shot {
+    animation: appear 0.4s ease-out forwards;
+    animation-delay: calc(var(--seq) * 60ms + 0.2s);
   }
 
   @keyframes draw {
