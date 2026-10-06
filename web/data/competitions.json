@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "bundesliga-2023-24",
+    "name": "Bundesliga",
+    "country": "Deutschland",
+    "season": "2023/24",
+    "coverage": "team",
+    "coverageTeam": "Bayer Leverkusen",
+    "matches": 34,
+    "goals": 110,
+    "assists": 85,
+    "preAssists": 58
+  },
+  {
+    "slug": "premier-league-2015-16",
+    "name": "Premier League",
+    "country": "England",
+    "season": "2015/16",
+    "coverage": "full",
+    "coverageTeam": null,
+    "matches": 380,
+    "goals": 988,
+    "assists": 669,
+    "preAssists": 472
+  },
+  {
+    "slug": "la-liga-2015-16",
+    "name": "La Liga",
+    "country": "Spanien",
+    "season": "2015/16",
+    "coverage": "full",
+    "coverageTeam": null,
+    "matches": 380,
+    "goals": 1014,
+    "assists": 722,
+    "preAssists": 523
+  }
+]
