@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import CountUp from "@/components/CountUp";
 import GoalCard from "@/components/GoalCard";
 import PlayerCard, { Flag } from "@/components/PlayerCard";
+import PlayerInsights from "@/components/PlayerInsights";
 import { clubSlug, countryNameDe } from "@/lib/cards";
 import { getPlayer, getPlayerSlugs, playerSlug, seasonLabel, toCard } from "@/lib/data";
 
@@ -101,6 +102,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                 )}
               </div>
             </div>
+
+            <PlayerInsights season={season} row={r} goals={preGoals} />
 
             {preGoals.length > 0 && (
               <>

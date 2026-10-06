@@ -15,6 +15,8 @@ const AUTO_REVEAL = [
   ".combo-list li",
   ".banner",
   ".pa-map",
+  ".type-bars",
+  ".curve",
   ".club-tile",
   ".club-facts > div",
   ".reveal",

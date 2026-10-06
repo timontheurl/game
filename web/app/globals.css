@@ -1290,6 +1290,102 @@ h3 {
   margin-top: 14px;
 }
 
+/* ---------- Spieler-Auswertungen ---------- */
+.insights {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  margin: 36px 0 48px;
+}
+
+.insight .sub-title:first-child {
+  margin-top: 0;
+}
+
+.type-bars {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.type-bars li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 2rem;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+
+.type-bars b {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  text-align: right;
+}
+
+.tb-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.tb-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b9480a, var(--accent));
+  transform-origin: left;
+}
+
+.curve {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(27, 30, 35, 0.85);
+  border: 1px solid var(--line);
+}
+
+.curve svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.curve-area {
+  fill: rgba(255, 122, 26, 0.12);
+}
+
+.curve-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.curve-dot {
+  fill: var(--accent);
+  stroke: #0b0c0e;
+  stroke-width: 1.5;
+}
+
+.curve figcaption {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.section-note {
+  margin: -8px 0 16px;
+}
+
+.similar-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 190px));
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -1896,7 +1992,8 @@ td.name a {
   font-family: var(--display);
 }
 
-.player-hero + .section-title {
+.player-hero + .section-title,
+.similar-grid + .section-title {
   margin-top: 40px;
 }
 
@@ -2190,6 +2287,7 @@ td.name a {
   .intro,
   .coming-soon,
   .club-split,
+  .insights,
   .explorer-grid,
   .league-row,
   .league-row.is-reversed {
@@ -2382,6 +2480,21 @@ td.name a {
     animation-delay: calc(var(--seq) * 0.4s + var(--reveal-delay, 0ms) + 0.1s);
     transform-box: fill-box;
     transform-origin: center;
+  }
+
+  .reveal .tb-bar i {
+    transform: scaleX(0);
+  }
+  .reveal.is-in .tb-bar i {
+    transform: scaleX(1);
+    transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s;
+  }
+  .reveal .curve-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .reveal.is-in .curve-line {
+    animation: draw 1.4s ease-out 0.2s forwards;
   }
 
   .reveal .pa-shot {
