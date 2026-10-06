@@ -49,6 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+        <a href="#inhalt" className="skip-link">
+          Zum Inhalt springen
+        </a>
         <PitchBackdrop />
         <Motion />
         <header className="topbar">
@@ -60,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteNav />
           </div>
         </header>
-        <main className="page">{children}</main>
+        <main id="inhalt" className="page">{children}</main>
         <footer className="footer">
           <div className="footer-inner">
             <span className="wordmark small">
