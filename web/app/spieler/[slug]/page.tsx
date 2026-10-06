@@ -79,6 +79,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     </div>
                   ))}
                 </dl>
+                <Link href={`/vergleich/?a=${encodeURIComponent(`${r.slug}|${season.meta.slug}`)}`} className="btn btn-ghost btn-small compare-link">
+                  Mit anderem Spieler vergleichen
+                </Link>
                 {topPartners.length > 0 && (
                   <div className="partners">
                     <h3>Pre-Assists landeten bei</h3>
