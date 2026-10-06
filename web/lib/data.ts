@@ -205,6 +205,7 @@ export function toCard(season: Season, row: PlayerRow): CardData {
     involvements: row.involvements,
     preAssistXg: row.preAssistXg,
     minutes: row.minutes,
+    matches: row.matches,
     season: seasonLabel(season.meta),
   };
 }

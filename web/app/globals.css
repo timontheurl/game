@@ -6,11 +6,11 @@
   --line: #2c3138;
   --text: #eef1f4;
   --muted: #8d96a0;
-  --accent: #2fe0a0;
-  --accent-ink: #062a1c;
-  --pre: #ffb62e;
+  --accent: #ff7a1a;
+  --accent-ink: #1f0c00;
+  --pre: #ff7a1a;
   --assist: #5aa9ff;
-  --goal: #ff5a5f;
+  --goal: #b48cff;
   --pitch: #1f5a37;
   --pitch-line: rgba(255, 255, 255, 0.5);
   --display: var(--font-display), "Arial Narrow", sans-serif;
@@ -28,7 +28,7 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 500px at 50% -120px, rgba(47, 224, 160, 0.09), transparent 70%),
+    radial-gradient(1200px 500px at 50% -120px, rgba(255, 122, 26, 0.08), transparent 70%),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 80px, transparent 80px 160px),
     var(--bg);
   background-attachment: fixed;
@@ -346,12 +346,9 @@ h3 {
 }
 
 .pcard {
-  --c1: #f8e9a6;
-  --c2: #e2bd5f;
-  --c3: #b98a2c;
-  --ink: #3a2906;
-  --inset: rgba(90, 60, 0, 0.16);
+  --shape: polygon(16% 0, 84% 0, 100% 6%, 100% 90%, 50% 100%, 0 90%, 0 6%);
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -359,97 +356,85 @@ h3 {
   max-width: 170px;
   margin: 0 auto;
   aspect-ratio: 0.7;
-  padding: 10% 9% 7%;
-  color: var(--ink);
+  padding: 9% 8% 12%;
+  color: var(--text);
+  background: linear-gradient(170deg, #ffb066, var(--accent) 40%, #b9480a);
+  clip-path: var(--shape);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+/* dunkle, leicht durchscheinende Innenfläche – der Rand bleibt als orange Linie stehen */
+.pcard::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  clip-path: var(--shape);
   background:
-    linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.35) 45%, transparent 55%),
-    linear-gradient(165deg, var(--c1), var(--c2) 48%, var(--c3));
-  clip-path: polygon(14% 0, 86% 0, 100% 7%, 100% 89%, 50% 100%, 0 89%, 0 7%);
-  transition: transform 0.15s ease;
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 122, 26, 0.22), transparent 60%),
+    linear-gradient(180deg, rgba(28, 24, 22, 0.94), rgba(14, 15, 18, 0.97));
 }
 
 .pcard:hover {
   transform: translateY(-4px);
-  color: var(--ink);
+  filter: drop-shadow(0 8px 18px rgba(255, 122, 26, 0.35));
+  color: var(--text);
 }
 
-.pcard::after {
-  content: "";
+.pcard-watermark {
   position: absolute;
-  inset: 3.5%;
-  clip-path: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  top: 2%;
+  left: 50%;
+  transform: translateX(-38%) skewX(-10deg);
+  z-index: -1;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 9.5em;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 122, 26, 0.35);
+  background: linear-gradient(180deg, rgba(255, 122, 26, 0.22), transparent 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
   pointer-events: none;
-}
-
-.pcard-silver {
-  --c1: #f1f3f6;
-  --c2: #c3c9d1;
-  --c3: #8e96a1;
-  --ink: #20252b;
-  --inset: rgba(30, 40, 50, 0.14);
-}
-
-.pcard-bronze {
-  --c1: #f0c39f;
-  --c2: #c98a5b;
-  --c3: #93552d;
-  --ink: #33190a;
-  --inset: rgba(70, 30, 0, 0.16);
 }
 
 .pcard-top {
   position: absolute;
-  top: 9%;
-  left: 10%;
+  top: 8%;
+  left: 11%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  line-height: 1;
+  line-height: 0.95;
 }
 
 .pcard-rating {
   font-family: var(--display);
   font-weight: 800;
-  font-size: 2.1em;
+  font-size: 2.3em;
 }
 
 .pcard-pos {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 0.85em;
+  font-size: 0.9em;
+  color: var(--accent);
 }
 
-.pcard .flag {
-  width: 1.45em;
-  height: 1.05em;
-  margin-top: 4px;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
-}
-
-.pcard-face {
-  display: grid;
-  place-items: center;
-  width: 54%;
-  aspect-ratio: 1;
-  margin: 4% 0 0 14%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.45), var(--inset) 70%);
-  font-family: var(--display);
-  font-weight: 800;
-  font-style: italic;
-  font-size: 2em;
-  letter-spacing: -0.03em;
-  opacity: 0.9;
+.pcard-figure {
+  width: 50%;
+  margin: 8% 0 0 12%;
+  color: #f4f1ee;
+  opacity: 0.92;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
 }
 
 .pcard-name {
-  margin-top: 6%;
+  margin-top: 7%;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 1.02em;
+  font-size: 1.12em;
   line-height: 1.05;
   text-align: center;
   max-width: 100%;
@@ -462,44 +447,70 @@ h3 {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   width: 100%;
-  margin-top: 4%;
-  padding-top: 4%;
-  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  margin-top: 5%;
   text-align: center;
-  line-height: 1.05;
+  line-height: 1.1;
+}
+
+.pcard-stats > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .pcard-stats small {
-  display: block;
-  font-size: 0.5em;
+  font-family: var(--display);
+  font-size: 0.62em;
   font-weight: 700;
-  opacity: 0.7;
+  letter-spacing: 0.02em;
+  color: var(--muted);
 }
 
 .pcard-stats b {
   font-family: var(--display);
-  font-size: 0.8em;
+  font-weight: 800;
+  font-size: 1em;
+}
+
+.pcard-stats > span:first-child b {
+  color: var(--accent);
+}
+
+.pcard-foot {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  max-width: 82%;
+  font-size: 0.66em;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pcard .flag {
+  flex: none;
+  width: 1.5em;
+  height: 1.1em;
+  border-radius: 2px;
 }
 
 .pcard-club {
-  margin-top: auto;
-  font-size: 0.62em;
-  font-weight: 600;
-  opacity: 0.75;
-  max-width: 80%;
-  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .pcard-md {
-  font-size: clamp(12px, 1.25vw, 15px);
+  font-size: clamp(12px, 1.2vw, 15px);
 }
 
 .pcard-lg {
   max-width: 280px;
   font-size: 23px;
+}
+
+.pcard-lg::before {
+  inset: 3px;
 }
 
 /* ---------- Panels ---------- */
@@ -523,7 +534,7 @@ h3 {
   background: linear-gradient(180deg, #33204f, #1d1729 70%);
 }
 .panel-green {
-  background: linear-gradient(180deg, #17402f, #15231d 70%);
+  background: linear-gradient(180deg, #4a2410, #23170f 70%);
 }
 .panel-teal {
   background: linear-gradient(180deg, #153a43, #142226 70%);
@@ -631,7 +642,7 @@ h3 {
   padding: 26px 24px;
   border-radius: 12px;
   background:
-    linear-gradient(100deg, rgba(47, 224, 160, 0.16), transparent 60%),
+    linear-gradient(100deg, rgba(255, 122, 26, 0.16), transparent 60%),
     var(--surface);
   border: 1px solid var(--line);
   display: flex;
@@ -673,7 +684,7 @@ h3 {
   margin: 14px 0 0;
   padding: 10px 14px;
   border-left: 3px solid var(--pre);
-  background: rgba(255, 182, 46, 0.08);
+  background: rgba(255, 122, 26, 0.08);
   border-radius: 0 8px 8px 0;
 }
 
@@ -1136,8 +1147,8 @@ td.name a {
 }
 
 .placeholder {
-  background: rgba(255, 90, 95, 0.15);
-  color: var(--goal);
+  background: rgba(255, 122, 26, 0.15);
+  color: #ffa25c;
   padding: 0 4px;
   border-radius: 3px;
   font-weight: 600;

@@ -6,13 +6,6 @@ export function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Kartenfarbe wie bei Sammelkarten: Gold, Silber, Bronze nach Pre-Assists. */
-export function cardTier(preAssists: number): "gold" | "silver" | "bronze" {
-  if (preAssists >= 6) return "gold";
-  if (preAssists >= 3) return "silver";
-  return "bronze";
-}
-
 export interface CardData {
   slug: string;
   name: string;
@@ -26,6 +19,7 @@ export interface CardData {
   involvements: number;
   preAssistXg: number;
   minutes: number;
+  matches: number;
   season: string;
 }
 
