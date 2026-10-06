@@ -156,20 +156,6 @@ export function topCombos(season: Season, limit = 8): Combo[] {
   return [...map.values()].sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
-/** Spieler, deren Pre-Assists die eigenen Assists übertreffen – die „stillen Vorbereiter“. */
-export function hiddenArchitects(limit = 6) {
-  const rows: { season: Season; row: PlayerRow }[] = [];
-  for (const season of getSeasons()) {
-    if (season.meta.coverage !== "full") continue;
-    for (const row of season.players) {
-      if (row.preAssists >= 4 && row.preAssists > row.assists) rows.push({ season, row });
-    }
-  }
-  return rows
-    .sort((a, b) => b.row.preAssists - b.row.assists - (a.row.preAssists - a.row.assists))
-    .slice(0, limit);
-}
-
 export function formatClock(period: number, minute: number): string {
   const limit = { 1: 45, 2: 90, 3: 105, 4: 120 }[period];
   if (limit !== undefined && minute >= limit) return `${limit}+${minute - limit + 1}'`;
@@ -208,11 +194,4 @@ export function toCard(season: Season, row: PlayerRow): CardData {
     matches: row.matches,
     season: seasonLabel(season.meta),
   };
-}
-
-export function topCards(limit = 8): CardData[] {
-  return getSeasons()
-    .flatMap((s) => (s.meta.coverage === "full" ? s.players.map((p) => toCard(s, p)) : []))
-    .sort((a, b) => b.preAssists - a.preAssists || b.preAssistXg - a.preAssistXg)
-    .slice(0, limit);
 }

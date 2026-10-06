@@ -9,10 +9,10 @@
   --accent: #ff7a1a;
   --accent-ink: #1f0c00;
   --pre: #ff7a1a;
-  --assist: #5aa9ff;
-  --goal: #b48cff;
-  --pitch: #1f5a37;
-  --pitch-line: rgba(255, 255, 255, 0.5);
+  --assist: #ffc58f;
+  --goal: #ffffff;
+  --pitch: #191b20;
+  --pitch-line: rgba(255, 255, 255, 0.28);
   --display: var(--font-display), "Arial Narrow", sans-serif;
   color-scheme: dark;
 }
@@ -337,6 +337,224 @@ h3 {
   font-weight: 600;
 }
 
+/* ---------- Startseite ---------- */
+.intro {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 48px;
+  align-items: center;
+  padding: 56px 0 24px;
+}
+
+.intro h1 {
+  font-size: clamp(2.6rem, 5.5vw, 4.4rem);
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.95;
+  margin-bottom: 22px;
+}
+
+.intro h1 span {
+  color: var(--accent);
+}
+
+.intro-text p {
+  color: #c9d0d7;
+  font-size: 1.05rem;
+  margin: 0 0 14px;
+  max-width: 34rem;
+}
+
+.intro-text .intro-lead {
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.intro-text strong {
+  color: var(--accent);
+}
+
+.intro-figure {
+  margin: 0;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(20, 21, 25, 0.85);
+  border: 1px solid var(--line);
+}
+
+.text-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.text-link::after {
+  content: " ›";
+}
+
+/* Erklärgrafik */
+.illustration {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ill-stripe {
+  fill: rgba(255, 255, 255, 0.025);
+}
+
+.ill-lines rect,
+.ill-lines path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 2.5;
+}
+
+.ill-spot {
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+.ill-run {
+  fill: none;
+  stroke: rgba(255, 197, 143, 0.55);
+  stroke-width: 3;
+  stroke-dasharray: 8 9;
+}
+
+.ill-defender circle {
+  fill: #2a2e35;
+  stroke: #4a515b;
+  stroke-width: 2;
+}
+
+.ill-defender path {
+  stroke: #8d96a0;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.ill-pass {
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.ill-pass.pre {
+  stroke: var(--accent);
+}
+.ill-pass.ast {
+  stroke: #ffc58f;
+}
+.ill-pass.goal {
+  stroke: #fff;
+}
+
+.ill-head-pre {
+  fill: var(--accent);
+}
+.ill-head-ast {
+  fill: #ffc58f;
+}
+.ill-head-goal {
+  fill: #fff;
+}
+
+.ill-player circle {
+  stroke: #0b0c0e;
+  stroke-width: 4;
+}
+
+.ill-player.pre circle {
+  fill: var(--accent);
+}
+.ill-player.ast circle {
+  fill: #ffc58f;
+}
+.ill-player.goal circle {
+  fill: #fff;
+}
+
+.ill-player text {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 21px;
+  text-anchor: middle;
+  fill: #0b0c0e;
+}
+
+.ill-label {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  text-transform: uppercase;
+}
+
+.ill-label.pre {
+  fill: var(--accent);
+}
+.ill-label.ast {
+  fill: #ffc58f;
+}
+.ill-label.goal {
+  fill: #fff;
+}
+
+/* Top 3 je Liga: Kasten und Text nebeneinander */
+.league-row {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 40px;
+  align-items: center;
+  margin-top: 64px;
+}
+
+.league-row.is-reversed {
+  grid-template-columns: 1fr 1.15fr;
+}
+
+.league-row.is-reversed .league-box {
+  order: 2;
+}
+
+.league-box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 24px 20px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(255, 122, 26, 0.1), rgba(20, 21, 25, 0.9) 55%);
+  border: 1px solid var(--line);
+}
+
+.league-kicker {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.league-text h2 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 4px 0 14px;
+}
+
+.league-text p {
+  margin: 0 0 10px;
+  color: #c9d0d7;
+}
+
+.league-text .league-lead {
+  color: var(--text);
+  font-size: 1.12rem;
+}
+
+.league-text .muted {
+  color: var(--muted);
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -499,8 +717,8 @@ h3 {
 .pcard-stats {
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
-  column-gap: 9%;
-  width: 82%;
+  column-gap: 6%;
+  width: 86%;
 }
 
 .pcard-col {
@@ -510,9 +728,10 @@ h3 {
 }
 
 .pcard-col > span {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: baseline;
-  gap: 0.3em;
+  column-gap: 0.3em;
   font-family: var(--display);
   line-height: 1.1;
   white-space: nowrap;
@@ -521,8 +740,11 @@ h3 {
 .pcard-col b {
   font-weight: 800;
   font-size: 1em;
-  min-width: 1.6em;
   text-align: right;
+}
+
+.pcard-col small {
+  text-align: left;
 }
 
 .pcard-col small {
@@ -1103,7 +1325,8 @@ td.name a {
   width: 100%;
   height: auto;
   display: block;
-  background: repeating-linear-gradient(90deg, var(--pitch) 0 10%, #1c5333 10% 20%);
+  background: repeating-linear-gradient(90deg, var(--pitch) 0 10%, #1d2025 10% 20%);
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 
@@ -1275,6 +1498,19 @@ td.name a {
   }
 }
 
+@media (max-width: 900px) {
+  .intro,
+  .league-row,
+  .league-row.is-reversed {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .league-row.is-reversed .league-box {
+    order: 0;
+  }
+}
+
 @media (max-width: 720px) {
   .card-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1283,6 +1519,15 @@ td.name a {
 
   .pcard-md {
     font-size: 14px;
+  }
+
+  .league-box {
+    gap: 8px;
+    padding: 14px 10px;
+  }
+
+  .league-box .pcard-md {
+    font-size: 2.75vw;
   }
 
   .player-hero {

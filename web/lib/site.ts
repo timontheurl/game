@@ -4,11 +4,11 @@ export const SITE = {
   name: "PreAssists",
   domain: "preassists.at",
   owner: {
-    name: "", // Vor- und Nachname (oder Firmenname)
-    street: "", // Straße und Hausnummer
-    city: "", // PLZ und Ort
+    name: "Timon Theurl",
+    street: "Paletzgasse", // TODO: Hausnummer ergänzen
+    city: "1160 Wien",
     country: "Österreich",
-    email: "", // Kontakt-E-Mail
+    email: "timontheurl@gmail.com",
   },
 };
 
