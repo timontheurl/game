@@ -1745,6 +1745,71 @@ h3 {
   background: var(--surface);
 }
 
+/* Passnetzwerk */
+.network {
+  margin: 0;
+  max-width: 900px;
+}
+
+.net-edge {
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.net-edge.pre {
+  stroke: var(--pre);
+}
+
+.net-edge.assist {
+  stroke: var(--assist);
+}
+
+.net-node circle {
+  fill: #2a1a10;
+  stroke: var(--accent);
+  stroke-width: 0.5;
+}
+
+.net-node text {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 2.5px;
+  fill: var(--text);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #0b0c0e;
+  stroke-width: 0.6px;
+}
+
+.network-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+.legend-pre,
+.legend-ast {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-pre::before,
+.legend-ast::before {
+  content: "";
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pre);
+}
+
+.legend-ast::before {
+  background: var(--assist);
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -2859,6 +2924,20 @@ td.name a {
   }
   .reveal.is-in .curve-line {
     animation: draw 1.4s ease-out 0.2s forwards;
+  }
+
+  .reveal .net-edge {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+  }
+  .reveal.is-in .net-edge {
+    animation: draw-net 1.2s ease-out forwards;
+    animation-delay: calc(var(--seq) * 70ms + 0.2s);
+  }
+  @keyframes draw-net {
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 
   .reveal .pa-shot {

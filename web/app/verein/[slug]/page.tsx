@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ClubBadge from "@/components/ClubBadge";
 import CountUp from "@/components/CountUp";
+import PassNetwork from "@/components/PassNetwork";
 import PlayerCard from "@/components/PlayerCard";
 import PreAssistMap from "@/components/PreAssistMap";
 import RankingTable from "@/components/RankingTable";
@@ -95,6 +96,13 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
                 <PreAssistMap goals={cs.goals} label={`Startpunkte der Pre-Assists von ${club.name}`} />
               </div>
             </div>
+
+            {cs.goals.some((g) => g.pre) && (
+              <>
+                <h3 className="sub-title">Passnetzwerk: Wer wen in Szene setzt</h3>
+                <PassNetwork goals={cs.goals} names={season.names} />
+              </>
+            )}
 
             {combos.length > 0 && (
               <>
