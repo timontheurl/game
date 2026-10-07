@@ -1562,6 +1562,189 @@ h3 {
   color: var(--accent);
 }
 
+/* ---------- Erfassungs-Tool ---------- */
+.howto {
+  margin: 0 0 20px;
+  padding-left: 1.3rem;
+  color: #c9d0d7;
+}
+
+.howto li {
+  margin-bottom: 4px;
+}
+
+.howto code {
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.editor-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(27, 30, 35, 0.92);
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.editor-actions label {
+  cursor: pointer;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  align-items: start;
+  margin: 12px 0 16px;
+}
+
+.editor-panel {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(20, 21, 25, 0.92);
+  border: 1px solid var(--line);
+}
+
+.editor-panel .sub-title:first-child {
+  margin-top: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.form-grid .span-2 {
+  grid-column: span 2;
+}
+
+.form-grid input,
+.form-grid select,
+.editor-panel td select,
+.code-input {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.form-grid input:disabled {
+  opacity: 0.4;
+}
+
+.code-input {
+  width: 5rem;
+}
+
+.editor-round {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ci-meta.is-open {
+  color: var(--accent);
+}
+
+.click-pitch {
+  cursor: crosshair;
+  margin: 8px 0 12px;
+}
+
+.click-hint {
+  font-size: 2.6px;
+  fill: rgba(255, 255, 255, 0.35);
+  font-family: var(--display);
+}
+
+.click-dot {
+  stroke: #0b0c0e;
+  stroke-width: 0.4;
+}
+.click-dot.pre {
+  fill: var(--pre);
+}
+.click-dot.assist {
+  fill: var(--assist);
+}
+.click-dot.shot {
+  fill: var(--goal);
+}
+
+.click-step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 4px 0 0;
+}
+
+.click-step b {
+  color: var(--accent);
+}
+
+.link-btn {
+  all: unset;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: var(--text);
+}
+
+.link-btn.danger {
+  color: #ff8a80;
+  margin-top: 12px;
+  display: inline-block;
+}
+
+.editor-goals {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.editor-goals li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -2462,6 +2645,7 @@ td.name a {
 @media (max-width: 900px) {
   .intro,
   .coming-soon,
+  .editor-grid,
   .club-split,
   .insights,
   .explorer-grid,
@@ -2510,6 +2694,10 @@ td.name a {
 
   .club-facts {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .explorer-stage {

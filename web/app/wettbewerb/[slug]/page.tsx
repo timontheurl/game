@@ -58,6 +58,13 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
         </div>
       </section>
 
+      {meta.manual && (
+        <p className="notice">
+          Diese Saison ist von Hand erfasst. Pre-Assists, Assists und Tore sind vollständig; xG-Werte und Spielminuten
+          gibt es dafür nicht.
+        </p>
+      )}
+
       {meta.coverage === "team" && (
         <p className="notice">
           Für diese Saison gibt es nur die Spiele von <b>{meta.coverageTeam}</b> als offene Daten. Die Rangliste zeigt

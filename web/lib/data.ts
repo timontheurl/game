@@ -4,6 +4,7 @@ import { clubSlug, countryNameDe, type CardData } from "./cards";
 
 export { describePass, formatClock } from "./cards";
 import { LEAGUES, leagueForSeason, type League } from "./leagues";
+import { loadManualSeasons } from "./manual";
 
 export type { CardData } from "./cards";
 
@@ -82,6 +83,8 @@ export interface SeasonMeta {
   coverageTeam: string | null;
   /** Turnier mit Nationalteams statt Vereinen */
   national: boolean;
+  /** Händisch erfasst (ohne xG und Spielminuten) */
+  manual?: boolean;
   matches: number;
   goals: number;
   assists: number;
@@ -116,6 +119,8 @@ export function getSeasons(): Season[] {
       }
       return season;
     });
+    // Händisch erfasste Saisons (Erfassungs-Tool) kommen dazu
+    cache.push(...loadManualSeasons());
   }
   return cache;
 }
