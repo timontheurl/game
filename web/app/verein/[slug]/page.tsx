@@ -34,9 +34,9 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
     <>
       <section className="banner club-banner">
         <div className="club-title">
-          <ClubBadge name={club.name} size={72} />
+          <ClubBadge name={club.name} size={72} flag={club.flag} />
           <div>
-            <span className="banner-kicker">Verein</span>
+            <span className="banner-kicker">{club.flag ? "Nationalteam" : "Verein"}</span>
             <h1>{club.name}</h1>
           </div>
         </div>

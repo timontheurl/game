@@ -34,8 +34,8 @@ export default function PlayerCard({ card, size = "md" }: { card: CardData; size
     [String(card.goals), "TOR"],
   ];
   const right: [string, string][] = [
+    [de(card.xpa, 1), "xPA"],
     [String(card.involvements), "BET"],
-    [de(card.preAssistXg, 1), "xG"],
     [String(card.matches), "SP"],
   ];
 

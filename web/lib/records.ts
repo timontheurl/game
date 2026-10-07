@@ -104,6 +104,20 @@ export function getRecords(): RecordList[] {
       ),
     },
     {
+      key: "xpa",
+      title: "Höchster xPA",
+      unit: "erwartete Pre-Assists",
+      note: "xG aller Abschlüsse nach eigenen Pre-Assists – misst die Vorbereitung, unabhängig vom Abschluss.",
+      entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.xpa })), 2),
+    },
+    {
+      key: "pech",
+      title: "Pech im Abschluss",
+      unit: "xPA über Pre-Assists",
+      note: "Erwartete minus echte Pre-Assists: viele gute Vorbereitungen, die Mitspieler trafen nicht.",
+      entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.xpa - r.row.preAssists })), 2),
+    },
+    {
       key: "xg",
       title: "Größte Chancen",
       unit: "Pre-Assist xG",

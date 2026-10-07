@@ -7,7 +7,7 @@ export interface League {
   name: string;
   country: string;
   flag: string; // Code für flag-icons
-  tier: "top5" | "europa" | "weitere";
+  tier: "top5" | "europa" | "weitere" | "turnier" | "frauen";
   blurb: string;
 }
 
@@ -75,6 +75,38 @@ export const LEAGUES: League[] = [
     flag: "nl",
     tier: "weitere",
     blurb: "Offensivfußball mit vielen Toren – ideal für lange Passketten.",
+  },
+  {
+    key: "frauen-bundesliga",
+    name: "Frauen-Bundesliga",
+    country: "Deutschland",
+    flag: "de",
+    tier: "frauen",
+    blurb: "Die stärkste Frauenliga Europas – mit Spielmacherinnen, die in keiner Scorerliste auftauchen.",
+  },
+  {
+    key: "wm",
+    name: "Weltmeisterschaft",
+    country: "International",
+    flag: "un",
+    tier: "turnier",
+    blurb: "Die besten Nationalteams der Welt: Wer bereitet bei der WM die Tore vor?",
+  },
+  {
+    key: "em",
+    name: "Europameisterschaft",
+    country: "Europa",
+    flag: "eu",
+    tier: "turnier",
+    blurb: "Europas Nationalteams im Turniermodus – kurze Phase, jeder Pass zählt.",
+  },
+  {
+    key: "frauen-wm",
+    name: "Frauen-WM",
+    country: "International",
+    flag: "un",
+    tier: "turnier",
+    blurb: "Die Weltmeisterschaft der Frauen: Spielzüge der besten Nationalteams.",
   },
   {
     key: "champions-league",

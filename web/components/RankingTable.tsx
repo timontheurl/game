@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { clubSlug } from "@/lib/cards";
 import type { PlayerRow } from "@/lib/data";
 
-type SortKey = "preAssists" | "assists" | "goals" | "involvements" | "preAssistXg" | "minutes";
+type SortKey = "preAssists" | "xpa" | "assists" | "goals" | "involvements" | "preAssistXg" | "minutes";
 
 const PAGE_SIZE = 50;
 
@@ -14,7 +14,8 @@ const COLUMNS: { key: SortKey; label: string; title: string }[] = [
   { key: "assists", label: "Assists", title: "Letzter Pass vor dem Tor" },
   { key: "goals", label: "Tore", title: "Tore ohne Eigentore" },
   { key: "involvements", label: "Beteiligt", title: "Tore + Assists + Pre-Assists" },
-  { key: "preAssistXg", label: "Pre-Assist xG", title: "Summe der Expected Goals der Abschlüsse nach eigenen Pre-Assists" },
+  { key: "xpa", label: "xPA", title: "Erwartete Pre-Assists: xG aller Abschlüsse nach eigenen Pre-Assists, auch ohne Tor" },
+  { key: "preAssistXg", label: "Pre-Assist xG", title: "Summe der Expected Goals der Tore nach eigenen Pre-Assists" },
   { key: "minutes", label: "Minuten", title: "Gespielte Minuten" },
 ];
 
@@ -58,7 +59,7 @@ export default function RankingTable({
   const fmt = (p: PlayerRow, key: SortKey) => {
     const v = value(p, key);
     if (key === "minutes") return v.toLocaleString("de-AT");
-    if (per90 || key === "preAssistXg") return v.toFixed(2).replace(".", ",");
+    if (per90 || key === "preAssistXg" || key === "xpa") return v.toFixed(2).replace(".", ",");
     return String(v);
   };
 
@@ -109,7 +110,7 @@ export default function RankingTable({
               <th>Spieler</th>
               {!hideTeam && <th className="hide-sm">Team</th>}
               {COLUMNS.map((c) => (
-                <th key={c.key} className={`num ${["minutes", "preAssistXg", "involvements"].includes(c.key) ? "hide-sm" : ""}`}>
+                <th key={c.key} className={`num ${["minutes", "preAssistXg", "involvements", "xpa"].includes(c.key) ? "hide-sm" : ""}`}>
                   <button
                     type="button"
                     title={c.title}
@@ -145,7 +146,7 @@ export default function RankingTable({
                   {COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`num ${c.key === sort ? "sorted" : ""} ${["minutes", "preAssistXg", "involvements"].includes(c.key) ? "hide-sm" : ""}`}
+                      className={`num ${c.key === sort ? "sorted" : ""} ${["minutes", "preAssistXg", "involvements", "xpa"].includes(c.key) ? "hide-sm" : ""}`}
                     >
                       {fmt(p, c.key)}
                     </td>

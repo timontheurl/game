@@ -76,12 +76,12 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
 
       {season.meta.coverage === "full" && (
         <section className="section">
-          <h2 className="section-title">Vereine</h2>
+          <h2 className="section-title">{season.meta.national ? "Nationalteams" : "Vereine"}</h2>
           <div className="club-grid">
             {seasonClubs(season).map(({ club, goals, preAssists, leader }, i) => (
               <Link key={club.slug} href={`/verein/${club.slug}/`} className="club-tile">
                 <span className="ct-rank">{i + 1}</span>
-                <ClubBadge name={club.name} size={40} />
+                <ClubBadge name={club.name} size={40} flag={club.flag} />
                 <span className="ct-main">
                   <span className="ct-name">{club.name}</span>
                   {leader && (

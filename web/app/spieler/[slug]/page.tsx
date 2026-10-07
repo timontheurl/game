@@ -5,6 +5,7 @@ import CountUp from "@/components/CountUp";
 import GoalCard from "@/components/GoalCard";
 import PlayerCard, { Flag } from "@/components/PlayerCard";
 import PlayerInsights from "@/components/PlayerInsights";
+import { hasPlayerImage } from "@/lib/playerImage";
 import { clubSlug, countryNameDe } from "@/lib/cards";
 import { getPlayer, getPlayerSlugs, playerSlug, seasonLabel, toCard } from "@/lib/data";
 
@@ -16,8 +17,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const entries = getPlayer((await params).slug);
   if (!entries[0]) return { title: "Spieler" };
   const { row, season } = entries[0];
+  const image = hasPlayerImage(row.slug) ? `/og/spieler/${row.slug}.png` : undefined;
   return {
     title: `${row.name} – Pre-Assists`,
+    openGraph: image ? { images: [{ url: image, width: 1200, height: 630 }] } : undefined,
     description: `${row.name} (${season.teams[String(row.team)]}): ${row.preAssists} Pre-Assists, ${row.assists} Assists und ${row.goals} Tore in der ${seasonLabel(season.meta)} – mit allen Spielzügen.`,
   };
 }
@@ -41,7 +44,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           ["Pre-Assists", r.preAssists, 0, ""],
           ["Platz in der Liga", rank, 0, "."],
           ["Pre-Assists pro 90 Min.", per90v, 2, ""],
-          ["Pre-Assist xG", r.preAssistXg, 2, ""],
+          ["xPA (erwartet)", r.xpa, 2, ""],
+          ["Chancen nach Pre-Assist", r.preChances, 0, ""],
           ["Assists", r.assists, 0, ""],
           ["Tore", r.goals, 0, ""],
           ["Torbeteiligungen", r.involvements, 0, ""],

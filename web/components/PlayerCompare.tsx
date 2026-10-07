@@ -15,6 +15,7 @@ const per90 = (v: number, e: CompareEntry) => (e.minutes > 0 ? (v / e.minutes) *
 const METRICS: Metric[] = [
   { label: "Pre-Assists", get: (e) => e.preAssists },
   { label: "Pre-Assists pro 90", get: (e) => per90(e.preAssists, e), decimals: 2 },
+  { label: "xPA (erwartete Pre-Assists)", get: (e) => e.xpa, decimals: 2 },
   { label: "Pre-Assist xG", get: (e) => e.preAssistXg, decimals: 2 },
   { label: "Assists", get: (e) => e.assists },
   { label: "Tore", get: (e) => e.goals },

@@ -20,6 +20,7 @@ export interface CardData {
   goals: number;
   involvements: number;
   preAssistXg: number;
+  xpa: number;
   minutes: number;
   matches: number;
   season: string;

@@ -50,6 +50,12 @@ export interface PlayerRow {
   involvements: number;
   preAssistXg: number;
   assistXg: number;
+  /** Erwartete Pre-Assists: xG aller Abschlüsse nach eigenem Pre-Assist (auch ohne Tor) */
+  xpa: number;
+  /** Erwartete Assists: xG aller Abschlüsse nach eigener Vorlage */
+  xa: number;
+  /** Anzahl Abschlüsse nach eigenem Pre-Assist */
+  preChances: number;
   minutes: number;
   matches: number;
   position: string | null;
@@ -74,6 +80,8 @@ export interface SeasonMeta {
   season: string;
   coverage: "full" | "team";
   coverageTeam: string | null;
+  /** Turnier mit Nationalteams statt Vereinen */
+  national: boolean;
   matches: number;
   goals: number;
   assists: number;
@@ -83,6 +91,8 @@ export interface SeasonMeta {
 export interface Season {
   meta: SeasonMeta;
   teams: Record<string, string>;
+  /** Nur bei Nationalteams: Flaggen-Code je Team */
+  teamCodes: Record<string, { code: string; women: boolean }>;
   names: Record<string, string>;
   players: PlayerRow[];
   matches: Record<string, Match>;
@@ -97,15 +107,26 @@ export function getSeasons(): Season[] {
     const index: SeasonMeta[] = JSON.parse(
       fs.readFileSync(path.join(DATA_DIR, "competitions.json"), "utf8"),
     );
-    cache = index.map((m) =>
-      JSON.parse(fs.readFileSync(path.join(DATA_DIR, "seasons", `${m.slug}.json`), "utf8")),
-    );
+    cache = index.map((m) => {
+      const season: Season = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "seasons", `${m.slug}.json`), "utf8"));
+      // Nationalteams auf Deutsch anzeigen; Frauenteams eindeutig kennzeichnen
+      for (const [id, { code, women }] of Object.entries(season.teamCodes ?? {})) {
+        const name = countryNameDe(code, season.teams[id]) ?? season.teams[id];
+        season.teams[id] = women ? `${name} (Frauen)` : name;
+      }
+      return season;
+    });
   }
   return cache;
 }
 
 export function getSeason(slug: string): Season | undefined {
   return getSeasons().find((s) => s.meta.slug === slug);
+}
+
+/** Turniere (WM, EM) haben Nationalteams, Ligen haben Vereine. */
+export function isTournament(meta: SeasonMeta): boolean {
+  return meta.national;
 }
 
 export function seasonLabel(meta: SeasonMeta): string {
@@ -173,6 +194,7 @@ export function toCard(season: Season, row: PlayerRow): CardData {
     goals: row.goals,
     involvements: row.involvements,
     preAssistXg: row.preAssistXg,
+    xpa: row.xpa,
     minutes: row.minutes,
     matches: row.matches,
     season: seasonLabel(season.meta),
@@ -203,6 +225,8 @@ export interface ClubSeason {
 export interface Club {
   slug: string;
   name: string;
+  /** Flaggen-Code, wenn es ein Nationalteam ist */
+  flag: string | null;
   seasons: ClubSeason[];
 }
 
@@ -217,7 +241,7 @@ export function getClubs(): Club[] {
     for (const teamId of teamIds) {
       const name = season.teams[String(teamId)];
       const slug = clubSlug(name);
-      const club = bySlug.get(slug) ?? { slug, name, seasons: [] };
+      const club = bySlug.get(slug) ?? { slug, name, flag: season.teamCodes?.[String(teamId)]?.code ?? null, seasons: [] };
       club.seasons.push({
         season,
         teamId,

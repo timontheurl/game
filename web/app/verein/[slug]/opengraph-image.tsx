@@ -18,6 +18,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return ogText(
     club.name,
     `${withPre} von ${cs.goals.length} Toren mit Pre-Assist · Bester Vorbereiter: ${top.name} (${top.preAssists})`,
-    "Verein",
+    club.flag ? "Nationalteam" : "Verein",
   );
 }

@@ -47,6 +47,13 @@ export default function MethodikPage() {
           Summe der Expected Goals (xG) der Torschüsse, die auf die eigenen Pre-Assists folgten. Ein hoher Wert
           bedeutet: Die Spielzüge führten zu Großchancen.
         </dd>
+        <dt>xPA – erwartete Pre-Assists</dt>
+        <dd>
+          Pre-Assists hängen davon ab, ob die Mitspieler treffen. Der xPA zählt deshalb alle Abschlüsse nach einem
+          eigenen Pre-Assist – auch die, die nicht im Tor landen – und gewichtet jeden mit seiner Torwahrscheinlichkeit
+          (xG). So zeigt er, wie gut ein Spieler Chancen vorbereitet, unabhängig vom Glück im Abschluss. Liegt der xPA
+          deutlich über den echten Pre-Assists, hatte der Spieler Pech mit seinen Mitspielern.
+        </dd>
         <dt>Pro 90 Minuten</dt>
         <dd>Werte geteilt durch gespielte Minuten mal 90 – fair für Einwechselspieler.</dd>
       </dl>

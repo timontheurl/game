@@ -811,6 +811,14 @@ h3 {
 }
 
 /* ---------- Vereine ---------- */
+.nation-badge {
+  display: inline-block;
+  flex: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  background-size: cover;
+}
+
 .club-badge .cb-shield {
   fill: var(--accent);
 }

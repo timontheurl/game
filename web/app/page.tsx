@@ -69,7 +69,7 @@ export default function Home() {
         </figure>
       </section>
 
-      {seasons.map((season, i) => {
+      {seasons.filter((s) => !s.meta.national).map((season, i) => {
         const top = season.players.slice(0, 3);
         const text = leagueText(season, top);
         return (
@@ -92,6 +92,28 @@ export default function Home() {
           </section>
         );
       })}
+
+      <section className="section tournaments">
+        <h2 className="section-title">Turniere</h2>
+        <div className="league-grid">
+          {seasons
+            .filter((s) => s.meta.national)
+            .map((s) => {
+              const top = s.players[0];
+              return (
+                <Link key={s.meta.slug} href={`/wettbewerb/${s.meta.slug}/`} className="league-tile is-live">
+                  <span className="lt-name">{seasonLabel(s.meta)}</span>
+                  <span className="lt-country">{s.meta.country}</span>
+                  {top && (
+                    <span className="lt-leader">
+                      Spitze: <b>{top.name}</b> · {top.preAssists} Pre-Assists
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+        </div>
+      </section>
     </>
   );
 }
