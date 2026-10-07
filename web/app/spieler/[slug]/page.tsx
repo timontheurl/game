@@ -5,6 +5,7 @@ import CountUp from "@/components/CountUp";
 import GoalCard from "@/components/GoalCard";
 import PlayerCard, { Flag } from "@/components/PlayerCard";
 import PlayerInsights from "@/components/PlayerInsights";
+import ShareButton from "@/components/ShareButton";
 import { hasPlayerImage } from "@/lib/playerImage";
 import { clubSlug, countryNameDe } from "@/lib/cards";
 import { getPlayer, getPlayerSlugs, playerSlug, seasonLabel, toCard } from "@/lib/data";
@@ -89,9 +90,31 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     </div>
                   ))}
                 </dl>
-                <Link href={`/vergleich/?a=${encodeURIComponent(`${r.slug}|${season.meta.slug}`)}`} className="btn btn-ghost btn-small compare-link">
-                  Mit anderem Spieler vergleichen
-                </Link>
+                <div className="player-actions">
+                  <Link
+                    href={`/vergleich/?a=${encodeURIComponent(`${r.slug}|${season.meta.slug}`)}`}
+                    className="btn btn-ghost btn-small"
+                  >
+                    Mit anderem Spieler vergleichen
+                  </Link>
+                  <ShareButton
+                    kind="player"
+                    small
+                    filename={`preassists-${r.slug}.png`}
+                    title={`${r.name} – Pre-Assists`}
+                    data={{
+                      name: r.name,
+                      team: season.teams[String(r.team)],
+                      season: seasonLabel(season.meta),
+                      position: r.position,
+                      preAssists: r.preAssists,
+                      assists: r.assists,
+                      goals: r.goals,
+                      xpa: r.xpa,
+                      rank,
+                    }}
+                  />
+                </div>
                 {topPartners.length > 0 && (
                   <div className="partners">
                     <h3>Pre-Assists landeten bei</h3>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Pitch from "./Pitch";
-import { describePass, formatClock, playerSlug, type Goal, type Season } from "@/lib/data";
+import ShareButton from "./ShareButton";
+import { describePass, formatClock, playerSlug, seasonLabel, type Goal, type Season } from "@/lib/data";
 
 function PlayerName({ season, id }: { season: Season; id: number }) {
   const name = season.names[String(id)] ?? "Unbekannt";
@@ -38,6 +39,23 @@ export default function GoalCard({ season, goal, highlight }: { season: Season; 
         {goal.assist && step("assist", "Assist", goal.assist.player, describePass(goal.assist))}
         {step("shot", "Tor", goal.scorer, `xG ${goal.xg.toFixed(2)}`)}
       </ol>
+      <ShareButton
+        kind="goal"
+        small
+        filename={`preassist-${goal.id.slice(0, 8)}.png`}
+        title={`${home} ${match.home_score}:${match.away_score} ${away}`}
+        data={{
+          goal,
+          // nur die drei beteiligten Namen mitgeben, nicht die ganze Saison
+          names: Object.fromEntries(
+            [goal.pre?.player, goal.assist?.player, goal.scorer]
+              .filter((id): id is number => id !== undefined)
+              .map((id) => [String(id), season.names[String(id)] ?? "Unbekannt"]),
+          ),
+          matchLabel: `${home} ${match.home_score}:${match.away_score} ${away}`,
+          context: `${seasonLabel(season.meta)} · ${formatClock(goal.period, goal.minute)}`,
+        }}
+      />
     </article>
   );
 }

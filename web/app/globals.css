@@ -1317,8 +1317,31 @@ h3 {
   background: linear-gradient(270deg, #b9480a, var(--accent));
 }
 
-.compare-link {
+.player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 14px;
+}
+
+.share-btn {
+  gap: 6px;
+  align-self: flex-start;
+}
+
+.share-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.share-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 /* ---------- Spieler-Auswertungen ---------- */

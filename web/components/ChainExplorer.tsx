@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import ChainReplay from "./ChainReplay";
+import ShareButton from "./ShareButton";
 import { clubSlug, describePass, formatClock } from "@/lib/cards";
 import type { ChainData } from "@/app/daten/[file]/route";
 import type { Goal } from "@/lib/data";
@@ -245,6 +246,24 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
                 <Link href={`/verein/${clubSlug(data.teams[String(current.team)])}/`} className="text-link">
                   {data.teams[String(current.team)]}
                 </Link>
+                {(() => {
+                  const m = data.matches[String(current.match)];
+                  const label = `${data.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${data.teams[String(m.away)]}`;
+                  return (
+                    <ShareButton
+                      kind="goal"
+                      small
+                      filename={`preassist-${current.id.slice(0, 8)}.png`}
+                      title={label}
+                      data={{
+                        goal: current,
+                        names: data.names,
+                        matchLabel: label,
+                        context: `${data.label} · ${formatClock(current.period, current.minute)}`,
+                      }}
+                    />
+                  );
+                })()}
               </div>
             </aside>
           )}
