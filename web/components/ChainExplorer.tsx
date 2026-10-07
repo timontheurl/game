@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import ChainReplay from "./ChainReplay";
-import { clubSlug, describePass, formatClock } from "@/lib/cards";
+import ShareButton from "./ShareButton";
+import { describePass, formatClock } from "@/lib/cards";
+import { LOCALE, num, passLabel, t as tr, url, type Lang } from "@/lib/i18n";
 import type { ChainData } from "@/app/daten/[file]/route";
 import type { Goal } from "@/lib/data";
 
@@ -12,7 +14,13 @@ const PAGE = 40;
 
 const passLength = (g: Goal) => (g.pre ? Math.hypot(g.pre.end[0] - g.pre.start[0], g.pre.end[1] - g.pre.start[1]) : 0);
 
-export default function ChainExplorer({ seasons }: { seasons: { slug: string; label: string }[] }) {
+export default function ChainExplorer({
+  seasons,
+  lang = "de",
+}: {
+  seasons: { slug: string; label: string }[];
+  lang?: Lang;
+}) {
   const [slug, setSlug] = useState(seasons[0].slug);
   const [data, setData] = useState<ChainData | null>(null);
   const [team, setTeam] = useState("alle");
@@ -35,13 +43,13 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
   useEffect(() => {
     let cancelled = false;
     setData(null);
-    fetch(`/daten/${slug}.json`)
+    fetch(`/daten/${lang === "en" ? "en-" : ""}${slug}.json`)
       .then((r) => r.json())
       .then((d: ChainData) => !cancelled && setData(d));
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, lang]);
 
   const name = (id: number) => data?.names[String(id)] ?? "–";
 
@@ -54,7 +62,7 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
     if (!data) return [];
     return [...new Set(data.goals.map((g) => g.team))]
       .map((id) => ({ id: String(id), name: data.teams[String(id)] }))
-      .sort((a, b) => a.name.localeCompare(b.name, "de"));
+      .sort((a, b) => a.name.localeCompare(b.name, lang));
   }, [data]);
 
   const goals = useMemo(() => {
@@ -98,7 +106,7 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
 
   const playerLink = (id: number) => {
     const s = data?.slugs[String(id)];
-    return s ? <Link href={`/spieler/${s}/`}>{name(id)}</Link> : <span>{name(id)}</span>;
+    return s ? <Link href={url(lang, "spieler", s)}>{name(id)}</Link> : <span>{name(id)}</span>;
   };
 
   return (
@@ -124,45 +132,45 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
       <div className="filters">
         <input
           type="search"
-          placeholder="Spieler in der Kette suchen …"
+          placeholder={tr(lang, "ex.searchChain")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Spieler suchen"
+          aria-label={tr(lang, "search.label")}
         />
-        <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team">
-          <option value="alle">Alle Teams</option>
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
+        <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label={tr(lang, "table.team")}>
+          <option value="alle">{tr(lang, "common.allTeams")}</option>
+          {teams.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
             </option>
           ))}
         </select>
-        <select value={passType} onChange={(e) => setPassType(e.target.value)} aria-label="Art des Pre-Assists">
-          <option value="alle">Alle Pass-Arten</option>
+        <select value={passType} onChange={(e) => setPassType(e.target.value)} aria-label={tr(lang, "ex.passType")}>
+          <option value="alle">{tr(lang, "ex.allPass")}</option>
           {passTypes.map((p) => (
             <option key={p} value={p}>
-              {p}
+              {passLabel(lang, p)}
             </option>
           ))}
         </select>
-        <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Sortierung">
-          <option value="datum">Neueste zuerst</option>
-          <option value="xg">Größte Chance (xG)</option>
-          <option value="laenge">Längster Pre-Assist</option>
+        <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label={tr(lang, "ex.sort")}>
+          <option value="datum">{tr(lang, "ex.sortDate")}</option>
+          <option value="xg">{tr(lang, "ex.sortXg")}</option>
+          <option value="laenge">{tr(lang, "ex.sortLen")}</option>
         </select>
         <label className="toggle">
           <input type="checkbox" checked={onlyPre} onChange={(e) => setOnlyPre(e.target.checked)} />
-          nur mit Pre-Assist
+          {tr(lang, "ex.onlyPre")}
         </label>
       </div>
 
       {!data ? (
-        <p className="empty">Lade Torketten …</p>
+        <p className="empty">{tr(lang, "ex.loading")}</p>
       ) : (
         <div className="explorer-grid">
           <div className="explorer-list">
             <p className="explorer-count">
-              <b>{goals.length}</b> {goals.length === 1 ? "Tor" : "Tore"}
+              <b>{goals.length}</b> {tr(lang, goals.length === 1 ? "ex.goal" : "ex.goals")}
             </p>
             <ul>
               {goals.slice(0, limit).map((g) => {
@@ -175,7 +183,7 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
                       onClick={() => select(g)}
                     >
                       <span className="ci-meta">
-                        {new Date(m.date).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })} ·{" "}
+                        {new Date(m.date).toLocaleDateString(LOCALE[lang], { day: "2-digit", month: "2-digit" })} ·{" "}
                         {data.teams[String(m.home)]} {m.home_score}:{m.away_score} {data.teams[String(m.away)]} ·{" "}
                         {formatClock(g.period, g.minute)}
                       </span>
@@ -195,8 +203,8 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
                         <span className="c-goal">{name(g.scorer)}</span>
                       </span>
                       <span className="ci-tags">
-                        {g.pre && <span>{describePass(g.pre)}</span>}
-                        <span>xG {g.xg.toFixed(2).replace(".", ",")}</span>
+                        {g.pre && <span>{passLabel(lang, describePass(g.pre))}</span>}
+                        <span>xG {num(lang, g.xg, 2)}</span>
                       </span>
                     </button>
                   </li>
@@ -205,46 +213,65 @@ export default function ChainExplorer({ seasons }: { seasons: { slug: string; la
             </ul>
             {goals.length > limit && (
               <button type="button" className="more" onClick={() => setLimit((l) => l + PAGE)}>
-                Weitere {Math.min(PAGE, goals.length - limit)} Tore laden
+                {tr(lang, "ex.more", { n: Math.min(PAGE, goals.length - limit) })}
               </button>
             )}
-            {goals.length === 0 && <p className="empty">Keine Tore für diese Filter.</p>}
+            {goals.length === 0 && <p className="empty">{tr(lang, "ex.none")}</p>}
           </div>
 
           {current && (
             <aside className="explorer-stage">
-              <ChainReplay goal={current} names={data.names} />
+              <ChainReplay goal={current} names={data.names} lang={lang} />
               <div className="stage-info">
                 <p className="ci-meta">
                   {(() => {
                     const m = data.matches[String(current.match)];
-                    return `${new Date(m.date).toLocaleDateString("de-AT")} · ${data.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${data.teams[String(m.away)]} · ${formatClock(current.period, current.minute)}`;
+                    return `${new Date(m.date).toLocaleDateString(LOCALE[lang])} · ${data.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${data.teams[String(m.away)]} · ${formatClock(current.period, current.minute)}`;
                   })()}
                 </p>
                 <ol className="chain">
                   {current.pre && (
                     <li className="chain-step pre">
-                      <span className="chain-label">Pre-Assist</span>
+                      <span className="chain-label">{tr(lang, "common.preAssist")}</span>
                       {playerLink(current.pre.player)}
-                      <span className="chain-detail">{describePass(current.pre)}</span>
+                      <span className="chain-detail">{passLabel(lang, describePass(current.pre))}</span>
                     </li>
                   )}
                   {current.assist && (
                     <li className="chain-step assist">
-                      <span className="chain-label">Assist</span>
+                      <span className="chain-label">{tr(lang, "common.assist")}</span>
                       {playerLink(current.assist.player)}
-                      <span className="chain-detail">{describePass(current.assist)}</span>
+                      <span className="chain-detail">{passLabel(lang, describePass(current.assist))}</span>
                     </li>
                   )}
                   <li className="chain-step shot">
-                    <span className="chain-label">Tor</span>
+                    <span className="chain-label">{tr(lang, "common.goal")}</span>
                     {playerLink(current.scorer)}
-                    <span className="chain-detail">xG {current.xg.toFixed(2).replace(".", ",")}</span>
+                    <span className="chain-detail">xG {num(lang, current.xg, 2)}</span>
                   </li>
                 </ol>
-                <Link href={`/verein/${clubSlug(data.teams[String(current.team)])}/`} className="text-link">
+                <Link href={url(lang, "verein", data.teamSlugs[String(current.team)])} className="text-link">
                   {data.teams[String(current.team)]}
                 </Link>
+                {(() => {
+                  const m = data.matches[String(current.match)];
+                  const label = `${data.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${data.teams[String(m.away)]}`;
+                  return (
+                    <ShareButton
+                      kind="goal"
+                      small
+                      lang={lang}
+                      filename={`preassist-${current.id.slice(0, 8)}.png`}
+                      title={label}
+                      data={{
+                        goal: current,
+                        names: data.names,
+                        matchLabel: label,
+                        context: `${data.label} · ${formatClock(current.period, current.minute)}`,
+                      }}
+                    />
+                  );
+                })()}
               </div>
             </aside>
           )}

@@ -1,5 +1,6 @@
 import { clubSlug } from "./cards";
-import { getSeasons, playerSlug, seasonLabel, type Goal, type PlayerRow, type Season } from "./data";
+import { getSeason, getSeasons, playerSlug, seasonLabel, type Goal, type PlayerRow, type Season } from "./data";
+import { LOCALE, url, type Lang } from "./i18n";
 
 // StatsBomb misst in Yards (Feld 120 × 80); für die Anzeige in Metern umrechnen.
 const YARD = 0.9144;
@@ -19,7 +20,38 @@ export interface RecordList {
   entries: RecordEntry[];
 }
 
-const fmt = (n: number, d = 0) => n.toLocaleString("de-AT", { minimumFractionDigits: d, maximumFractionDigits: d });
+const passLen = (g: Goal) => (g.pre ? Math.hypot(g.pre.end[0] - g.pre.start[0], g.pre.end[1] - g.pre.start[1]) * YARD : 0);
+
+// Titel, Einheit und Erklärung je Rekord
+const TEXT: Record<Lang, Record<string, [string, string, string]>> = {
+  de: {
+    meiste: ["Meiste Pre-Assists", "Pre-Assists", "In einer Saison."],
+    quote: ["Beste Quote", "pro 90 Min.", "Mindestens 900 Spielminuten."],
+    xpa: ["Höchster xPA", "erwartete Pre-Assists", "xG aller Abschlüsse nach eigenen Pre-Assists – misst die Vorbereitung, unabhängig vom Abschluss."],
+    pech: ["Pech im Abschluss", "xPA über Pre-Assists", "Erwartete minus echte Pre-Assists: viele gute Vorbereitungen, die Mitspieler trafen nicht."],
+    xg: ["Größte Chancen", "Pre-Assist xG", "Summe der Torwahrscheinlichkeit nach eigenen Pre-Assists."],
+    architekten: ["Stille Architekten", "mehr als Assists", "Pre-Assists minus eigene Assists – die unterschätzten Vorbereiter."],
+    tief: ["Aus der eigenen Hälfte", "Pre-Assists", "Pre-Assists, die in der eigenen Spielhälfte gespielt wurden."],
+    laengster: ["Längster Pre-Assist", "Meter", "Gemessen vom Abspiel bis zur Annahme."],
+    trio: ["Eingespieltestes Trio", "Tore", "Immer gleiche Kette: Pre-Assist › Assist › Tor."],
+    spiel: ["Spiel mit den meisten", "Pre-Assists", "Tore mit Pre-Assist in einem einzigen Spiel (beide Teams)."],
+  },
+  en: {
+    meiste: ["Most pre-assists", "pre-assists", "In a single season."],
+    quote: ["Best rate", "per 90 min", "At least 900 minutes played."],
+    xpa: ["Highest xPA", "expected pre-assists", "xG of all shots after the player's pre-assists – measures the build-up, regardless of the finish."],
+    pech: ["Unlucky", "xPA above pre-assists", "Expected minus actual pre-assists: lots of good build-up, but teammates didn't score."],
+    xg: ["Biggest chances", "pre-assist xG", "Sum of the goal probability after the player's pre-assists."],
+    architekten: ["Hidden architects", "more than assists", "Pre-assists minus own assists – the underrated creators."],
+    tief: ["From their own half", "pre-assists", "Pre-assists played from inside the player's own half."],
+    laengster: ["Longest pre-assist", "metres", "Measured from the pass to where it was received."],
+    trio: ["Best-drilled trio", "goals", "Always the same chain: pre-assist › assist › goal."],
+    spiel: ["Match with the most", "pre-assists", "Goals with a pre-assist in a single match (both teams)."],
+  },
+};
+
+export function getRecords(lang: Lang = "de"): RecordList[] {
+  const fmt = (n: number, d = 0) => n.toLocaleString(LOCALE[lang], { minimumFractionDigits: d, maximumFractionDigits: d });
 
 function playerEntries(
   rows: { season: Season; row: PlayerRow; value: number }[],
@@ -32,22 +64,19 @@ function playerEntries(
     .map(({ season, row, value }) => ({
       value: fmt(value, digits),
       name: row.name,
-      href: `/spieler/${row.slug}/`,
+      href: url(lang, "spieler", row.slug),
       context: `${season.teams[String(row.team)]} · ${seasonLabel(season.meta)}`,
     }));
 }
 
-const passLen = (g: Goal) => (g.pre ? Math.hypot(g.pre.end[0] - g.pre.start[0], g.pre.end[1] - g.pre.start[1]) * YARD : 0);
-
-export function getRecords(): RecordList[] {
   // Saisons mit nur einem Team würden Vergleiche verzerren – Rekorde nur aus vollständigen Saisons
-  const seasons = getSeasons().filter((s) => s.meta.coverage === "full");
+  const seasons = getSeasons(lang).filter((s) => s.meta.coverage === "full");
   const rows = seasons.flatMap((season) => season.players.map((row) => ({ season, row })));
   const goals = seasons.flatMap((season) => season.goals.filter((g) => g.pre).map((g) => ({ season, g })));
   const name = (season: Season, id: number) => season.names[String(id)];
   const link = (season: Season, id: number) => {
     const slug = playerSlug(season, id);
-    return slug ? `/spieler/${slug}/` : null;
+    return slug ? url(lang, "spieler", slug) : null;
   };
   const matchLabel = (season: Season, g: Goal) => {
     const m = season.matches[String(g.match)];
@@ -85,50 +114,53 @@ export function getRecords(): RecordList[] {
     deep.set(key, d);
   }
 
+  const txt = (key: string) => {
+    const [title, unit, note] = TEXT[lang][key];
+    return { title, unit, note };
+  };
+
   return [
     {
       key: "meiste",
-      title: "Meiste Pre-Assists",
-      unit: "Pre-Assists",
-      note: "In einer Saison.",
+      ...txt("meiste"),
       entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.preAssists }))),
     },
     {
       key: "quote",
-      title: "Beste Quote",
-      unit: "pro 90 Min.",
-      note: "Mindestens 900 Spielminuten.",
+      ...txt("quote"),
       entries: playerEntries(
         rows.filter((r) => r.row.minutes >= 900).map((r) => ({ ...r, value: (r.row.preAssists / r.row.minutes) * 90 })),
         2,
       ),
     },
     {
+      key: "xpa",
+      ...txt("xpa"),
+      entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.xpa })), 2),
+    },
+    {
+      key: "pech",
+      ...txt("pech"),
+      entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.xpa - r.row.preAssists })), 2),
+    },
+    {
       key: "xg",
-      title: "Größte Chancen",
-      unit: "Pre-Assist xG",
-      note: "Summe der Torwahrscheinlichkeit nach eigenen Pre-Assists.",
+      ...txt("xg"),
       entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.preAssistXg })), 2),
     },
     {
       key: "architekten",
-      title: "Stille Architekten",
-      unit: "mehr als Assists",
-      note: "Pre-Assists minus eigene Assists – die unterschätzten Vorbereiter.",
+      ...txt("architekten"),
       entries: playerEntries(rows.map((r) => ({ ...r, value: r.row.preAssists - r.row.assists }))),
     },
     {
       key: "tief",
-      title: "Aus der eigenen Hälfte",
-      unit: "Pre-Assists",
-      note: "Pre-Assists, die in der eigenen Spielhälfte gespielt wurden.",
+      ...txt("tief"),
       entries: playerEntries([...deep.values()]),
     },
     {
       key: "laengster",
-      title: "Längster Pre-Assist",
-      unit: "Meter",
-      note: "Gemessen vom Abspiel bis zur Annahme.",
+      ...txt("laengster"),
       entries: [...goals]
         .sort((a, b) => passLen(b.g) - passLen(a.g))
         .slice(0, 5)
@@ -141,32 +173,28 @@ export function getRecords(): RecordList[] {
     },
     {
       key: "trio",
-      title: "Eingespieltestes Trio",
-      unit: "Tore",
-      note: "Immer gleiche Kette: Pre-Assist › Assist › Tor.",
+      ...txt("trio"),
       entries: [...trios.values()]
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)
         .map(({ season, g, count }) => ({
           value: fmt(count),
           name: `${name(season, g.pre!.player)} › ${name(season, g.assist!.player)} › ${name(season, g.scorer)}`,
-          href: `/verein/${clubSlug(season.teams[String(g.team)])}/`,
+          href: url(lang, "verein", clubSlug(getSeason(season.meta.slug)!.teams[String(g.team)])),
           context: `${season.teams[String(g.team)]} · ${seasonLabel(season.meta)}`,
         })),
     },
     {
       key: "spiel",
-      title: "Spiel mit den meisten",
-      unit: "Pre-Assists",
-      note: "Tore mit Pre-Assist in einem einzigen Spiel (beide Teams).",
+      ...txt("spiel"),
       entries: [...perMatch.values()]
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)
         .map(({ season, g, count }) => ({
           value: fmt(count),
           name: matchLabel(season, g),
-          href: `/torketten/?liga=${season.meta.slug}&tor=${g.id}`,
-          context: `${new Date(season.matches[String(g.match)].date).toLocaleDateString("de-AT")} · ${seasonLabel(season.meta)}`,
+          href: `${url(lang, "torketten")}?liga=${season.meta.slug}&tor=${g.id}`,
+          context: `${new Date(season.matches[String(g.match)].date).toLocaleDateString(LOCALE[lang])} · ${seasonLabel(season.meta)}`,
         })),
     },
   ];

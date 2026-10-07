@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { SearchEntry } from "@/app/search-index.json/route";
+import { langFromPath, t, url, type Lang } from "@/lib/i18n";
+import type { SearchEntry } from "@/lib/indexes";
 
-let indexPromise: Promise<SearchEntry[]> | null = null;
-function loadIndex() {
-  indexPromise ??= fetch("/search-index.json").then((r) => r.json());
-  return indexPromise;
+const indexPromise: Partial<Record<Lang, Promise<SearchEntry[]>>> = {};
+function loadIndex(lang: Lang) {
+  indexPromise[lang] ??= fetch(lang === "en" ? "/search-index-en.json" : "/search-index.json").then((r) => r.json());
+  return indexPromise[lang];
 }
 
 function normalize(s: string) {
@@ -16,11 +17,15 @@ function normalize(s: string) {
 
 export default function Search({ variant = "nav" }: { variant?: "nav" | "hero" }) {
   const router = useRouter();
+  const lang = langFromPath(usePathname());
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState<SearchEntry[] | null>(null);
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+
+  // Beim Sprachwechsel den passenden Index neu laden
+  useEffect(() => setIndex(null), [lang]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -36,7 +41,7 @@ export default function Search({ variant = "nav" }: { variant?: "nav" | "hero" }
   const go = (entry: SearchEntry) => {
     setOpen(false);
     setQuery("");
-    router.push(`/spieler/${entry.slug}/`);
+    router.push(url(lang, "spieler", entry.slug));
   };
 
   return (
@@ -47,11 +52,11 @@ export default function Search({ variant = "nav" }: { variant?: "nav" | "hero" }
       </svg>
       <input
         type="search"
-        placeholder={variant === "hero" ? "Spieler suchen, z. B. Özil, Modrić, Xhaka …" : "Spieler suchen …"}
+        placeholder={t(lang, "search.placeholder")}
         value={query}
         onFocus={() => {
           setOpen(true);
-          loadIndex().then(setIndex);
+          loadIndex(lang).then(setIndex);
         }}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -64,11 +69,11 @@ export default function Search({ variant = "nav" }: { variant?: "nav" | "hero" }
           else if (e.key === "Enter" && results[active]) go(results[active]);
           else if (e.key === "Escape") setOpen(false);
         }}
-        aria-label="Spieler suchen"
+        aria-label={t(lang, "search.label")}
       />
       {open && q && (
         <ul className="search-results" role="listbox">
-          {results.length === 0 && <li className="search-empty">{index ? "Kein Spieler gefunden" : "Lädt …"}</li>}
+          {results.length === 0 && <li className="search-empty">{t(lang, index ? "search.none" : "search.loading")}</li>}
           {results.map((r, i) => (
             <li key={r.slug} role="option" aria-selected={i === active}>
               <button

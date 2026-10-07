@@ -27,7 +27,7 @@ BASE_URL = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
 ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 OUT_DIR = ROOT / "web" / "data"
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 
 # Welche Saisons auf der Website erscheinen. coverage: "full" = alle Spiele der Liga,
 # "team" = nur Spiele eines Teams (StatsBomb hat nur diese freigegeben).
@@ -41,6 +41,26 @@ SEASONS = [
     {"slug": "la-liga-2015-16", "competition_id": 11, "season_id": 27,
      "name": "La Liga", "country": "Spanien", "season": "2015/16",
      "coverage": "full"},
+    {"slug": "serie-a-2015-16", "competition_id": 12, "season_id": 27,
+     "name": "Serie A", "country": "Italien", "season": "2015/16",
+     "coverage": "full"},
+    {"slug": "ligue-1-2015-16", "competition_id": 7, "season_id": 27,
+     "name": "Ligue 1", "country": "Frankreich", "season": "2015/16",
+     "coverage": "full"},
+    {"slug": "frauen-bundesliga-2023-24", "competition_id": 135, "season_id": 281,
+     "name": "Frauen-Bundesliga", "country": "Deutschland", "season": "2023/24",
+     "coverage": "full"},
+    {"slug": "wm-2022", "competition_id": 43, "season_id": 106,
+     "name": "WM", "country": "Katar", "season": "2022", "coverage": "full", "national": True},
+    {"slug": "wm-2018", "competition_id": 43, "season_id": 3,
+     "name": "WM", "country": "Russland", "season": "2018", "coverage": "full", "national": True},
+    {"slug": "em-2024", "competition_id": 55, "season_id": 282,
+     "name": "EM", "country": "Deutschland", "season": "2024", "coverage": "full", "national": True},
+    {"slug": "em-2020", "competition_id": 55, "season_id": 43,
+     "name": "EM", "country": "Europa", "season": "2020", "coverage": "full", "national": True},
+    {"slug": "frauen-wm-2023", "competition_id": 72, "season_id": 107,
+     "name": "Frauen-WM", "country": "Australien und Neuseeland", "season": "2023",
+     "coverage": "full", "national": True},
 ]
 
 # StatsBomb-Positionen -> deutsche Kürzel
@@ -83,6 +103,8 @@ COUNTRY_CODES = {
     "Cape Verde": "cv", "Comoros": "km", "Mauritania": "mr", "Libya": "ly", "Syria": "sy", "Iraq": "iq", "Saudi Arabia": "sa",
     "Qatar": "qa", "Bolivia": "bo", "Faroe Islands": "fo", "Liechtenstein": "li", "Moldova": "md",
 }
+
+COUNTRY_CODES.update({"South Korea": "kr", "Philippines": "ph", "Vietnam": "vn"})
 
 PERIOD_START = {1: 0, 2: 45, 3: 90, 4: 105, 5: 120}
 
@@ -231,12 +253,25 @@ def process_match(match: dict) -> dict:
             }
 
     goals = []
+    # Erwartete Werte über alle Abschlüsse, nicht nur Tore:
+    # xpa = Summe xG der Schüsse nach eigenem Pre-Assist, xa = nach eigener Vorlage
+    chances: dict[str, dict] = {}
     for e in events:
-        if e["type"]["name"] != "Shot" or e["shot"]["outcome"]["name"] != "Goal":
+        if e["type"]["name"] != "Shot":
             continue
         shot = e["shot"]
         assist = by_id.get(shot.get("key_pass_id"))
         pre = find_pre_assist(events, position[assist["id"]]) if assist else None
+        xg = shot.get("statsbomb_xg", 0)
+        if assist:
+            c = chances.setdefault(str(assist["player"]["id"]), {"xa": 0.0, "xpa": 0.0, "pre_chances": 0})
+            c["xa"] += xg
+        if pre:
+            c = chances.setdefault(str(pre["player"]["id"]), {"xa": 0.0, "xpa": 0.0, "pre_chances": 0})
+            c["xpa"] += xg
+            c["pre_chances"] += 1
+        if shot["outcome"]["name"] != "Goal":
+            continue
         goals.append({
             "id": e["id"],
             "team": e["team"]["id"],
@@ -273,6 +308,7 @@ def process_match(match: dict) -> dict:
         "players": players,
         "minutes": minutes,
         "positions": positions,
+        "chances": chances,
         "goals": goals,
     }
     cache_file.write_text(json.dumps(result))
@@ -292,6 +328,7 @@ def build_season(cfg: dict) -> dict:
     stats: dict[int, dict] = defaultdict(lambda: {
         "goals": 0, "assists": 0, "preAssists": 0, "preAssistXg": 0.0,
         "assistXg": 0.0, "minutes": 0.0, "matches": 0,
+        "xa": 0.0, "xpa": 0.0, "preChances": 0,
         "positions": defaultdict(float),
     })
     goals_out = []
@@ -308,6 +345,11 @@ def build_season(cfg: dict) -> dict:
             team_counts[pid][r["players"][pid_str]["team"]] += 1
             for pos, pm in r["positions"].get(pid_str, {}).items():
                 stats[pid]["positions"][pos] += pm
+        for pid_str, c in r["chances"].items():
+            pid = int(pid_str)
+            stats[pid]["xa"] += c["xa"]
+            stats[pid]["xpa"] += c["xpa"]
+            stats[pid]["preChances"] += c["pre_chances"]
         m = r["match"]
         for g in r["goals"]:
             stats[g["scorer"]]["goals"] += 1
@@ -346,6 +388,9 @@ def build_season(cfg: dict) -> dict:
             "involvements": s["goals"] + s["assists"] + s["preAssists"],
             "preAssistXg": round(s["preAssistXg"], 2),
             "assistXg": round(s["assistXg"], 2),
+            "xa": round(s["xa"], 2),
+            "xpa": round(s["xpa"], 2),
+            "preChances": s["preChances"],
             "minutes": round(s["minutes"]),
             "matches": s["matches"],
             "position": max(s["positions"].items(), key=lambda kv: kv[1])[0] if s["positions"] else None,
@@ -368,12 +413,24 @@ def build_season(cfg: dict) -> dict:
         "slug": cfg["slug"], "name": cfg["name"], "country": cfg["country"],
         "season": cfg["season"], "coverage": cfg["coverage"],
         "coverageTeam": cfg.get("coverage_team"),
+        "national": bool(cfg.get("national")),
         "matches": len(results), "goals": len(goals_out),
         "assists": sum(1 for g in goals_out if g["assist"]),
         "preAssists": sum(1 for g in goals_out if g["pre"]),
     }
+    # Nationalteams: Flaggen-Code je Team, die Website zeigt daraus den deutschen Ländernamen
+    team_codes = {}
+    if cfg.get("national"):
+        for tid, tname in teams.items():
+            base = re.sub(r" (Women's|W)$", "", tname)
+            women = base != tname
+            code = COUNTRY_CODES.get(base)
+            if code:
+                team_codes[tid] = {"code": code, "women": women}
+            else:
+                print(f"  Kein Ländercode für {tname}", file=sys.stderr)
     return {
-        "meta": meta, "teams": teams, "names": names, "players": players_out,
+        "meta": meta, "teams": teams, "teamCodes": team_codes, "names": names, "players": players_out,
         "matches": matches_out, "goals": goals_out,
     }
 

@@ -10,6 +10,14 @@ export const SITE = {
     country: "Österreich",
     email: "timontheurl@gmail.com",
   },
+  // Newsletter: Formular-Adresse des Anbieters eintragen (z. B. Brevo oder Buttondown).
+  // Solange sie leer ist, wird kein Anmeldeformular angezeigt.
+  newsletter: {
+    provider: "", // Name des Anbieters für die Datenschutzerklärung, z. B. "Brevo (Sendinblue SAS, Paris)"
+    action: "", // Formular-URL des Anbieters
+    emailField: "email", // Name des E-Mail-Felds, den der Anbieter erwartet
+    privacyUrl: "", // Datenschutzerklärung des Anbieters
+  },
 };
 
 export function filled(value: string) {

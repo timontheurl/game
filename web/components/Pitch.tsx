@@ -1,5 +1,6 @@
 import type { Goal, Point } from "@/lib/data";
 import { arrowHead, shorten } from "@/lib/geom";
+import { t, type Lang } from "@/lib/i18n";
 
 // StatsBomb-Koordinaten: x 0–120 (Angriff nach rechts), y 0–80.
 // Die Linien zeichnen sich nacheinander, sobald die Grafik ins Bild scrollt (--seq = Reihenfolge).
@@ -38,13 +39,13 @@ function Dot({ at, label, cls, seq }: { at: Point; label: string; cls: string; s
   );
 }
 
-export default function Pitch({ goal }: { goal: Goal }) {
+export default function Pitch({ goal, lang = "de" }: { goal: Goal; lang?: Lang }) {
   const goalTarget: Point = goal.shot.end ?? [120, 40];
   let seq = 0;
   const next = () => seq++;
 
   return (
-    <svg viewBox="-2 -2 124 84" className="pitch" role="img" aria-label="Spielzug vom Pre-Assist bis zum Tor">
+    <svg viewBox="-2 -2 124 84" className="pitch" role="img" aria-label={t(lang, "chain.label")}>
       <g className="pitch-markings">
         <rect x={0} y={0} width={120} height={80} />
         <line x1={60} y1={0} x2={60} y2={80} />
@@ -65,7 +66,7 @@ export default function Pitch({ goal }: { goal: Goal }) {
 
       {goal.pre && <Dot at={goal.pre.start} label="1" cls="pre" seq={0} />}
       {goal.assist && <Dot at={goal.assist.start} label={goal.pre ? "2" : "1"} cls="assist" seq={goal.pre ? 2 : 0} />}
-      <Dot at={goal.shot.start} label="T" cls="shot" seq={Math.max(0, seq - 1)} />
+      <Dot at={goal.shot.start} label={lang === "en" ? "G" : "T"} cls="shot" seq={Math.max(0, seq - 1)} />
     </svg>
   );
 }

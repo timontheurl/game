@@ -27,12 +27,12 @@ function Frame({ children }: { children: React.ReactNode }) {
         flexDirection: "column",
         padding: "56px 64px",
         backgroundColor: "#121417",
-        backgroundImage: "radial-gradient(900px 420px at 85% 0%, rgba(255,122,26,0.28), transparent 70%)",
         color: "#eef1f4",
         fontFamily: "Body",
         position: "relative",
       }}
     >
+      <div style={{ display: "flex", position: "absolute", left: 0, top: 0, right: 0, height: 10, background: ORANGE }} />
       {/* Spielfeldlinien im Hintergrund */}
       <div
         style={{
@@ -135,7 +135,7 @@ export function ogPlayer(p: {
   const stats: [string, string][] = [
     ["Assists", String(p.assists)],
     ["Tore", String(p.goals)],
-    ["Pre-Assist xG", p.xg.toFixed(2).replace(".", ",")],
+    ["xPA", p.xg.toFixed(2).replace(".", ",")],
   ];
   return new ImageResponse(
     (

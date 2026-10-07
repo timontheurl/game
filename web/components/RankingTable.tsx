@@ -4,28 +4,35 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { clubSlug } from "@/lib/cards";
 import type { PlayerRow } from "@/lib/data";
+import { LOCALE, num, t, url, type Lang, type TKey } from "@/lib/i18n";
 
-type SortKey = "preAssists" | "assists" | "goals" | "involvements" | "preAssistXg" | "minutes";
+type SortKey = "preAssists" | "xpa" | "assists" | "goals" | "involvements" | "preAssistXg" | "minutes";
 
 const PAGE_SIZE = 50;
 
-const COLUMNS: { key: SortKey; label: string; title: string }[] = [
-  { key: "preAssists", label: "Pre-Assists", title: "Pass, der zum Assist führte" },
-  { key: "assists", label: "Assists", title: "Letzter Pass vor dem Tor" },
-  { key: "goals", label: "Tore", title: "Tore ohne Eigentore" },
-  { key: "involvements", label: "Beteiligt", title: "Tore + Assists + Pre-Assists" },
-  { key: "preAssistXg", label: "Pre-Assist xG", title: "Summe der Expected Goals der Abschlüsse nach eigenen Pre-Assists" },
-  { key: "minutes", label: "Minuten", title: "Gespielte Minuten" },
+const COLUMNS: { key: SortKey; label: TKey | "xPA"; title: TKey }[] = [
+  { key: "preAssists", label: "common.preAssists", title: "table.pa.title" },
+  { key: "assists", label: "common.assists", title: "table.ast.title" },
+  { key: "goals", label: "common.goals", title: "table.goals.title" },
+  { key: "involvements", label: "table.involved", title: "table.inv.title" },
+  { key: "xpa", label: "xPA", title: "table.xpa.title" },
+  { key: "preAssistXg", label: "table.paxg", title: "table.paxg.title" },
+  { key: "minutes", label: "common.minutes", title: "table.min.title" },
 ];
 
 export default function RankingTable({
   players,
   teams,
+  teamSlugs,
   hideTeam = false,
+  lang = "de",
 }: {
   players: PlayerRow[];
   teams: Record<string, string>;
+  /** Vereins-Adresse je Team-ID; fehlt sie, wird sie aus dem Namen gebildet */
+  teamSlugs?: Record<string, string>;
   hideTeam?: boolean;
+  lang?: Lang;
 }) {
   const [sort, setSort] = useState<SortKey>("preAssists");
   const [team, setTeam] = useState("alle");
@@ -38,7 +45,7 @@ export default function RankingTable({
     () =>
       [...new Set(players.map((p) => p.team))]
         .map((id) => ({ id: String(id), name: teams[String(id)] }))
-        .sort((a, b) => a.name.localeCompare(b.name, "de")),
+        .sort((a, b) => a.name.localeCompare(b.name, lang)),
     [players, teams],
   );
 
@@ -57,8 +64,8 @@ export default function RankingTable({
 
   const fmt = (p: PlayerRow, key: SortKey) => {
     const v = value(p, key);
-    if (key === "minutes") return v.toLocaleString("de-AT");
-    if (per90 || key === "preAssistXg") return v.toFixed(2).replace(".", ",");
+    if (key === "minutes") return v.toLocaleString(LOCALE[lang]);
+    if (per90 || key === "preAssistXg" || key === "xpa") return num(lang, v, 2);
     return String(v);
   };
 
@@ -70,17 +77,17 @@ export default function RankingTable({
       <div className="filters">
         <input
           type="search"
-          placeholder="Spieler suchen …"
+          placeholder={t(lang, "table.search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Spieler suchen"
+          aria-label={t(lang, "search.label")}
         />
         {!hideTeam && (
-          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team filtern">
-            <option value="alle">Alle Teams</option>
-            {teamOptions.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label={t(lang, "table.team")}>
+            <option value="alle">{t(lang, "common.allTeams")}</option>
+            {teamOptions.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
               </option>
             ))}
           </select>
@@ -88,16 +95,18 @@ export default function RankingTable({
         <select
           value={minMinutes}
           onChange={(e) => setMinMinutes(Number(e.target.value))}
-          aria-label="Mindestminuten"
+          aria-label={t(lang, "common.minutes")}
         >
-          <option value={0}>Alle Minuten</option>
-          <option value={450}>ab 450 Min.</option>
-          <option value={900}>ab 900 Min.</option>
-          <option value={1800}>ab 1.800 Min.</option>
+          <option value={0}>{t(lang, "table.minutesAll")}</option>
+          {[450, 900, 1800].map((n) => (
+            <option key={n} value={n}>
+              {t(lang, "table.minutesFrom", { n: n.toLocaleString(LOCALE[lang]) })}
+            </option>
+          ))}
         </select>
         <label className="toggle">
           <input type="checkbox" checked={per90} onChange={(e) => setPer90(e.target.checked)} />
-          pro 90 Minuten
+          {t(lang, "table.per90")}
         </label>
       </div>
 
@@ -106,17 +115,17 @@ export default function RankingTable({
           <thead>
             <tr>
               <th className="num">#</th>
-              <th>Spieler</th>
-              {!hideTeam && <th className="hide-sm">Team</th>}
+              <th>{t(lang, "table.player")}</th>
+              {!hideTeam && <th className="hide-sm">{t(lang, "table.team")}</th>}
               {COLUMNS.map((c) => (
-                <th key={c.key} className={`num ${["minutes", "preAssistXg", "involvements"].includes(c.key) ? "hide-sm" : ""}`}>
+                <th key={c.key} className={`num ${["minutes", "preAssistXg", "involvements", "xpa"].includes(c.key) ? "hide-sm" : ""}`}>
                   <button
                     type="button"
-                    title={c.title}
+                    title={t(lang, c.title)}
                     className={sort === c.key ? "active" : ""}
                     onClick={() => setSort(c.key)}
                   >
-                    {c.label}
+                    {c.label === "xPA" ? "xPA" : t(lang, c.label)}
                     {sort === c.key ? " ↓" : ""}
                   </button>
                 </th>
@@ -132,12 +141,12 @@ export default function RankingTable({
                 <tr key={p.id}>
                   <td className="num muted">{rank}</td>
                   <td className="name">
-                    <Link href={`/spieler/${p.slug}/`}>{p.name}</Link>
+                    <Link href={url(lang, "spieler", p.slug)}>{p.name}</Link>
                     {!hideTeam && <div className="sub show-sm">{teams[String(p.team)]}</div>}
                   </td>
                   {!hideTeam && (
                     <td className="hide-sm muted">
-                      <Link href={`/verein/${clubSlug(teams[String(p.team)])}/`} className="team-link">
+                      <Link href={url(lang, "verein", teamSlugs?.[String(p.team)] ?? clubSlug(teams[String(p.team)]))} className="team-link">
                         {teams[String(p.team)]}
                       </Link>
                     </td>
@@ -145,7 +154,7 @@ export default function RankingTable({
                   {COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`num ${c.key === sort ? "sorted" : ""} ${["minutes", "preAssistXg", "involvements"].includes(c.key) ? "hide-sm" : ""}`}
+                      className={`num ${c.key === sort ? "sorted" : ""} ${["minutes", "preAssistXg", "involvements", "xpa"].includes(c.key) ? "hide-sm" : ""}`}
                     >
                       {fmt(p, c.key)}
                     </td>
@@ -155,10 +164,10 @@ export default function RankingTable({
             })}
           </tbody>
         </table>
-        {rows.length === 0 && <p className="empty">Keine Spieler gefunden.</p>}
+        {rows.length === 0 && <p className="empty">{t(lang, "table.none")}</p>}
         {!showAll && rows.length > PAGE_SIZE && (
           <button type="button" className="more" onClick={() => setShowAll(true)}>
-            Alle {rows.length} Spieler anzeigen
+            {t(lang, "table.showAll", { n: rows.length })}
           </button>
         )}
       </div>

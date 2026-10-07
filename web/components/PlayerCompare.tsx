@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PlayerCard from "./PlayerCard";
-import type { CompareEntry } from "@/app/daten/spieler.json/route";
+import { LOCALE, t, type Lang, type TKey } from "@/lib/i18n";
+import type { CompareEntry } from "@/lib/indexes";
 
 interface Metric {
-  label: string;
+  label: TKey;
   get: (e: CompareEntry) => number;
   decimals?: number;
 }
@@ -13,18 +14,17 @@ interface Metric {
 const per90 = (v: number, e: CompareEntry) => (e.minutes > 0 ? (v / e.minutes) * 90 : 0);
 
 const METRICS: Metric[] = [
-  { label: "Pre-Assists", get: (e) => e.preAssists },
-  { label: "Pre-Assists pro 90", get: (e) => per90(e.preAssists, e), decimals: 2 },
-  { label: "Pre-Assist xG", get: (e) => e.preAssistXg, decimals: 2 },
-  { label: "Assists", get: (e) => e.assists },
-  { label: "Tore", get: (e) => e.goals },
-  { label: "Torbeteiligungen", get: (e) => e.involvements },
-  { label: "Beteiligungen pro 90", get: (e) => per90(e.involvements, e), decimals: 2 },
-  { label: "Einsätze", get: (e) => e.matches },
-  { label: "Minuten", get: (e) => e.minutes },
+  { label: "common.preAssists", get: (e) => e.preAssists },
+  { label: "cmp.pa90", get: (e) => per90(e.preAssists, e), decimals: 2 },
+  { label: "cmp.xpa", get: (e) => e.xpa, decimals: 2 },
+  { label: "table.paxg", get: (e) => e.preAssistXg, decimals: 2 },
+  { label: "common.assists", get: (e) => e.assists },
+  { label: "common.goals", get: (e) => e.goals },
+  { label: "cmp.inv", get: (e) => e.involvements },
+  { label: "cmp.inv90", get: (e) => per90(e.involvements, e), decimals: 2 },
+  { label: "cmp.apps", get: (e) => e.matches },
+  { label: "common.minutes", get: (e) => e.minutes },
 ];
-
-const fmt = (v: number, d = 0) => v.toLocaleString("de-AT", { minimumFractionDigits: d, maximumFractionDigits: d });
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function Picker({
@@ -32,11 +32,13 @@ function Picker({
   value,
   onPick,
   label,
+  lang,
 }: {
   entries: CompareEntry[];
   value: CompareEntry | undefined;
   onPick: (e: CompareEntry) => void;
   label: string;
+  lang: Lang;
 }) {
   const [q, setQ] = useState("");
   const results = q.trim() ? entries.filter((e) => norm(e.name).includes(norm(q.trim()))).slice(0, 7) : [];
@@ -44,10 +46,10 @@ function Picker({
     <div className="picker">
       <input
         type="search"
-        placeholder={`${label}: Spieler suchen …`}
+        placeholder={t(lang, "cmp.search", { label })}
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        aria-label={`${label} wählen`}
+        aria-label={label}
       />
       {results.length > 0 && (
         <ul className="search-results">
@@ -73,18 +75,19 @@ function Picker({
           ))}
         </ul>
       )}
-      <div className="picker-card">{value && <PlayerCard card={value} size="lg" />}</div>
+      <div className="picker-card">{value && <PlayerCard card={value} size="lg" lang={lang} />}</div>
     </div>
   );
 }
 
-export default function PlayerCompare() {
+export default function PlayerCompare({ lang = "de" }: { lang?: Lang }) {
+  const fmt = (v: number, d = 0) => v.toLocaleString(LOCALE[lang], { minimumFractionDigits: d, maximumFractionDigits: d });
   const [entries, setEntries] = useState<CompareEntry[] | null>(null);
   const [aKey, setAKey] = useState<string | null>(null);
   const [bKey, setBKey] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/daten/spieler.json")
+    fetch(lang === "en" ? "/daten/spieler-en.json" : "/daten/spieler.json")
       .then((r) => r.json())
       .then((list: CompareEntry[]) => {
         setEntries(list);
@@ -97,7 +100,7 @@ export default function PlayerCompare() {
         setAKey(has(a) ? a : bySeason("premier-league-2015-16"));
         setBKey(has(b) ? b : bySeason("la-liga-2015-16"));
       });
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (!aKey || !bKey) return;
@@ -121,7 +124,7 @@ export default function PlayerCompare() {
     setBKey(second);
   };
 
-  if (!entries) return <p className="empty">Lade Spieler …</p>;
+  if (!entries) return <p className="empty">{t(lang, "cmp.loading")}</p>;
 
   let winsA = 0;
   let winsB = 0;
@@ -129,7 +132,7 @@ export default function PlayerCompare() {
     ? METRICS.map((m) => {
         const va = m.get(a);
         const vb = m.get(b);
-        if (m.label !== "Minuten" && m.label !== "Einsätze") {
+        if (m.label !== "common.minutes" && m.label !== "cmp.apps") {
           if (va > vb) winsA++;
           else if (vb > va) winsB++;
         }
@@ -142,7 +145,7 @@ export default function PlayerCompare() {
     <div className="compare">
       <div className="compare-actions">
         <button type="button" className="btn" onClick={randomDuel}>
-          Zufallsduell
+          {t(lang, "cmp.random")}
         </button>
         <button
           type="button"
@@ -152,19 +155,19 @@ export default function PlayerCompare() {
             setBKey(aKey);
           }}
         >
-          ⇄ Seiten tauschen
+          {t(lang, "cmp.swap")}
         </button>
       </div>
 
       <div className="compare-head">
-        <Picker entries={entries} value={a} onPick={(e) => setAKey(e.key)} label="Spieler 1" />
+        <Picker entries={entries} value={a} onPick={(e) => setAKey(e.key)} label={t(lang, "cmp.p1")} lang={lang} />
         <div className="compare-score" aria-live="polite">
           <span className={winsA > winsB ? "is-win" : ""}>{winsA}</span>
           <small>:</small>
           <span className={winsB > winsA ? "is-win" : ""}>{winsB}</span>
-          <em>Kategorien</em>
+          <em>{t(lang, "cmp.categories")}</em>
         </div>
-        <Picker entries={entries} value={b} onPick={(e) => setBKey(e.key)} label="Spieler 2" />
+        <Picker entries={entries} value={b} onPick={(e) => setBKey(e.key)} label={t(lang, "cmp.p2")} lang={lang} />
       </div>
 
       {a && b && (
@@ -175,7 +178,7 @@ export default function PlayerCompare() {
               <span className="cb-bar left">
                 <i style={{ width: `${pa}%` }} />
               </span>
-              <span className="cb-label">{m.label}</span>
+              <span className="cb-label">{t(lang, m.label)}</span>
               <span className="cb-bar right">
                 <i style={{ width: `${pb}%` }} />
               </span>

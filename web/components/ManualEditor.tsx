@@ -1,0 +1,531 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { arrowHead } from "@/lib/geom";
+import {
+  PASS_TYPES,
+  emptySeason,
+  type GoalKind,
+  type ManualGoal,
+  type ManualMatch,
+  type ManualSeasonFile,
+  type PassType,
+  type Pt,
+} from "@/lib/manualTypes";
+
+const STORAGE_KEY = "preassists-erfassung";
+const POSITIONS = ["", "TW", "IV", "RV", "LV", "ZDM", "ZM", "ZOM", "RM", "LM", "RF", "LF", "ST", "HS"];
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+function load(): ManualSeasonFile {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    /* Speicher nicht verfügbar – mit leerer Saison starten */
+  }
+  return emptySeason();
+}
+
+interface Draft {
+  minute: string;
+  team: string;
+  kind: GoalKind;
+  scorer: string;
+  assist: string;
+  assistType: PassType | "";
+  pre: string;
+  preType: PassType | "";
+  points: { pre?: Pt; assist?: Pt; shot?: Pt };
+}
+
+const emptyDraft = (team: string): Draft => ({
+  minute: "",
+  team,
+  kind: "Spiel",
+  scorer: "",
+  assist: "",
+  assistType: "",
+  pre: "",
+  preType: "",
+  points: {},
+});
+
+/** Spielfeld zum Anklicken der Punkte (Angriff nach rechts). */
+function ClickPitch({ draft, onPoint }: { draft: Draft; onPoint: (p: Pt) => void }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const { pre, assist, shot } = draft.points;
+  const click = (e: React.MouseEvent) => {
+    const svg = ref.current!;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+    onPoint([Math.round(Math.min(120, Math.max(0, p.x)) * 10) / 10, Math.round(Math.min(80, Math.max(0, p.y)) * 10) / 10]);
+  };
+  const line = (a: Pt, b: Pt, cls: string) => (
+    <g className={`pitch-arrow ${cls}`}>
+      <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="pitch-line" />
+      <polygon points={arrowHead(a, b, 3, 2.6)} className="pitch-head" />
+    </g>
+  );
+  return (
+    <svg ref={ref} viewBox="-2 -2 124 84" className="pitch click-pitch" onClick={click} role="img" aria-label="Spielfeld zum Anklicken">
+      <g className="pitch-markings">
+        <rect x={0} y={0} width={120} height={80} />
+        <line x1={60} y1={0} x2={60} y2={80} />
+        <circle cx={60} cy={40} r={10} />
+        <rect x={102} y={18} width={18} height={44} />
+        <rect x={114} y={30} width={6} height={20} />
+        <rect x={0} y={18} width={18} height={44} />
+      </g>
+      <text x={60} y={77} textAnchor="middle" className="click-hint">
+        Angriff →
+      </text>
+      {pre && assist && line(pre, assist, "pre")}
+      {assist && shot && line(assist, shot, "assist")}
+      {shot && line(shot, [120, 40], "shot")}
+      {pre && <circle cx={pre[0]} cy={pre[1]} r={1.8} className="click-dot pre" />}
+      {assist && <circle cx={assist[0]} cy={assist[1]} r={1.8} className="click-dot assist" />}
+      {shot && <circle cx={shot[0]} cy={shot[1]} r={1.8} className="click-dot shot" />}
+    </svg>
+  );
+}
+
+export default function ManualEditor() {
+  const [data, setData] = useState<ManualSeasonFile | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Draft>(emptyDraft(""));
+  const [newMatch, setNewMatch] = useState({ round: "1", date: "", home: "", away: "", hs: "0", as: "0" });
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => setData(load()), []);
+  useEffect(() => {
+    if (!data) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* ignorieren */
+    }
+  }, [data]);
+
+  const match = data?.matches.find((m) => m.id === matchId) ?? null;
+  useEffect(() => {
+    if (match) setDraft(emptyDraft(match.home));
+  }, [matchId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const playersOf = useMemo(() => {
+    const map = new Map<string, string[]>();
+    if (!data) return map;
+    for (const [name, p] of Object.entries(data.players)) map.set(p.team, [...(map.get(p.team) ?? []), name].sort());
+    return map;
+  }, [data]);
+
+  if (!data) return <p className="empty">Lade …</p>;
+
+  const update = (fn: (d: ManualSeasonFile) => ManualSeasonFile) => setData((d) => (d ? fn(structuredClone(d)) : d));
+
+  // Welcher Punkt als Nächstes angeklickt wird
+  const needed: ("pre" | "assist" | "shot")[] = [];
+  if (draft.pre.trim() && draft.assist.trim()) needed.push("pre");
+  if (draft.assist.trim()) needed.push("assist");
+  needed.push("shot");
+  const nextPoint = needed.find((k) => !draft.points[k]);
+  const pointLabel = { pre: "Start des Pre-Assists", assist: "Start der Vorlage (Assist)", shot: "Ort des Abschlusses" };
+
+  const addMatch = () => {
+    const { round, date, home, away, hs, as } = newMatch;
+    if (!date || !home || !away || home === away) {
+      setMsg("Bitte Datum sowie zwei verschiedene Teams wählen.");
+      return;
+    }
+    const m: ManualMatch = {
+      id: uid(),
+      round: Number(round) || 1,
+      date,
+      home,
+      away,
+      homeScore: Number(hs) || 0,
+      awayScore: Number(as) || 0,
+    };
+    update((d) => ({ ...d, matches: [...d.matches, m] }));
+    setMatchId(m.id);
+    setMsg("");
+  };
+
+  const saveGoal = () => {
+    if (!match) return;
+    const scorer = draft.scorer.trim();
+    const assist = draft.assist.trim() || null;
+    const pre = assist ? draft.pre.trim() || null : null;
+    if (!scorer || !draft.minute) {
+      setMsg("Minute und Torschütze fehlen.");
+      return;
+    }
+    if (draft.kind !== "Eigentor" && nextPoint) {
+      setMsg(`Bitte noch auf dem Spielfeld klicken: ${pointLabel[nextPoint]}.`);
+      return;
+    }
+    const goal: ManualGoal = {
+      id: uid(),
+      match: match.id,
+      minute: Number(draft.minute),
+      team: draft.team,
+      kind: draft.kind,
+      scorer,
+      assist,
+      pre,
+      assistType: assist ? (draft.assistType || null) : null,
+      preType: pre ? (draft.preType || null) : null,
+      points: draft.points,
+    };
+    update((d) => {
+      // Spieler automatisch anlegen
+      for (const n of [scorer, assist, pre]) {
+        if (n && !d.players[n] && draft.kind !== "Eigentor") d.players[n] = { team: draft.team };
+      }
+      d.goals.push(goal);
+      return d;
+    });
+    setDraft(emptyDraft(draft.team));
+    setMsg("Tor gespeichert.");
+  };
+
+  const exportFile = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${data.slug}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  const importFile = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as ManualSeasonFile;
+      if (parsed.version !== 1 || !Array.isArray(parsed.goals)) throw new Error("Format");
+      setData(parsed);
+      setMatchId(null);
+      setMsg(`Importiert: ${parsed.matches.length} Spiele, ${parsed.goals.length} Tore.`);
+    } catch {
+      setMsg("Die Datei konnte nicht gelesen werden.");
+    }
+  };
+
+  const matchGoals = data.goals.filter((g) => g.match === matchId).sort((a, b) => a.minute - b.minute);
+  const rounds = [...new Set(data.matches.map((m) => m.round))].sort((a, b) => b - a);
+  const teamPlayers = playersOf.get(draft.team) ?? [];
+
+  return (
+    <div className="editor">
+      <div className="editor-bar">
+        <div>
+          <b>{data.name}</b> {data.season} · {data.matches.length} Spiele · {data.goals.length} Tore
+        </div>
+        <div className="editor-actions">
+          <button type="button" className="btn btn-small" onClick={exportFile}>
+            Exportieren
+          </button>
+          <label className="btn btn-ghost btn-small">
+            Importieren
+            <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
+          </label>
+          <button
+            type="button"
+            className="btn btn-ghost btn-small"
+            onClick={() => {
+              if (confirm("Alle erfassten Daten in diesem Browser löschen?")) {
+                setData(emptySeason());
+                setMatchId(null);
+              }
+            }}
+          >
+            Neu beginnen
+          </button>
+        </div>
+      </div>
+      {msg && <p className="notice">{msg}</p>}
+
+      <div className="editor-grid">
+        <section className="editor-panel">
+          <h2 className="sub-title">Spiel anlegen</h2>
+          <div className="form-grid">
+            <label>
+              Runde
+              <input type="number" min={1} value={newMatch.round} onChange={(e) => setNewMatch({ ...newMatch, round: e.target.value })} />
+            </label>
+            <label>
+              Datum
+              <input type="date" value={newMatch.date} onChange={(e) => setNewMatch({ ...newMatch, date: e.target.value })} />
+            </label>
+            <label>
+              Heim
+              <select value={newMatch.home} onChange={(e) => setNewMatch({ ...newMatch, home: e.target.value })}>
+                <option value="">–</option>
+                {data.teams.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Gast
+              <select value={newMatch.away} onChange={(e) => setNewMatch({ ...newMatch, away: e.target.value })}>
+                <option value="">–</option>
+                {data.teams.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Tore Heim
+              <input type="number" min={0} value={newMatch.hs} onChange={(e) => setNewMatch({ ...newMatch, hs: e.target.value })} />
+            </label>
+            <label>
+              Tore Gast
+              <input type="number" min={0} value={newMatch.as} onChange={(e) => setNewMatch({ ...newMatch, as: e.target.value })} />
+            </label>
+          </div>
+          <button type="button" className="btn btn-small" onClick={addMatch}>
+            Spiel anlegen
+          </button>
+
+          <h2 className="sub-title">Spiele</h2>
+          {rounds.length === 0 && <p className="muted">Noch keine Spiele erfasst.</p>}
+          {rounds.map((r) => (
+            <div key={r} className="editor-round">
+              <span className="muted small">Runde {r}</span>
+              {data.matches
+                .filter((m) => m.round === r)
+                .map((m) => {
+                  const n = data.goals.filter((g) => g.match === m.id).length;
+                  const total = m.homeScore + m.awayScore;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={`chain-item ${m.id === matchId ? "is-active" : ""}`}
+                      onClick={() => setMatchId(m.id)}
+                    >
+                      <span>
+                        {m.home} {m.homeScore}:{m.awayScore} {m.away}
+                      </span>
+                      <span className={`ci-meta ${n < total ? "is-open" : ""}`}>
+                        {n}/{total} Tore erfasst
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+          ))}
+        </section>
+
+        <section className="editor-panel">
+          {!match ? (
+            <p className="muted">Wähle links ein Spiel oder lege ein neues an.</p>
+          ) : (
+            <>
+              <h2 className="sub-title">
+                Tor erfassen · {match.home} {match.homeScore}:{match.awayScore} {match.away}
+              </h2>
+              <div className="form-grid">
+                <label>
+                  Minute
+                  <input type="number" min={1} max={130} value={draft.minute} onChange={(e) => setDraft({ ...draft, minute: e.target.value })} />
+                </label>
+                <label>
+                  Team
+                  <select value={draft.team} onChange={(e) => setDraft({ ...draft, team: e.target.value })}>
+                    <option>{match.home}</option>
+                    <option>{match.away}</option>
+                  </select>
+                </label>
+                <label>
+                  Art
+                  <select value={draft.kind} onChange={(e) => setDraft({ ...draft, kind: e.target.value as GoalKind })}>
+                    {(["Spiel", "Standard", "Elfmeter", "Eigentor"] as GoalKind[]).map((k) => (
+                      <option key={k}>{k}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="span-2">
+                  Torschütze
+                  <input list="team-players" value={draft.scorer} onChange={(e) => setDraft({ ...draft, scorer: e.target.value })} />
+                </label>
+                <label className="span-2">
+                  Assist (Vorlage)
+                  <input list="team-players" value={draft.assist} onChange={(e) => setDraft({ ...draft, assist: e.target.value })} />
+                </label>
+                <label>
+                  Art der Vorlage
+                  <select value={draft.assistType} onChange={(e) => setDraft({ ...draft, assistType: e.target.value as PassType })}>
+                    <option value="">–</option>
+                    {PASS_TYPES.map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="span-2">
+                  Pre-Assist
+                  <input
+                    list="team-players"
+                    value={draft.pre}
+                    disabled={!draft.assist.trim()}
+                    onChange={(e) => setDraft({ ...draft, pre: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Art des Pre-Assists
+                  <select value={draft.preType} onChange={(e) => setDraft({ ...draft, preType: e.target.value as PassType })}>
+                    <option value="">–</option>
+                    {PASS_TYPES.map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <datalist id="team-players">
+                {teamPlayers.map((p) => (
+                  <option key={p} value={p} />
+                ))}
+              </datalist>
+
+              {draft.kind !== "Eigentor" && (
+                <>
+                  <p className="click-step">
+                    {nextPoint ? (
+                      <>
+                        Klicke auf dem Spielfeld: <b>{pointLabel[nextPoint]}</b>
+                      </>
+                    ) : (
+                      "Alle Punkte gesetzt."
+                    )}
+                    {Object.keys(draft.points).length > 0 && (
+                      <button type="button" className="link-btn" onClick={() => setDraft({ ...draft, points: {} })}>
+                        Punkte zurücksetzen
+                      </button>
+                    )}
+                  </p>
+                  <ClickPitch
+                    draft={draft}
+                    onPoint={(p) => nextPoint && setDraft({ ...draft, points: { ...draft.points, [nextPoint]: p } })}
+                  />
+                </>
+              )}
+              <button type="button" className="btn" onClick={saveGoal}>
+                Tor speichern
+              </button>
+
+              <h2 className="sub-title">Erfasste Tore</h2>
+              {matchGoals.length === 0 && <p className="muted">Noch keine Tore.</p>}
+              <ul className="editor-goals">
+                {matchGoals.map((g) => (
+                  <li key={g.id}>
+                    <span className="muted">{g.minute}&apos;</span>
+                    <span className="chain-names">
+                      {g.pre && (
+                        <>
+                          <span className="c-pre">{g.pre}</span>
+                          <span className="c-sep">›</span>
+                        </>
+                      )}
+                      {g.assist && (
+                        <>
+                          <span className="c-ast">{g.assist}</span>
+                          <span className="c-sep">›</span>
+                        </>
+                      )}
+                      <span className="c-goal">{g.scorer}</span>
+                      {g.kind !== "Spiel" && <span className="muted"> ({g.kind})</span>}
+                    </span>
+                    <button
+                      type="button"
+                      className="link-btn"
+                      onClick={() => update((d) => ({ ...d, goals: d.goals.filter((x) => x.id !== g.id) }))}
+                    >
+                      Löschen
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="link-btn danger"
+                onClick={() => {
+                  if (confirm("Spiel samt Toren löschen?")) {
+                    update((d) => ({
+                      ...d,
+                      matches: d.matches.filter((m) => m.id !== match.id),
+                      goals: d.goals.filter((g) => g.match !== match.id),
+                    }));
+                    setMatchId(null);
+                  }
+                }}
+              >
+                Dieses Spiel löschen
+              </button>
+            </>
+          )}
+        </section>
+      </div>
+
+      <section className="editor-panel">
+        <h2 className="sub-title">Spieler ({Object.keys(data.players).length})</h2>
+        <p className="muted small">Position und Nation erscheinen auf den Spielerkarten. Nation als Kürzel, z. B. at, de, hr.</p>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Position</th>
+                <th>Nation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(data.players)
+                .sort((a, b) => a[1].team.localeCompare(b[1].team) || a[0].localeCompare(b[0]))
+                .map(([name, p]) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td>
+                      <select
+                        value={p.team}
+                        onChange={(e) => update((d) => ((d.players[name].team = e.target.value), d))}
+                      >
+                        {data.teams.map((t) => (
+                          <option key={t}>{t}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={p.position ?? ""}
+                        onChange={(e) => update((d) => ((d.players[name].position = e.target.value || undefined), d))}
+                      >
+                        {POSITIONS.map((x) => (
+                          <option key={x} value={x}>
+                            {x || "–"}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        className="code-input"
+                        maxLength={6}
+                        value={p.country ?? ""}
+                        onChange={(e) =>
+                          update((d) => ((d.players[name].country = e.target.value.toLowerCase() || undefined), d))
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}

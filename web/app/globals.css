@@ -159,6 +159,27 @@ h3 {
   color: var(--accent);
 }
 
+/* Sprachumschalter DE/EN */
+.mainnav a.lang-switch {
+  margin-left: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.mainnav a.lang-switch:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .burger {
   display: none;
   flex-direction: column;
@@ -811,6 +832,14 @@ h3 {
 }
 
 /* ---------- Vereine ---------- */
+.nation-badge {
+  display: inline-block;
+  flex: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  background-size: cover;
+}
+
 .club-badge .cb-shield {
   fill: var(--accent);
 }
@@ -1309,8 +1338,31 @@ h3 {
   background: linear-gradient(270deg, #b9480a, var(--accent));
 }
 
-.compare-link {
+.player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 14px;
+}
+
+.share-btn {
+  gap: 6px;
+  align-self: flex-start;
+}
+
+.share-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.share-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 /* ---------- Spieler-Auswertungen ---------- */
@@ -1529,6 +1581,318 @@ h3 {
 
 .record a:hover {
   color: var(--accent);
+}
+
+/* ---------- Erfassungs-Tool ---------- */
+.howto {
+  margin: 0 0 20px;
+  padding-left: 1.3rem;
+  color: #c9d0d7;
+}
+
+.howto li {
+  margin-bottom: 4px;
+}
+
+.howto code {
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.editor-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(27, 30, 35, 0.92);
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.editor-actions label {
+  cursor: pointer;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  align-items: start;
+  margin: 12px 0 16px;
+}
+
+.editor-panel {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(20, 21, 25, 0.92);
+  border: 1px solid var(--line);
+}
+
+.editor-panel .sub-title:first-child {
+  margin-top: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.form-grid .span-2 {
+  grid-column: span 2;
+}
+
+.form-grid input,
+.form-grid select,
+.editor-panel td select,
+.code-input {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.form-grid input:disabled {
+  opacity: 0.4;
+}
+
+.code-input {
+  width: 5rem;
+}
+
+.editor-round {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ci-meta.is-open {
+  color: var(--accent);
+}
+
+.click-pitch {
+  cursor: crosshair;
+  margin: 8px 0 12px;
+}
+
+.click-hint {
+  font-size: 2.6px;
+  fill: rgba(255, 255, 255, 0.35);
+  font-family: var(--display);
+}
+
+.click-dot {
+  stroke: #0b0c0e;
+  stroke-width: 0.4;
+}
+.click-dot.pre {
+  fill: var(--pre);
+}
+.click-dot.assist {
+  fill: var(--assist);
+}
+.click-dot.shot {
+  fill: var(--goal);
+}
+
+.click-step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 4px 0 0;
+}
+
+.click-step b {
+  color: var(--accent);
+}
+
+.link-btn {
+  all: unset;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: var(--text);
+}
+
+.link-btn.danger {
+  color: #ff8a80;
+  margin-top: 12px;
+  display: inline-block;
+}
+
+.editor-goals {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.editor-goals li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+/* Passnetzwerk */
+.network {
+  margin: 0;
+  max-width: 900px;
+}
+
+.net-edge {
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.net-edge.pre {
+  stroke: var(--pre);
+}
+
+.net-edge.assist {
+  stroke: var(--assist);
+}
+
+.net-node circle {
+  fill: #2a1a10;
+  stroke: var(--accent);
+  stroke-width: 0.5;
+}
+
+.net-node text {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 2.5px;
+  fill: var(--text);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #0b0c0e;
+  stroke-width: 0.6px;
+}
+
+.network-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+.legend-pre,
+.legend-ast {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-pre::before,
+.legend-ast::before {
+  content: "";
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pre);
+}
+
+.legend-ast::before {
+  background: var(--assist);
+}
+
+/* Spielzug des Tages */
+.daily {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 40px;
+  padding: 22px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(255, 122, 26, 0.14), rgba(20, 21, 25, 0.92) 55%);
+  border: 1px solid var(--line);
+}
+
+.daily-info h2 {
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 6px 0 4px;
+}
+
+.daily-info .muted {
+  margin: 0 0 14px;
+}
+
+/* Newsletter */
+.newsletter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 56px;
+  padding: 26px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(255, 122, 26, 0.16), rgba(20, 21, 25, 0.92) 60%);
+  border: 1px solid var(--line);
+}
+
+.newsletter h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 6px 0 8px;
+}
+
+.newsletter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.newsletter-form input {
+  flex: 1 1 220px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font: inherit;
+}
+
+.newsletter-form small {
+  flex-basis: 100%;
 }
 
 /* ---------- Spielerkarte ---------- */
@@ -2423,6 +2787,15 @@ td.name a {
     background: none;
   }
 
+  .mainnav a.lang-switch {
+    margin: 12px 0 0;
+    align-self: flex-start;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 1.2rem;
+  }
+
   body.menu-open {
     overflow: hidden;
   }
@@ -2430,7 +2803,10 @@ td.name a {
 
 @media (max-width: 900px) {
   .intro,
+  .daily,
+  .newsletter,
   .coming-soon,
+  .editor-grid,
   .club-split,
   .insights,
   .explorer-grid,
@@ -2479,6 +2855,10 @@ td.name a {
 
   .club-facts {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .explorer-stage {
@@ -2640,6 +3020,20 @@ td.name a {
   }
   .reveal.is-in .curve-line {
     animation: draw 1.4s ease-out 0.2s forwards;
+  }
+
+  .reveal .net-edge {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+  }
+  .reveal.is-in .net-edge {
+    animation: draw-net 1.2s ease-out forwards;
+    animation-delay: calc(var(--seq) * 70ms + 0.2s);
+  }
+  @keyframes draw-net {
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 
   .reveal .pa-shot {

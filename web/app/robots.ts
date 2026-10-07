@@ -4,7 +4,7 @@ export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/daten/"] },
+    rules: { userAgent: "*", allow: "/", disallow: ["/daten/", "/erfassen/"] },
     sitemap: "https://www.preassists.at/sitemap.xml",
   };
 }

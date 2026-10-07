@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { clubShort, type CardData } from "@/lib/cards";
+import { num, t, url, type Lang } from "@/lib/i18n";
 
 export function Flag({ code, title }: { code: string | null; title?: string | null }) {
   if (!code) return null;
@@ -25,22 +26,28 @@ function Silhouette() {
   );
 }
 
-const de = (n: number, digits: number) => n.toFixed(digits).replace(".", ",");
-
-export default function PlayerCard({ card, size = "md" }: { card: CardData; size?: "md" | "lg" }) {
+export default function PlayerCard({
+  card,
+  size = "md",
+  lang = "de",
+}: {
+  card: CardData;
+  size?: "md" | "lg";
+  lang?: Lang;
+}) {
   const left: [string, string][] = [
-    [String(card.preAssists), "PA"],
-    [String(card.assists), "AST"],
-    [String(card.goals), "TOR"],
+    [String(card.preAssists), t(lang, "card.pa")],
+    [String(card.assists), t(lang, "card.ast")],
+    [String(card.goals), t(lang, "card.goal")],
   ];
   const right: [string, string][] = [
-    [String(card.involvements), "BET"],
-    [de(card.preAssistXg, 1), "xG"],
-    [String(card.matches), "SP"],
+    [num(lang, card.xpa, 1), t(lang, "card.xpa")],
+    [String(card.involvements), t(lang, "card.inv")],
+    [String(card.matches), t(lang, "card.apps")],
   ];
 
   return (
-    <Link href={`/spieler/${card.slug}/`} className={`pcard pcard-${size}`}>
+    <Link href={url(lang, "spieler", card.slug)} className={`pcard pcard-${size}`}>
       <span className="pcard-upper">
         <span className="pcard-watermark" aria-hidden="true">
           P
