@@ -1810,6 +1810,30 @@ h3 {
   background: var(--assist);
 }
 
+/* Spielzug des Tages */
+.daily {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 40px;
+  padding: 22px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(255, 122, 26, 0.14), rgba(20, 21, 25, 0.92) 55%);
+  border: 1px solid var(--line);
+}
+
+.daily-info h2 {
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 6px 0 4px;
+}
+
+.daily-info .muted {
+  margin: 0 0 14px;
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -2709,6 +2733,7 @@ td.name a {
 
 @media (max-width: 900px) {
   .intro,
+  .daily,
   .coming-soon,
   .editor-grid,
   .club-split,

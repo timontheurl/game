@@ -1,7 +1,8 @@
 import Link from "next/link";
 import AssistIllustration from "@/components/AssistIllustration";
+import DailyChain from "@/components/DailyChain";
 import PlayerCard from "@/components/PlayerCard";
-import { getSeasons, seasonLabel, toCard, type PlayerRow, type Season } from "@/lib/data";
+import { dailyCandidates, getSeasons, seasonLabel, toCard, type PlayerRow, type Season } from "@/lib/data";
 
 function joinNames(names: string[]) {
   return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`;
@@ -92,6 +93,10 @@ export default function Home() {
           </section>
         );
       })}
+
+      <section className="section">
+        <DailyChain candidates={dailyCandidates()} />
+      </section>
 
       <section className="section tournaments">
         <h2 className="section-title">Turniere</h2>

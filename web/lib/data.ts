@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { clubSlug, countryNameDe, type CardData } from "./cards";
+import { clubSlug, countryNameDe, formatClock, type CardData } from "./cards";
 
 export { describePass, formatClock } from "./cards";
 import { LEAGUES, leagueForSeason, type League } from "./leagues";
@@ -276,4 +276,34 @@ export function seasonClubs(season: Season) {
       leader: [...cs.players].sort((a, b) => b.preAssists - a.preAssists)[0],
     }))
     .sort((a, b) => b.preAssists - a.preAssists || b.goals - a.goals);
+}
+
+/**
+ * Kandidaten für den „Spielzug des Tages“: lange Ketten mit Pre-Assist aus der eigenen Hälfte oder dem
+ * Mittelfeld – die schönsten Angriffe, quer durch alle vollständigen Wettbewerbe.
+ */
+export function dailyCandidates(limit = 120) {
+  const len = (a: Point, b: Point) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+  return getSeasons()
+    .filter((s) => s.meta.coverage === "full" && !s.meta.manual)
+    .flatMap((season) =>
+      season.goals
+        .filter((g) => g.pre && g.assist && g.pre.start[0] < 75)
+        .map((g) => ({ season, g, score: len(g.pre!.start, g.pre!.end) + len(g.assist!.start, g.assist!.end) })),
+    )
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ season, g }) => {
+      const m = season.matches[String(g.match)];
+      const ids = [g.pre!.player, g.assist!.player, g.scorer].map(String);
+      const match = `${season.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${season.teams[String(m.away)]}`;
+      return {
+        goal: g,
+        names: Object.fromEntries(ids.map((id) => [id, season.names[id] ?? "–"])),
+        slugs: Object.fromEntries(ids.map((id) => [id, playerSlug(season, Number(id)) ?? ""]).filter(([, s]) => s)),
+        match,
+        season: seasonLabel(season.meta),
+        context: `${seasonLabel(season.meta)} · ${formatClock(g.period, g.minute)}`,
+      };
+    });
 }
