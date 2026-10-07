@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AssistIllustration from "@/components/AssistIllustration";
 import DailyChain from "@/components/DailyChain";
+import Newsletter from "@/components/Newsletter";
 import PlayerCard from "@/components/PlayerCard";
 import { dailyCandidates, getSeasons, seasonLabel, toCard, type PlayerRow, type Season } from "@/lib/data";
 
@@ -119,6 +120,8 @@ export default function Home() {
             })}
         </div>
       </section>
+
+      <Newsletter />
     </>
   );
 }

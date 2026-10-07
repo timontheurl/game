@@ -1834,6 +1834,46 @@ h3 {
   margin: 0 0 14px;
 }
 
+/* Newsletter */
+.newsletter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 56px;
+  padding: 26px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(255, 122, 26, 0.16), rgba(20, 21, 25, 0.92) 60%);
+  border: 1px solid var(--line);
+}
+
+.newsletter h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 6px 0 8px;
+}
+
+.newsletter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.newsletter-form input {
+  flex: 1 1 220px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font: inherit;
+}
+
+.newsletter-form small {
+  flex-basis: 100%;
+}
+
 /* ---------- Spielerkarte ---------- */
 .card-grid {
   display: grid;
@@ -2734,6 +2774,7 @@ td.name a {
 @media (max-width: 900px) {
   .intro,
   .daily,
+  .newsletter,
   .coming-soon,
   .editor-grid,
   .club-split,

@@ -27,7 +27,10 @@ export default function DatenschutzPage() {
 
       <h2>2. Das Wichtigste in Kürze</h2>
       <ul>
-        <li>Es gibt keine Benutzerkonten, keine Formulare und keinen Newsletter.</li>
+        <li>
+          Es gibt keine Benutzerkonten.
+          {filled(SITE.newsletter.action) ? " Einziges Formular ist die Newsletter-Anmeldung (siehe Punkt 5)." : " Es gibt keinen Newsletter."}
+        </li>
         <li>Es werden keine Cookies gesetzt und keine Werbe- oder Tracking-Dienste verwendet.</li>
         <li>Für eine anonyme Besucherstatistik nutzen wir Vercel Web Analytics – ohne Cookies und ohne Profile (siehe Punkt 4).</li>
         <li>Es wird keine Werbung eingeblendet.</li>
@@ -59,13 +62,32 @@ export default function DatenschutzPage() {
         <a href="https://vercel.com/docs/analytics/privacy-policy">Datenschutzhinweise zu Vercel Web Analytics</a>.
       </p>
 
-      <h2>5. Kontakt per E-Mail</h2>
+      {filled(SITE.newsletter.action) && (
+        <>
+          <h2>5. Newsletter</h2>
+          <p>
+            Wenn Sie den Newsletter abonnieren, wird Ihre E-Mail-Adresse an unseren Versanddienstleister{" "}
+            {SITE.newsletter.provider || "den Newsletter-Anbieter"} übermittelt und dort gespeichert. Die Anmeldung erfolgt
+            im Double-Opt-in-Verfahren: Sie erhalten zuerst eine E-Mail, in der Sie die Anmeldung bestätigen.
+            Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie jederzeit über den Abmeldelink in
+            jeder Ausgabe widerrufen können. Danach wird Ihre Adresse gelöscht.
+            {filled(SITE.newsletter.privacyUrl) && (
+              <>
+                {" "}
+                Weitere Informationen: <a href={SITE.newsletter.privacyUrl}>Datenschutzerklärung des Anbieters</a>.
+              </>
+            )}
+          </p>
+        </>
+      )}
+
+      <h2>{filled(SITE.newsletter.action) ? "6" : "5"}. Kontakt per E-Mail</h2>
       <p>
         Wenn Sie uns per E-Mail kontaktieren, verwenden wir Ihre Angaben nur, um Ihre Anfrage zu bearbeiten, und löschen
         sie, sobald sie nicht mehr benötigt werden (Art. 6 Abs. 1 lit. b bzw. f DSGVO).
       </p>
 
-      <h2>6. Ihre Rechte</h2>
+      <h2>{filled(SITE.newsletter.action) ? "7" : "6"}. Ihre Rechte</h2>
       <p>
         Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
         Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Wenden Sie sich dazu an die oben genannte
