@@ -1,0 +1,53 @@
+name: Daten-Update
+
+# Berechnet die Pre-Assists regelmäßig neu und öffnet bei Änderungen einen Pull Request.
+# Sobald eine lizenzierte Datenquelle angebunden ist, holt dieser Ablauf automatisch die neuen Spieltage.
+
+on:
+  schedule:
+    - cron: "17 5 * * 1" # jeden Montag um 05:17 UTC
+  workflow_dispatch: # manuell über "Run workflow" startbar
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: daten-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Zwischenspeicher der bereits ausgewerteten Spiele – ändert sich nur mit der Cache-Version der Pipeline
+      - uses: actions/cache@v4
+        with:
+          path: pipeline/.cache
+          key: pipeline-${{ hashFiles('pipeline/build_data.py') }}
+          restore-keys: pipeline-
+
+      - name: Tests
+        run: python -m unittest discover -s pipeline
+
+      - name: Pre-Assists berechnen
+        run: python pipeline/build_data.py
+
+      - name: Pull Request bei Änderungen
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automatisch/daten-update
+          delete-branch: true
+          add-paths: web/data
+          commit-message: "Daten-Update: Pre-Assists neu berechnet"
+          title: "Daten-Update: Pre-Assists neu berechnet"
+          body: |
+            Automatisch erzeugt vom Ablauf **Daten-Update**: Die Pipeline hat neue oder geänderte Daten geliefert.
+            Nach dem Übernehmen veröffentlicht Vercel die Seite mit den neuen Zahlen.

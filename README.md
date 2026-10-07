@@ -30,6 +30,8 @@ Dazu: Spielersuche, Animationen beim Scrollen, 3D-Karten, Vorschaubilder für ge
 | `web/lib/leagues.ts` | Verzeichnis aller Ligen – neue Ligen hier eintragen |
 | `web/lib/site.ts` | Angaben für Impressum und Datenschutz |
 | `.github/workflows/ci.yml` | Tests und Build bei jedem Pull Request |
+| `.github/workflows/daten-update.yml` | Rechnet jeden Montag neu und öffnet bei Änderungen einen Pull Request |
+| `web/data/manual/` | Händisch erfasste Saisons aus dem Erfassungs-Tool (`/erfassen`) |
 
 Eine neue Liga kommt dazu, indem die Pipeline eine Saison mit passendem Slug liefert (z. B. `serie-a-2024-25` für
 die Liga `serie-a`). Ranglisten, Vereins- und Spielerseiten entstehen dann automatisch.
