@@ -3145,3 +3145,348 @@ td.name a {
     display: none;
   }
 }
+
+/* ---------- Spiel ---------- */
+
+.game-modes {
+  margin-bottom: 20px;
+}
+
+.game-score {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.game-score b {
+  margin-left: 6px;
+  font-size: 1.6rem;
+  font-style: italic;
+  color: var(--accent);
+}
+
+.game-card {
+  aspect-ratio: 0.74;
+  cursor: default;
+}
+
+.game-card.pcard-lg {
+  max-width: 240px;
+}
+
+.game-card .pcard-rating.is-hidden {
+  color: var(--muted);
+}
+
+.game-card .pcard-rating.is-shown {
+  animation: game-pop 0.45s ease;
+}
+
+.game-card.is-win {
+  box-shadow: 0 0 0 3px #3ecf8e, 0 18px 40px rgba(62, 207, 142, 0.18);
+}
+
+.game-card.is-lose {
+  box-shadow: 0 0 0 3px #ff4d4d, 0 18px 40px rgba(255, 77, 77, 0.18);
+}
+
+.game-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px 18px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.game-card-meta small {
+  color: var(--muted);
+}
+
+@keyframes game-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.duel {
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, auto) 1fr;
+  grid-template-areas: "left center right";
+  gap: 24px;
+  align-items: center;
+}
+
+.duel-left {
+  grid-area: left;
+}
+
+.duel-right {
+  grid-area: right;
+}
+
+.duel-center {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.duel-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: game-in 0.35s ease;
+}
+
+@keyframes game-in {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+.duel-vs {
+  font-family: var(--display);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 2.6rem;
+  color: var(--accent);
+}
+
+.duel-caption {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+}
+
+.duel-caption b {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.game-hit {
+  color: #3ecf8e;
+}
+
+.duel-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.duel-question {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+.duel-buttons .btn {
+  min-width: 130px;
+}
+
+.game-over {
+  margin-top: 28px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid #ff4d4d;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.game-over h2 {
+  margin: 0 0 6px;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 2rem;
+  text-transform: uppercase;
+}
+
+.game-over .player-actions {
+  justify-content: center;
+}
+
+.guess {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.clues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.clues li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.clues li.is-open {
+  opacity: 1;
+  border-color: rgba(255, 122, 26, 0.45);
+}
+
+.clue-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.clue-value {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.clue-big {
+  font-size: 1.8rem;
+  color: var(--accent);
+}
+
+.guess-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guess-panel .muted {
+  margin: 0;
+}
+
+.guess-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.guess-result h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+}
+
+.wrong-guesses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wrong-guesses li {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 77, 77, 0.12);
+  color: #ff8a8a;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .duel {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "left right"
+      "center center";
+    gap: 16px 12px;
+    align-items: start;
+  }
+
+  .game-card.pcard-lg {
+    max-width: 170px;
+    font-size: 14px;
+  }
+
+  .game-card-meta {
+    font-size: 0.78rem;
+    padding: 4px 8px 12px;
+  }
+
+  .duel-caption {
+    font-size: 1rem;
+  }
+
+  .duel-caption b {
+    font-size: 1.5rem;
+  }
+
+  .duel-vs {
+    display: none;
+  }
+
+  .guess {
+    grid-template-columns: 1fr;
+  }
+
+  .guess-panel {
+    order: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duel-side,
+  .game-card .pcard-rating.is-shown {
+    animation: none;
+  }
+}
+
+.game-teaser {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 32px;
+  padding: 26px 28px;
+  background: linear-gradient(120deg, rgba(255, 122, 26, 0.14), transparent 60%), var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.game-teaser h2 {
+  margin: 4px 0 6px;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 2rem;
+  text-transform: uppercase;
+}
+
+.game-teaser p {
+  margin: 0;
+  max-width: 560px;
+}

@@ -11,6 +11,7 @@ const NAV: { key: RouteKey; label: TKey }[] = [
   { key: "torketten", label: "nav.chains" },
   { key: "vergleich", label: "nav.compare" },
   { key: "rekorde", label: "nav.records" },
+  { key: "spiel", label: "nav.game" },
   { key: "methodik", label: "nav.method" },
 ];
 

@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...page("torketten", 0.8),
     ...page("vergleich", 0.6),
     ...page("rekorde", 0.7),
+    ...page("spiel", 0.7),
     ...page("methodik", 0.5),
     ...LEAGUES.flatMap((l) => page("liga", 0.7, l.key)),
     ...getSeasons().flatMap((s) => page("wettbewerb", 0.8, s.meta.slug)),
