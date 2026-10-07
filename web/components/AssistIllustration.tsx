@@ -1,4 +1,5 @@
 import { arrowHead, shorten, type Pt } from "@/lib/geom";
+import { t, type Lang } from "@/lib/i18n";
 
 /**
  * Erklärgrafik: Steckpass (Pre-Assist) → Querleger (Assist) → Tor.
@@ -29,12 +30,12 @@ function Pass({ from, to, cls }: { from: Pt; to: Pt; cls: string }) {
   );
 }
 
-export default function AssistIllustration() {
+export default function AssistIllustration({ lang = "de" }: { lang?: Lang }) {
   const ballPath = `M${P1[0]} ${P1[1]} L${P2[0]} ${P2[1]} L${P3[0]} ${P3[1]} L${GOAL[0]} ${GOAL[1] + 14}`;
 
   return (
     <svg viewBox="-30 -50 740 610" className="illustration" role="img" aria-labelledby="ill-title">
-      <title id="ill-title">Steckpass als Pre-Assist, Querleger als Assist, dann das Tor</title>
+      <title id="ill-title">{t(lang, "ill.title")}</title>
       <defs>
         <pattern id="ill-stripes" width="680" height="105" patternUnits="userSpaceOnUse">
           <rect width="680" height="52.5" className="ill-stripe" />
@@ -95,13 +96,13 @@ export default function AssistIllustration() {
       </circle>
 
       <text x="250" y="455" className="ill-label pre">
-        Steckpass = Pre-Assist
+        {t(lang, "ill.pre")}
       </text>
       <text x="545" y="105" className="ill-label ast" textAnchor="middle">
-        Querleger = Assist
+        {t(lang, "ill.ast")}
       </text>
       <text x="400" y="-14" className="ill-label goal">
-        Tor
+        {t(lang, "ill.goal")}
       </text>
     </svg>
   );

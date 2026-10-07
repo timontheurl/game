@@ -2,6 +2,7 @@
 // Läuft nur im Client – nutzt Canvas und die FontFace-API.
 
 import type { Goal } from "./data";
+import { num, t, type Lang } from "./i18n";
 
 export const SHARE_W = 1080;
 export const SHARE_H = 1350;
@@ -156,7 +157,10 @@ export interface GoalShareInput {
 }
 
 /** Bild eines Spielzugs: Pre-Assist › Assist › Tor auf dem Spielfeld. */
-export async function renderGoalImage({ goal, names, matchLabel, context }: GoalShareInput): Promise<Blob> {
+export async function renderGoalImage(
+  { goal, names, matchLabel, context }: GoalShareInput,
+  lang: Lang = "de",
+): Promise<Blob> {
   await loadFonts();
   const [el, ctx] = canvas();
   frame(ctx);
@@ -175,12 +179,12 @@ export async function renderGoalImage({ goal, names, matchLabel, context }: Goal
   arrow(ctx, ...P(goal.shot.start), ...P(goal.shot.end ?? [120, 40]), C.white, 7);
   if (goal.pre) dot(ctx, P(goal.pre.start), C.orange, "1");
   if (goal.assist) dot(ctx, P(goal.assist.start), C.peach, goal.pre ? "2" : "1");
-  dot(ctx, P(goal.shot.start), C.white, "T");
+  dot(ctx, P(goal.shot.start), C.white, lang === "en" ? "G" : "T");
 
   const rows: [string, string, string][] = [];
   if (goal.pre) rows.push(["PRE-ASSIST", names[String(goal.pre.player)], C.orange]);
   if (goal.assist) rows.push(["ASSIST", names[String(goal.assist.player)], C.peach]);
-  rows.push(["TOR", names[String(goal.scorer)], C.white]);
+  rows.push([t(lang, "img.goal"), names[String(goal.scorer)], C.white]);
   let y = 1065;
   for (const [label, name, color] of rows) {
     ctx.fillStyle = color;
@@ -194,7 +198,7 @@ export async function renderGoalImage({ goal, names, matchLabel, context }: Goal
   ctx.textAlign = "right";
   ctx.fillStyle = C.muted;
   ctx.font = "400 30px ShareBody";
-  ctx.fillText(`xG ${goal.xg.toFixed(2).replace(".", ",")}`, SHARE_W - 64, SHARE_H - 60);
+  ctx.fillText(`xG ${num(lang, goal.xg, 2)}`, SHARE_W - 64, SHARE_H - 60);
   ctx.textAlign = "left";
 
   return toBlob(el);
@@ -213,7 +217,7 @@ export interface PlayerShareInput {
 }
 
 /** Spielerkarte als Bild. */
-export async function renderPlayerImage(p: PlayerShareInput): Promise<Blob> {
+export async function renderPlayerImage(p: PlayerShareInput, lang: Lang = "de"): Promise<Blob> {
   await loadFonts();
   const [el, ctx] = canvas();
   frame(ctx);
@@ -241,12 +245,12 @@ export async function renderPlayerImage(p: PlayerShareInput): Promise<Blob> {
   ctx.fillText(String(p.preAssists), SHARE_W / 2, 750);
   ctx.fillStyle = C.peach;
   ctx.font = "700 46px ShareCondensed";
-  ctx.fillText(`PRE-ASSISTS · PLATZ ${p.rank}`, SHARE_W / 2, 835);
+  ctx.fillText(t(lang, "img.rank", { n: p.rank }), SHARE_W / 2, 835);
 
   const stats: [string, string][] = [
     [String(p.assists), "Assists"],
-    [String(p.goals), "Tore"],
-    [p.xpa.toFixed(2).replace(".", ","), "xPA"],
+    [String(p.goals), t(lang, "common.goals")],
+    [num(lang, p.xpa, 2), "xPA"],
   ];
   stats.forEach(([v, l], i) => {
     const x = 64 + ((SHARE_W - 128) / 3) * (i + 0.5);

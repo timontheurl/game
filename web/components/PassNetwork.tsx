@@ -1,11 +1,20 @@
 import type { Goal, Point } from "@/lib/data";
+import { t, type Lang } from "@/lib/i18n";
 
 /**
  * Passnetzwerk einer Mannschaft: Wer spielt wem bei Toren den Pre-Assist bzw. die Vorlage zu?
  * Spieler stehen ungefähr an ihrem durchschnittlichen Aktionsort (aufs Feld gestreckt, damit nichts überlappt),
  * die Linienstärke zeigt, wie oft die Verbindung zum Tor führte.
  */
-export default function PassNetwork({ goals, names }: { goals: Goal[]; names: Record<string, string> }) {
+export default function PassNetwork({
+  goals,
+  names,
+  lang = "de",
+}: {
+  goals: Goal[];
+  names: Record<string, string>;
+  lang?: Lang;
+}) {
   const spots = new Map<number, Point[]>();
   const add = (id: number, p: Point) => spots.set(id, [...(spots.get(id) ?? []), p]);
   const edges = new Map<string, { from: number; to: number; kind: "pre" | "assist"; n: number }>();
@@ -81,7 +90,7 @@ export default function PassNetwork({ goals, names }: { goals: Goal[]; names: Re
 
   return (
     <figure className="network">
-      <svg viewBox="-2 -2 124 84" className="pitch" role="img" aria-label="Passnetzwerk der Tore">
+      <svg viewBox="-2 -2 124 84" className="pitch" role="img" aria-label={t(lang, "net.label")}>
         <g className="pitch-markings">
           <rect x={0} y={0} width={120} height={80} />
           <line x1={60} y1={0} x2={60} y2={80} />
@@ -118,9 +127,9 @@ export default function PassNetwork({ goals, names }: { goals: Goal[]; names: Re
         })}
       </svg>
       <figcaption className="network-legend">
-        <span className="legend-pre">Pre-Assist zum Vorlagengeber</span>
-        <span className="legend-ast">Vorlage zum Torschützen</span>
-        <span className="muted">Dicke Linie = häufige Verbindung</span>
+        <span className="legend-pre">{t(lang, "net.pre")}</span>
+        <span className="legend-ast">{t(lang, "net.ast")}</span>
+        <span className="muted">{t(lang, "net.thick")}</span>
       </figcaption>
     </figure>
   );

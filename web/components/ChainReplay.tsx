@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { arrowHead, type Pt } from "@/lib/geom";
 import type { Goal } from "@/lib/data";
+import { t as tr, type Lang } from "@/lib/i18n";
 
 type Kind = "pre" | "assist" | "shot" | "carry";
 interface Segment {
@@ -37,7 +38,15 @@ function buildSegments(goal: Goal): Segment[] {
     });
 }
 
-export default function ChainReplay({ goal, names }: { goal: Goal; names: Record<string, string> }) {
+export default function ChainReplay({
+  goal,
+  names,
+  lang = "de",
+}: {
+  goal: Goal;
+  names: Record<string, string>;
+  lang?: Lang;
+}) {
   const segments = useMemo(() => buildSegments(goal), [goal]);
   const total = segments.length ? segments[segments.length - 1].start + segments[segments.length - 1].dur + 0.2 : 0;
   const [t, setT] = useState(total);
@@ -86,7 +95,7 @@ export default function ChainReplay({ goal, names }: { goal: Goal; names: Record
 
   return (
     <div className="replay">
-      <svg viewBox="-2 -4 124 88" className="pitch replay-pitch" role="img" aria-label="Animierte Wiederholung des Spielzugs">
+      <svg viewBox="-2 -4 124 88" className="pitch replay-pitch" role="img" aria-label={tr(lang, "chain.replayLabel")}>
         <g className="pitch-markings">
           <rect x={0} y={0} width={120} height={80} />
           <line x1={60} y1={0} x2={60} y2={80} />
@@ -131,7 +140,7 @@ export default function ChainReplay({ goal, names }: { goal: Goal; names: Record
       </svg>
       <div className="replay-controls">
         <button type="button" className="btn btn-small" onClick={play}>
-          ↺ Nochmal abspielen
+          {tr(lang, "chain.replay")}
         </button>
         <button
           type="button"
@@ -139,7 +148,7 @@ export default function ChainReplay({ goal, names }: { goal: Goal; names: Record
           onClick={() => setSpeed((s) => (s === 1 ? 0.5 : 1))}
           aria-pressed={speed === 0.5}
         >
-          {speed === 1 ? "Zeitlupe" : "Normal"}
+          {tr(lang, speed === 1 ? "chain.slow" : "chain.normal")}
         </button>
       </div>
     </div>

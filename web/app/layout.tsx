@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import Link from "next/link";
 import Motion from "@/components/Motion";
 import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
 import SiteNav from "@/components/SiteNav";
+import { Brand, SiteFooter, SkipLink } from "@/components/SiteChrome";
 import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
@@ -50,38 +50,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
-        <a href="#inhalt" className="skip-link">
-          Zum Inhalt springen
-        </a>
+        <SkipLink />
         <PitchBackdrop />
         <Motion />
         <header className="topbar">
           <div className="topbar-inner">
-            <Link href="/" className="brand" aria-label="PreAssists Startseite">
-              <span className="brand-mark">PA</span>
-            </Link>
+            <Brand />
             <Search />
             <SiteNav />
           </div>
         </header>
         <main id="inhalt" className="page">{children}</main>
-        <footer className="footer">
-          <div className="footer-inner">
-            <span className="wordmark small">
-              Pre<span>Assists</span>
-            </span>
-            <span className="footer-note">
-              Daten: <a href="https://github.com/statsbomb/open-data">StatsBomb Open Data</a>. Pre-Assists eigene
-              Berechnung.
-            </span>
-            <nav>
-              <Link href="/ligen/">Ligen</Link>
-              <Link href="/methodik/">So zählen wir</Link>
-              <Link href="/impressum/">Impressum</Link>
-              <Link href="/datenschutz/">Datenschutz</Link>
-            </nav>
-          </div>
-        </footer>
+        <SiteFooter />
         {/* Besucherstatistik ohne Cookies; zählt nur, wenn sie im Vercel-Projekt aktiviert ist */}
         <Analytics />
       </body>

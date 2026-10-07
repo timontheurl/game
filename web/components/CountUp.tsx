@@ -1,12 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { LOCALE, type Lang } from "@/lib/i18n";
 
 /**
  * Zahl, die beim ersten Sichtbarwerden hochzählt.
  * Der Server liefert sofort den Endwert (für Suchmaschinen und ohne JavaScript).
  */
-export default function CountUp({ value, decimals = 0, duration = 900 }: { value: number; decimals?: number; duration?: number }) {
+export default function CountUp({
+  value,
+  decimals = 0,
+  duration = 900,
+  lang = "de",
+}: {
+  value: number;
+  decimals?: number;
+  duration?: number;
+  lang?: Lang;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(value);
 
@@ -37,7 +48,7 @@ export default function CountUp({ value, decimals = 0, duration = 900 }: { value
     };
   }, [value, duration]);
 
-  const text = shown.toLocaleString("de-AT", {
+  const text = shown.toLocaleString(LOCALE[lang], {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

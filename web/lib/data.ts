@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { clubSlug, countryNameDe, formatClock, type CardData } from "./cards";
+import { clubSlug, formatClock, type CardData } from "./cards";
+import { competitionName, countryLabel, countryName, positionLabel, type Lang } from "./i18n";
 
 export { describePass, formatClock } from "./cards";
 import { LEAGUES, leagueForSeason, type League } from "./leagues";
@@ -103,30 +104,49 @@ export interface Season {
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
-let cache: Season[] | null = null;
+const cache: Partial<Record<Lang, Season[]>> = {};
 
-export function getSeasons(): Season[] {
-  if (!cache) {
-    const index: SeasonMeta[] = JSON.parse(
-      fs.readFileSync(path.join(DATA_DIR, "competitions.json"), "utf8"),
-    );
-    cache = index.map((m) => {
-      const season: Season = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "seasons", `${m.slug}.json`), "utf8"));
-      // Nationalteams auf Deutsch anzeigen; Frauenteams eindeutig kennzeichnen
-      for (const [id, { code, women }] of Object.entries(season.teamCodes ?? {})) {
-        const name = countryNameDe(code, season.teams[id]) ?? season.teams[id];
-        season.teams[id] = women ? `${name} (Frauen)` : name;
-      }
-      return season;
-    });
-    // Händisch erfasste Saisons (Erfassungs-Tool) kommen dazu
-    cache.push(...loadManualSeasons());
-  }
-  return cache;
+function loadSeasons(): Season[] {
+  const index: SeasonMeta[] = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "competitions.json"), "utf8"));
+  const seasons = index.map((m) => {
+    const season: Season = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "seasons", `${m.slug}.json`), "utf8"));
+    season.teamCodes ??= {};
+    return season;
+  });
+  // Händisch erfasste Saisons (Erfassungs-Tool) kommen dazu
+  seasons.push(...loadManualSeasons());
+  return seasons;
 }
 
-export function getSeason(slug: string): Season | undefined {
-  return getSeasons().find((s) => s.meta.slug === slug);
+/** Saison in der gewünschten Sprache: Wettbewerbs-, Länder- und Nationalteam-Namen übersetzt. */
+function localize(season: Season, lang: Lang): Season {
+  const teams = { ...season.teams };
+  // Nationalteams in der Landessprache der Seite; Frauenteams eindeutig kennzeichnen
+  for (const [id, { code, women }] of Object.entries(season.teamCodes)) {
+    const name = countryName(code, season.teams[id], lang) ?? season.teams[id];
+    teams[id] = women ? `${name} (${lang === "en" ? "Women" : "Frauen"})` : name;
+  }
+  return {
+    ...season,
+    teams,
+    meta: { ...season.meta, name: competitionName(season.meta.name, lang), country: countryLabel(season.meta.country, lang) },
+    players: season.players.map((p) => ({
+      ...p,
+      countryName: countryName(p.country, p.countryName, lang),
+      position: positionLabel(p.position, lang),
+    })),
+  };
+}
+
+let raw: Season[] | null = null;
+
+export function getSeasons(lang: Lang = "de"): Season[] {
+  raw ??= loadSeasons();
+  return (cache[lang] ??= raw.map((s) => localize(s, lang)));
+}
+
+export function getSeason(slug: string, lang: Lang = "de"): Season | undefined {
+  return getSeasons(lang).find((s) => s.meta.slug === slug);
 }
 
 /** Turniere (WM, EM) haben Nationalteams, Ligen haben Vereine. */
@@ -150,9 +170,9 @@ export function getPlayerSlugs(): string[] {
   return [...slugs];
 }
 
-export function getPlayer(slug: string): PlayerSeason[] {
+export function getPlayer(slug: string, lang: Lang = "de"): PlayerSeason[] {
   const result: PlayerSeason[] = [];
-  for (const season of getSeasons()) {
+  for (const season of getSeasons(lang)) {
     const row = season.players.find((p) => p.slug === slug);
     if (!row) continue;
     const preGoals = season.goals.filter((g) => g.pre?.player === row.id);
@@ -193,7 +213,7 @@ export function toCard(season: Season, row: PlayerRow): CardData {
     team: season.teams[String(row.team)],
     position: row.position,
     country: row.country,
-    countryName: countryNameDe(row.country, row.countryName),
+    countryName: row.countryName,
     preAssists: row.preAssists,
     assists: row.assists,
     goals: row.goals,
@@ -212,10 +232,10 @@ export interface LeagueStatus {
 }
 
 /** Alle Ligen mit ihren verfügbaren Saisons (leer = Daten folgen). */
-export function getLeagueStatuses(): LeagueStatus[] {
+export function getLeagueStatuses(lang: Lang = "de"): LeagueStatus[] {
   return LEAGUES.map((league) => ({
     league,
-    seasons: getSeasons().filter((s) => leagueForSeason(s.meta.slug)?.key === league.key),
+    seasons: getSeasons(lang).filter((s) => leagueForSeason(s.meta.slug)?.key === league.key),
   }));
 }
 
@@ -235,17 +255,19 @@ export interface Club {
   seasons: ClubSeason[];
 }
 
-let clubCache: Club[] | null = null;
+const clubCache: Partial<Record<Lang, Club[]>> = {};
 
 /** Alle Vereine mit mindestens einem erfassten Spieler, über alle Saisons zusammengefasst. */
-export function getClubs(): Club[] {
-  if (clubCache) return clubCache;
+export function getClubs(lang: Lang = "de"): Club[] {
+  if (clubCache[lang]) return clubCache[lang];
   const bySlug = new Map<string, Club>();
-  for (const season of getSeasons()) {
+  const de = getSeasons("de");
+  for (const [i, season] of getSeasons(lang).entries()) {
     const teamIds = new Set(season.players.map((p) => p.team));
     for (const teamId of teamIds) {
       const name = season.teams[String(teamId)];
-      const slug = clubSlug(name);
+      // Adresse immer aus dem deutschen Namen, damit beide Sprachen dieselben Slugs haben
+      const slug = clubSlug(de[i].teams[String(teamId)]);
       const club = bySlug.get(slug) ?? { slug, name, flag: season.teamCodes?.[String(teamId)]?.code ?? null, seasons: [] };
       club.seasons.push({
         season,
@@ -257,17 +279,17 @@ export function getClubs(): Club[] {
       bySlug.set(slug, club);
     }
   }
-  clubCache = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "de"));
-  return clubCache;
+  clubCache[lang] = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, lang));
+  return clubCache[lang];
 }
 
-export function getClub(slug: string): Club | undefined {
-  return getClubs().find((c) => c.slug === slug);
+export function getClub(slug: string, lang: Lang = "de"): Club | undefined {
+  return getClubs(lang).find((c) => c.slug === slug);
 }
 
 /** Vereine einer Saison, sortiert nach Pre-Assists. */
-export function seasonClubs(season: Season) {
-  return getClubs()
+export function seasonClubs(season: Season, lang: Lang = "de") {
+  return getClubs(lang)
     .flatMap((c) => c.seasons.filter((cs) => cs.season === season).map((cs) => ({ club: c, cs })))
     .map(({ club, cs }) => ({
       club,
@@ -282,9 +304,9 @@ export function seasonClubs(season: Season) {
  * Kandidaten für den „Spielzug des Tages“: lange Ketten mit Pre-Assist aus der eigenen Hälfte oder dem
  * Mittelfeld – die schönsten Angriffe, quer durch alle vollständigen Wettbewerbe.
  */
-export function dailyCandidates(limit = 120) {
+export function dailyCandidates(lang: Lang = "de", limit = 120) {
   const len = (a: Point, b: Point) => Math.hypot(b[0] - a[0], b[1] - a[1]);
-  return getSeasons()
+  return getSeasons(lang)
     .filter((s) => s.meta.coverage === "full" && !s.meta.manual)
     .flatMap((season) =>
       season.goals
@@ -306,4 +328,10 @@ export function dailyCandidates(limit = 120) {
         context: `${seasonLabel(season.meta)} · ${formatClock(g.period, g.minute)}`,
       };
     });
+}
+
+/** Vereins-Adresse je Team-ID – immer aus dem deutschen Namen, damit beide Sprachen dieselben Links haben. */
+export function teamSlugs(season: Season): Record<string, string> {
+  const de = getSeason(season.meta.slug, "de") ?? season;
+  return Object.fromEntries(Object.entries(de.teams).map(([id, name]) => [id, clubSlug(name)]));
 }

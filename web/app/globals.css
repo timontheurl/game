@@ -159,6 +159,27 @@ h3 {
   color: var(--accent);
 }
 
+/* Sprachumschalter DE/EN */
+.mainnav a.lang-switch {
+  margin-left: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.mainnav a.lang-switch:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .burger {
   display: none;
   flex-direction: column;
@@ -2764,6 +2785,15 @@ td.name a {
 
   .mainnav a:hover {
     background: none;
+  }
+
+  .mainnav a.lang-switch {
+    margin: 12px 0 0;
+    align-self: flex-start;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 1.2rem;
   }
 
   body.menu-open {

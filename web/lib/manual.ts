@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { countryNameDe, slugify } from "./cards";
+import { slugify } from "./cards";
+import { countryName } from "./i18n";
 import type { Goal, Match, PassInfo, PlayerRow, Season } from "./data";
 import type { ManualSeasonFile, PassType, Pt } from "./manualTypes";
 
@@ -139,7 +140,7 @@ export function convertManual(file: ManualSeasonFile): Season | null {
       matches: teamMatches(s.team),
       position: meta?.position ?? null,
       country: code,
-      countryName: countryNameDe(code, null),
+      countryName: countryName(code, null),
     };
   });
   players.sort((a, b) => b.preAssists - a.preAssists || b.involvements - a.involvements || a.name.localeCompare(b.name));

@@ -1,10 +1,11 @@
 import type { Goal } from "@/lib/data";
+import { t, type Lang } from "@/lib/i18n";
 
 /**
  * Spielfeld mit den Startpunkten aller Pre-Assists (Punkte) und – dünn – dem Weg des Passes.
  * Zeigt, aus welchen Zonen die Angriffe vorbereitet werden.
  */
-export default function PreAssistMap({ goals, label }: { goals: Goal[]; label: string }) {
+export default function PreAssistMap({ goals, label, lang = "de" }: { goals: Goal[]; label: string; lang?: Lang }) {
   const pre = goals.filter((g) => g.pre);
   const thirds = [0, 0, 0];
   for (const g of pre) thirds[Math.min(2, Math.floor(g.pre!.start[0] / 40))]++;
@@ -35,13 +36,13 @@ export default function PreAssistMap({ goals, label }: { goals: Goal[]; label: s
       </svg>
       <figcaption className="pa-thirds-legend">
         <span>
-          <b>{pct(thirds[0])} %</b> eigenes Drittel
+          <b>{pct(thirds[0])} %</b> {t(lang, "map.own")}
         </span>
         <span>
-          <b>{pct(thirds[1])} %</b> Mittelfeld
+          <b>{pct(thirds[1])} %</b> {t(lang, "map.mid")}
         </span>
         <span>
-          <b>{pct(thirds[2])} %</b> Angriffsdrittel
+          <b>{pct(thirds[2])} %</b> {t(lang, "map.att")}
         </span>
       </figcaption>
     </figure>
