@@ -28,7 +28,8 @@ export default function DatenschutzPage() {
       <h2>2. Das Wichtigste in Kürze</h2>
       <ul>
         <li>Es gibt keine Benutzerkonten, keine Formulare und keinen Newsletter.</li>
-        <li>Es werden keine Cookies gesetzt und keine Tracking- oder Analyse-Dienste verwendet.</li>
+        <li>Es werden keine Cookies gesetzt und keine Werbe- oder Tracking-Dienste verwendet.</li>
+        <li>Für eine anonyme Besucherstatistik nutzen wir Vercel Web Analytics – ohne Cookies und ohne Profile (siehe Punkt 4).</li>
         <li>Es wird keine Werbung eingeblendet.</li>
         <li>Schriften und Grafiken liegen auf unserem eigenen Server; es werden keine Inhalte von Drittanbietern nachgeladen.</li>
       </ul>
@@ -48,13 +49,23 @@ export default function DatenschutzPage() {
         <a href="https://vercel.com/legal/privacy-policy">Datenschutzerklärung von Vercel</a>.
       </p>
 
-      <h2>4. Kontakt per E-Mail</h2>
+      <h2>4. Anonyme Besucherstatistik (Vercel Web Analytics)</h2>
+      <p>
+        Um zu sehen, welche Seiten wie oft aufgerufen werden, nutzen wir Vercel Web Analytics. Dabei werden keine
+        Cookies gesetzt und keine Daten auf Ihrem Gerät gespeichert. Erfasst werden die aufgerufene Seite, die
+        verweisende Seite, Land, Gerätetyp, Browser und Betriebssystem. Besucher werden nicht über mehrere Tage oder
+        Websites hinweg wiedererkannt; eine Zuordnung zu einer Person ist nicht möglich. Rechtsgrundlage ist unser
+        berechtigtes Interesse an der Verbesserung des Angebots (Art. 6 Abs. 1 lit. f DSGVO). Weitere Informationen:{" "}
+        <a href="https://vercel.com/docs/analytics/privacy-policy">Datenschutzhinweise zu Vercel Web Analytics</a>.
+      </p>
+
+      <h2>5. Kontakt per E-Mail</h2>
       <p>
         Wenn Sie uns per E-Mail kontaktieren, verwenden wir Ihre Angaben nur, um Ihre Anfrage zu bearbeiten, und löschen
         sie, sobald sie nicht mehr benötigt werden (Art. 6 Abs. 1 lit. b bzw. f DSGVO).
       </p>
 
-      <h2>5. Ihre Rechte</h2>
+      <h2>6. Ihre Rechte</h2>
       <p>
         Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
         Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Wenden Sie sich dazu an die oben genannte

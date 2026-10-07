@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 import Motion from "@/components/Motion";
 import PitchBackdrop from "@/components/PitchBackdrop";
@@ -81,6 +82,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </footer>
+        {/* Besucherstatistik ohne Cookies; zählt nur, wenn sie im Vercel-Projekt aktiviert ist */}
+        <Analytics />
       </body>
     </html>
   );
