@@ -92,7 +92,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der Verteidiger vorne am ersten Pfosten steht genau in der Flugbahn und köpft die Ecke weg. Kein Tor – also weder Assist noch Pre-Assist.",
-          "en": "Misplaced: the defender guarding the front of the near post is right in the flight path and heads the corner clear. No goal – so no assist and no pre-assist."
+          "en": "Misplaced pass: the defender guarding the front of the near post is right in the flight path and heads the corner clear. No goal – so no assist and no pre-assist."
         }
       },
       {
@@ -591,7 +591,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der Gegenspieler der 7 steht genau dazwischen und fängt den Einwurf ab. Kein Tor – kein Assist, kein Pre-Assist.",
-          "en": "Misplaced: the 7's marker is standing right in between and picks off the throw. No goal – no assist, no pre-assist."
+          "en": "Misplaced pass: the 7's marker is standing right in between and picks off the throw. No goal – no assist, no pre-assist."
         }
       },
       {
@@ -897,7 +897,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der Sechser vor der Abwehr steht mitten in der Passbahn und geht dazwischen. Kein Tor, kein Assist, kein Pre-Assist.",
-          "en": "Misplaced: the holding midfielder in front of the defence is right in the passing lane and nips in. No goal, no assist, no pre-assist."
+          "en": "Misplaced pass: the holding midfielder in front of the defence is right in the passing lane and nips in. No goal, no assist, no pre-assist."
         }
       }
     ]

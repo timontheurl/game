@@ -9,6 +9,7 @@ import {
   classify,
   isOpp,
   lerp,
+  letterSpots,
   mirror,
   optionTarget,
   run,
@@ -194,17 +195,33 @@ function PassPitch({
     }
   }
 
-  // Beschriftung der Rollen nach dem Ablauf
+  // Beschriftung der Rollen nach dem Ablauf – so platziert, dass sie sich nicht überlappen
   const badges: { at: Pt; text: string; cls: string }[] = [];
   if (phase === "result" && r && result && opt) {
-    const mid = (i: number) => {
-      const seg = r.segments.find((s) => s.step === i);
-      return seg ? along(seg.ball, 0.5) : null;
-    };
+    const players = Object.values(pos);
+    const width = (text: string) => text.length * 1.24 + 2.8;
+    const clash = (at: Pt, text: string) =>
+      badges.some((b) => Math.abs(b.at[0] - at[0]) < (width(b.text) + width(text)) / 2 + 0.6 && Math.abs(b.at[1] - at[1]) < 3.8);
+    const room = (at: Pt) => Math.min(...players.map((p) => Math.hypot(p[0] - at[0], p[1] - at[1])));
     const add = (i: number | undefined, text: string, cls: string) => {
-      if (i === undefined) return;
-      const at = mid(i);
-      if (at) badges.push({ at, text, cls });
+      const seg = i === undefined ? undefined : r.segments.find((s) => s.step === i);
+      if (!seg) return;
+      const a = seg.ball[0];
+      const b = seg.ball[seg.ball.length - 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      const n: Pt = [-(b[1] - a[1]) / len, (b[0] - a[0]) / len];
+      // Kandidaten entlang des Passes, beidseits leicht versetzt
+      const cands: Pt[] = [];
+      for (const f of [0.5, 0.35, 0.65, 0.2, 0.8])
+        for (const k of [-2.8, 2.8, -5.4, 5.4]) {
+          const m = along(seg.ball, f);
+          const at: Pt = [m[0] + n[0] * k, m[1] + n[1] * k];
+          if (at[1] > 1.5 && at[1] < 79 && at[0] > 44 && at[0] < 118) cands.push(at);
+        }
+      const free = cands.filter((c) => !clash(c, text));
+      const pool = free.length ? free : cands;
+      const best = pool.find((c) => room(c) >= 3.2) ?? pool.reduce((x, y) => (room(y) > room(x) ? y : x), pool[0]);
+      if (best) badges.push({ at: best, text, cls });
     };
     add(result.pre, "Pre-Assist", "pre");
     add(result.assist, "Assist", "assist");
@@ -212,6 +229,10 @@ function PassPitch({
   }
 
   const goalScored = phase === "result" && result?.goal;
+  const spots = letterSpots(
+    scene,
+    order.map((oi) => optionTarget(scene, scene.options[oi]).at),
+  );
   const you = pos.you;
 
   return (
@@ -223,6 +244,7 @@ function PassPitch({
       {phase === "choose" &&
         order.map((oi, n) => {
           const target = optionTarget(scene, scene.options[oi]).at;
+          const letter = spots[n];
           const end = shorten(you, target, 2.6);
           const active = hover === oi;
           return (
@@ -236,7 +258,7 @@ function PassPitch({
               <line x1={you[0]} y1={you[1]} x2={end[0]} y2={end[1]} className="pg-option-line" />
               <polygon points={arrowHead(you, end, 2.2, 2)} className="pg-option-head" />
               <line x1={you[0]} y1={you[1]} x2={target[0]} y2={target[1]} className="pg-option-hit" />
-              <g transform={`translate(${target[0]} ${target[1] - 4.2})`}>
+              <g transform={`translate(${letter[0]} ${letter[1]})`}>
                 <circle r={2.2} className="pg-letter" />
                 <text y={0.85} textAnchor="middle" className="pg-letter-text">
                   {LETTERS[n]}
@@ -307,7 +329,7 @@ function PassPitch({
       )}
 
       {badges.map((b, i) => (
-        <g key={i} transform={`translate(${b.at[0]} ${b.at[1] - 2.6})`} className={`pg-badge is-${b.cls}`}>
+        <g key={i} transform={`translate(${b.at[0]} ${b.at[1]})`} className={`pg-badge is-${b.cls}`}>
           <rect x={-(b.text.length * 0.62 + 1.4)} y={-1.9} width={b.text.length * 1.24 + 2.8} height={3.2} rx={1.2} />
           <text y={0.35} textAnchor="middle">
             {b.text}

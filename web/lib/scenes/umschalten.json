@@ -6,8 +6,8 @@
       "en": "Three against two"
     },
     "setup": {
-      "de": "Ballgewinn am Mittelkreis, hinten hat der Gegner nur noch zwei Verteidiger. Die 9 läuft durchs Zentrum, die 7 und die 11 sprinten an den Linien mit, die 6 sichert ab.",
-      "en": "You win it back at the centre circle and they only have two defenders left. The 9 runs through the middle, the 7 and the 11 sprint up the touchlines, the 6 sits behind."
+      "de": "Ballgewinn am Mittelkreis, hinten hat der Gegner nur noch zwei Verteidiger. Die 9 läuft durchs Zentrum, die 7 und die 11 sprinten auf den Flügeln mit, die 6 sichert ab.",
+      "en": "You win it back at the centre circle and they only have two defenders left. The 9 runs through the middle, the 7 and the 11 sprint up the flanks, the 6 sits behind."
     },
     "you": [
       66,
@@ -141,8 +141,8 @@
           }
         ],
         "explain": {
-          "de": "Tor – aber das war schon der Assist. Die 9 läuft zwischen den Innenverteidigern durch, umkurvt den Tormann und trifft. Dein Steilpass ist die Vorlage, nicht der Pass davor.",
-          "en": "Goal – but that was already the assist. The 9 splits the centre-backs, rounds the keeper and scores. Your through ball is the final pass, not the one before it."
+          "de": "Tor – aber das war schon der Assist. Die 9 läuft zwischen den Innenverteidigern durch und schiebt am Tormann vorbei ein. Dein Steilpass ist die Vorlage, nicht der Pass davor.",
+          "en": "Goal – but that was already the assist. The 9 splits the centre-backs and slots it past the keeper. Your through ball is the final pass, not the one before it."
         }
       },
       {
@@ -165,7 +165,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der zurücksprintende Achter läuft genau in die Passbahn zur 11 und fängt ab. Konter vorbei – kein Tor, kein Pre-Assist.",
-          "en": "Misplaced: their midfielder sprinting back runs straight into the lane to the 11 and cuts it out. Counter over – no goal, no pre-assist."
+          "en": "Misplaced pass: their midfielder sprinting back runs straight into the lane to the 11 and cuts it out. Counter over – no goal, no pre-assist."
         }
       },
       {
@@ -234,8 +234,8 @@
       "en": "In behind the high line"
     },
     "setup": {
-      "de": "Der Gegner presst hoch, seine Abwehr steht weit vorne. Du hast als Innenverteidiger kurz Zeit. Die 9 ist Zielspieler, die 7 und die 11 warten auf den Lauf in die Tiefe.",
-      "en": "They press high with the back line pushed right up. As a centre-back you have a moment on the ball. The 9 is the target man, the 7 and the 11 are ready to run in behind."
+      "de": "Der Gegner presst hoch, seine Abwehr steht weit vorne. Du hast als Innenverteidiger kurz Zeit, die 4 ist frei. Die 9 ist Zielspieler, die 7 und die 11 starten in die Tiefe.",
+      "en": "They press high with the back line pushed right up. As a centre-back you have a moment, and the 4 is free. The 9 is the target man, the 7 and the 11 are set to run in behind."
     },
     "you": [
       50,
@@ -350,42 +350,57 @@
       },
       {
         "label": {
-          "de": "Hinter die Kette zur 11",
-          "en": "In behind for the 11"
+          "de": "Quer zur 4",
+          "en": "Square to the 4"
         },
-        "expect": "nogoal",
+        "expect": "early",
         "steps": [
           {
             "k": "pass",
             "from": "you",
-            "to": "11",
+            "to": "4"
+          },
+          {
+            "k": "pass",
+            "from": "4",
+            "to": "9",
             "at": [
-              95,
-              52
+              81,
+              38
+            ],
+            "air": true
+          },
+          {
+            "k": "pass",
+            "from": "9",
+            "to": "7",
+            "at": [
+              96,
+              30
             ],
             "air": true
           },
           {
             "k": "carry",
-            "who": "11",
+            "who": "7",
             "to": [
-              105,
-              46
+              104,
+              32
             ]
           },
           {
             "k": "shot",
-            "who": "11",
+            "who": "7",
             "to": [
-              119.6,
-              44.2
+              120,
+              38.2
             ],
-            "result": "post"
+            "result": "goal"
           }
         ],
         "explain": {
-          "de": "Kein Tor: Die 11 ist allein durch, schiebt aber nur an den Pfosten. Ohne Tor gibt es keinen Assist – und damit auch keinen Pre-Assist.",
-          "en": "No goal: the 11 is clean through but only finds the post. No goal means no assist – and so no pre-assist either."
+          "de": "Zu früh: Die 4 schlägt den langen Ball auf die 9 (Pre-Assist), die 9 verlängert per Kopf in den Lauf der 7 (Assist), die 7 trifft. Dein Querpass kam einen Pass zu früh.",
+          "en": "Too early: the 4 hits it long to the 9 (pre-assist), the 9 flicks it on into the 7's run (assist) and the 7 scores. Your square pass came one pass too soon."
         }
       },
       {
@@ -408,7 +423,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Gegen dieses Pressing ist der flache Ball zur 10 zu riskant – der Mittelfeldspieler steht in der Bahn und fängt ab. Kein Tor, kein Pre-Assist.",
-          "en": "Misplaced: against this press the low ball into the 10 is too risky – their midfielder is in the lane and intercepts. No goal, no pre-assist."
+          "en": "Misplaced pass: against this press the low ball into the 10 is too risky – their midfielder is in the lane and intercepts. No goal, no pre-assist."
         }
       },
       {
@@ -597,8 +612,8 @@
           }
         ],
         "explain": {
-          "de": "Pre-Assist! Vor der 10 steht der Sechser, also schiebt sie durch auf die freie 11 am langen Pfosten. Dieser Pass ist der Assist, deiner zur 10 der Pre-Assist.",
-          "en": "Pre-assist! A midfielder is blocking the 10's shot, so the 10 slides it through to the free 11 at the far post. That pass is the assist, yours to the 10 the pre-assist."
+          "de": "Pre-Assist! Vor der 10 steht der Sechser, also schiebt sie durch auf die freie 11 auf der ballfernen Seite. Dieser Pass ist der Assist, deiner zur 10 der Pre-Assist.",
+          "en": "Pre-assist! A midfielder is blocking the 10's shot, so the 10 slides it through to the free 11 on the far side. That pass is the assist, yours to the 10 the pre-assist."
         }
       },
       {
@@ -621,13 +636,13 @@
           {
             "k": "foul",
             "on": "11",
-            "by": 2,
+            "by": 6,
             "result": "goal"
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Die 11 nimmt die Flanke an und wird vom Innenverteidiger umgerissen. Elfmeter – und ein Elfmetertor hat weder Assist noch Pre-Assist.",
-          "en": "Goal, but no pre-assist: the 11 brings your cross down and gets bundled over by the centre-back. Penalty – and a penalty goal has no assist and no pre-assist."
+          "de": "Tor, aber kein Pre-Assist: Die 11 nimmt die Flanke an und wird vom nachsetzenden Außenverteidiger umgerissen. Elfmeter – und ein Elfmetertor hat weder Assist noch Pre-Assist.",
+          "en": "Goal, but no pre-assist: the 11 brings your cross down and gets clipped by the full-back chasing back. Penalty – and a penalty goal has no assist and no pre-assist."
         }
       },
       {
@@ -684,8 +699,8 @@
       "en": "Overload on the last defender"
     },
     "setup": {
-      "de": "Konter: Vor dir steht nur noch der letzte Verteidiger, ein Außenverteidiger sprintet zurück. Die 9 läuft im Zentrum mit, die 11 kommt ballfern, die 7 an der Linie, die 10 rückt nach.",
-      "en": "Counter: only the last defender is in front of you, with a full-back racing back. The 9 runs through the middle, the 11 arrives on the far side, the 7 hugs the line, the 10 trails behind."
+      "de": "Konter! Hinten ist nur noch der letzte Verteidiger, er steht vor der 9. Die 11 sprintet ballfern frei mit, die 7 an der Linie, die 10 rückt nach.",
+      "en": "Counter! Only the last defender is back, and he is goal-side of the 9. The 11 is sprinting free on the far side, the 7 is out wide, the 10 is trailing."
     },
     "you": [
       84,
@@ -697,16 +712,16 @@
         12
       ],
       "9": [
-        95,
-        44
+        97,
+        43
       ],
       "10": [
         74,
         42
       ],
       "11": [
-        92,
-        64
+        94,
+        63
       ]
     },
     "opps": [
@@ -715,8 +730,8 @@
         40
       ],
       [
-        100,
-        37
+        102,
+        39
       ],
       [
         78,
@@ -753,8 +768,8 @@
             "from": "9",
             "to": "11",
             "at": [
-              106,
-              55
+              108,
+              53
             ]
           },
           {
@@ -768,8 +783,8 @@
           }
         ],
         "explain": {
-          "de": "Pre-Assist! Die 9 zieht den letzten Verteidiger auf sich und legt quer auf die 11, die trifft. Der Querpass der 9 ist der Assist, dein Pass zur 9 der Pre-Assist.",
-          "en": "Pre-assist! The 9 draws the last defender and squares it for the 11 to score. The 9's square ball is the assist, your pass to the 9 the pre-assist."
+          "de": "Pre-Assist! Die 9 hat den letzten Verteidiger vor sich und legt direkt in den Lauf der 11, die trifft. Das Ablegen der 9 ist der Assist, dein Pass zur 9 der Pre-Assist.",
+          "en": "Pre-assist! The 9 has the last defender goal-side, so lays it first time into the 11's run for the 11 to score. That lay-off is the assist, your pass to the 9 the pre-assist."
         }
       },
       {
@@ -794,7 +809,7 @@
             "who": "11",
             "to": [
               107,
-              56
+              52
             ]
           },
           {
@@ -828,7 +843,7 @@
             "k": "loose",
             "to": "9",
             "at": [
-              104,
+              106,
               43
             ],
             "off": 1
@@ -838,7 +853,7 @@
             "who": "9",
             "to": [
               120,
-              43.6
+              43.4
             ],
             "result": "goal"
           }
@@ -868,7 +883,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der zurücksprintende Außenverteidiger steht genau in der Passbahn zur 7 und fängt ab. Kein Tor – also weder Assist noch Pre-Assist.",
-          "en": "Misplaced: the full-back racing back is right in the lane to the 7 and intercepts. No goal – so no assist and no pre-assist."
+          "en": "Misplaced pass: the full-back racing back is right in the lane to the 7 and intercepts. No goal – so no assist and no pre-assist."
         }
       }
     ]
@@ -880,8 +895,8 @@
       "en": "Quick free kick"
     },
     "setup": {
-      "de": "Freistoß für euch, 50 m vor dem Tor. Der Gegner ist noch nicht sortiert, einer steht direkt vor dem Ball. Die 10 ist zwischen den Linien frei, die 9 lauert am letzten Mann.",
-      "en": "Free kick to you, 50 metres out. They haven't reorganised and one of them is still standing in front of the ball. The 10 is free between the lines, the 9 is on the last defender."
+      "de": "Freistoß für euch, 50 m vor dem Tor. Der Gegner ist noch nicht sortiert, einer steht noch direkt am Ball. Die 10 ist zwischen den Linien frei, die 9 lauert am letzten Mann.",
+      "en": "Free kick to you, 50 metres out. They haven't reorganised and one of them is still standing right by the ball. The 10 is free between the lines, the 9 is on the last defender."
     },
     "restart": "free-kick",
     "you": [
@@ -1073,14 +1088,14 @@
           }
         ],
         "explain": {
-          "de": "Zu früh: Die 2 schlägt den Ball lang auf die 7 (Pre-Assist), die 7 flankt, die 9 köpft ein (Assist). Dein Freistoß war nur der Pass davor.",
-          "en": "Too early: the 2 plays it long to the 7 (pre-assist), the 7 crosses and the 9 heads in (assist). Your free kick was just the pass before."
+          "de": "Zu früh: Die 2 schlägt den Ball lang auf die 7 (Pre-Assist), die 7 flankt (Assist), die 9 köpft ein. Dein Freistoß war nur der Pass davor.",
+          "en": "Too early: the 2 plays it long to the 7 (pre-assist), the 7 crosses (assist) and the 9 heads in. Your free kick was just the pass before."
         }
       },
       {
         "label": {
-          "de": "Kurz zur 8",
-          "en": "Short to the 8"
+          "de": "Flach zur 8",
+          "en": "Pass into the 8"
         },
         "expect": "lost",
         "steps": [
@@ -1097,7 +1112,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der Gegenspieler steht noch keine neun Meter vom Ball weg und geht dazwischen. Zu schnell kann auch schiefgehen – kein Tor, kein Pre-Assist.",
-          "en": "Misplaced: their player is still well inside ten yards and steps in to intercept. Too quick can backfire – no goal, no pre-assist."
+          "en": "Misplaced pass: their player is still well inside ten yards and steps in to intercept. Too quick can backfire – no goal, no pre-assist."
         }
       }
     ]

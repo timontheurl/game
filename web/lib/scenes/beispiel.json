@@ -82,7 +82,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der Sechser steht genau in der Passbahn und fängt ab. Kein Tor – und damit auch kein Pre-Assist.",
-          "en": "Misplaced: the holding midfielder is standing in the passing lane and intercepts. No goal – so no pre-assist either."
+          "en": "Misplaced pass: the holding midfielder is standing in the passing lane and intercepts. No goal – so no pre-assist either."
         }
       },
       {
@@ -168,8 +168,8 @@
           }
         ],
         "explain": {
-          "de": "Tor – aber du warst zu früh dran. Die 8 spielt die 11 an (Pre-Assist), die 11 legt auf (Assist). Dein Pass war der Pass davor.",
-          "en": "Goal – but you were one step too early. The 8 finds the 11 (pre-assist), the 11 sets it up (assist). Yours was the pass before."
+          "de": "Zu früh: Die 8 spielt die 11 an (Pre-Assist), die 11 legt quer auf die 9 (Assist). Dein Pass war der Pass davor.",
+          "en": "Too early: the 8 finds the 11 (pre-assist), the 11 squares it for the 9 (assist). Yours was the pass before."
         }
       },
       {
@@ -200,8 +200,8 @@
           }
         ],
         "explain": {
-          "de": "Tor! Die 11 nimmt den Ball direkt – damit ist dein Pass schon der Assist, nicht der Pre-Assist.",
-          "en": "Goal! The 11 hits it first time – which makes your pass the assist, not the pre-assist."
+          "de": "Tor – aber das war schon der Assist. Die 11 nimmt den Ball direkt, dein Diagonalball ist die Vorlage.",
+          "en": "Goal – but that was already the assist. The 11 hits it first time, so your diagonal is the assist."
         }
       }
     ]

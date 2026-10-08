@@ -134,6 +134,33 @@ export function optionTarget(scene: Scene, option: Option): { who: Actor; at: Pt
   return { who: first.to, at: first.at ?? pos[first.to] };
 }
 
+/**
+ * Wo die Buchstaben A–D stehen: bevorzugt 4,2 über dem Ziel, sonst dort, wo sie
+ * niemanden verdecken und nicht über den Rand ragen (z. B. bei Ecken an der Torlinie).
+ */
+export function letterSpots(scene: Scene, targets: Pt[]): Pt[] {
+  const players = Object.values(startPositions(scene));
+  const taken: Pt[] = [];
+  const OFFSETS: Pt[] = [
+    [0, -4.2],
+    [0, 4.2],
+    [-4.2, 0],
+    [4.2, 0],
+    [-3, -3],
+    [3, -3],
+    [-3, 3],
+    [3, 3],
+  ];
+  const inside = (p: Pt) => p[0] >= 41.5 && p[0] <= 121.5 && p[1] >= 1 && p[1] <= 79;
+  const room = (p: Pt) => Math.min(...[...players, ...taken].map((q) => dist(p, q)));
+  return targets.map((t) => {
+    const cands = OFFSETS.map(([dx, dy]): Pt => [t[0] + dx, t[1] + dy]).filter(inside);
+    const spot = cands.find((c, i) => i === 0 && room(c) >= 3.6) ?? cands.reduce((a, b) => (room(b) > room(a) ? b : a), cands[0]);
+    taken.push(spot);
+    return spot;
+  });
+}
+
 // ---------- Ablauf für Animation und Prüfung ----------
 
 export interface Segment {

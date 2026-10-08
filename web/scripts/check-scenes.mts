@@ -7,7 +7,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classify, isOpp, mirror, optionTarget, run, startPositions } from "../lib/passGame.ts";
+import { classify, isOpp, letterSpots, mirror, optionTarget, run, startPositions } from "../lib/passGame.ts";
 import type { Actor, Option, Outcome, Pt, Scene, Step } from "../lib/passGame.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -138,6 +138,19 @@ function checkScene(file: string, s: Scene) {
   const pre = outcomes.filter((x) => x === "pre").length;
   if (pre !== 1) errors.push(`${w}: genau eine Option muss ein Pre-Assist sein (gefunden: ${pre})`);
   if (new Set(outcomes).size < 3) warnings.push(`${w}: nur ${new Set(outcomes).size} verschiedene Ausgänge – abwechslungsreicher ist besser`);
+
+  // Buchstaben A–D dürfen niemanden verdecken – in beiden Spiegelungen
+  for (const v of [s, mirror(s)]) {
+    const targets = v.options.map((o) => optionTarget(v, o).at);
+    const spots = letterSpots(v, targets);
+    const players = Object.entries(startPositions(v));
+    spots.forEach((p, i) => {
+      for (const [id, q] of players) {
+        const gap = d(p, q);
+        if (gap < 2.8) warnings.push(`${w}${v === s ? "" : " (gespiegelt)"}: Buchstabe ${String.fromCharCode(65 + i)} verdeckt fast ${id} (${gap.toFixed(1)})`);
+      }
+    });
+  }
 
   // Gespiegelt muss dasselbe herauskommen
   const m = mirror(s);
