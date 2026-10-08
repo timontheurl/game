@@ -4200,3 +4200,80 @@ td.name a {
     display: none;
   }
 }
+
+/* ---------- Spielerseite: Gesamtprofil, Karriere, Saison-Filter ---------- */
+
+.player-total-note {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+
+.career tbody tr:not(.career-total) td.name a {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.career tbody tr:not(.career-total) td.name a:hover {
+  color: var(--accent);
+}
+
+.career-total td {
+  border-top: 2px solid var(--line);
+  font-weight: 700;
+}
+
+.season-filter-bar {
+  margin-bottom: 18px;
+  align-items: flex-end;
+}
+
+.season-filter-bar label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.season-filter-bar select {
+  min-width: 200px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.season-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 16px;
+}
+
+.season-head .section-title {
+  margin: 0 0 8px;
+}
+
+.season-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.season-stats .stat-table {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 900px) {
+  .season-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .season-stats .stat-table {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
