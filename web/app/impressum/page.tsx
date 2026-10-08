@@ -24,6 +24,9 @@ export default function ImpressumPage() {
         {o.country}
       </p>
 
+      <h2>Team</h2>
+      <p>{SITE.team.join(", ")}</p>
+
       <h2>Kontakt</h2>
       <p>
         E-Mail:{" "}
