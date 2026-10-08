@@ -3490,3 +3490,140 @@ td.name a {
   margin: 0;
   max-width: 560px;
 }
+
+/* ---------- Erfassung: Anmeldung und Veröffentlichen ---------- */
+
+.desk-login {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.desk-login form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.desk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.desk-field input,
+.squad-form select,
+.squad-form textarea {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 11px;
+  font: inherit;
+}
+
+.desk-field input:focus,
+.squad-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.desk-help .howto {
+  margin-top: 0;
+}
+
+.desk-help a {
+  color: var(--accent);
+}
+
+.desk-bar {
+  position: sticky;
+  top: 72px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(27, 30, 35, 0.96);
+  border: 1px solid var(--line);
+}
+
+.desk-bar .editor-actions {
+  margin-left: auto;
+}
+
+.desk-state {
+  font-size: 0.85rem;
+  color: #3ecf8e;
+}
+
+.desk-state::before {
+  content: "● ";
+}
+
+.desk-state.is-dirty {
+  color: var(--accent);
+}
+
+.notice.is-error {
+  border-left-color: #ff4d4d;
+  background: rgba(255, 77, 77, 0.1);
+}
+
+.squad-form {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.squad-form textarea {
+  resize: vertical;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .desk-login,
+  .squad-form {
+    grid-template-columns: 1fr;
+  }
+
+  .desk-bar {
+    top: 64px;
+  }
+
+  .desk-bar .editor-actions {
+    margin-left: 0;
+  }
+}
+
+.goal-open {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 122, 26, 0.15);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.editor-goals li.is-editing {
+  outline: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.desk-bar select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: inherit;
+  font-weight: 600;
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ManualEditor from "@/components/ManualEditor";
+import DataDesk from "@/components/DataDesk";
 
 export const metadata: Metadata = {
   title: "Erfassen",
@@ -12,20 +12,26 @@ export default function ErfassenPage() {
       <section className="page-intro">
         <h1>Erfassen</h1>
         <p>
-          Hier werden Tore mit Assist und Pre-Assist von Hand erfasst – z. B. für die österreichische Bundesliga. Alles
-          bleibt in diesem Browser gespeichert, bis du es exportierst.
+          Tore mit Assist und Pre-Assist der laufenden Saison eintragen. Teams, Spiele und Ergebnisse kommen automatisch
+          aus dem Spielplan, für Österreich auch die Torschützen. Nach dem Anmelden wird alles mit einem Klick
+          veröffentlicht.
         </p>
       </section>
       <section className="section">
         <ol className="howto">
-          <li>Spiel anlegen, dann je Tor Minute, Torschütze, Assist und Pre-Assist eintragen.</li>
-          <li>Auf dem Spielfeld nacheinander anklicken, wo Pre-Assist, Vorlage und Abschluss waren (Angriff nach rechts).</li>
+          <li>Oben die Liga wählen – Teams und gespielte Partien werden geladen, neue Ergebnisse bei jedem Öffnen.</li>
+          <li>Einmalig je Team den Kader einfügen (unten bei „Kader eintragen“).</li>
           <li>
-            <b>Exportieren</b> und die Datei auf GitHub nach <code>web/data/manual/</code> hochladen – nach dem nächsten
-            Build steht die Liga mit Ranglisten, Karten und Spielzügen online.
+            Spiel wählen und je Tor Assist und Pre-Assist eintragen. Aus dem Spielplan übernommene Tore sind als{" "}
+            <b>offen</b> markiert – mit „Ergänzen“ öffnen.
+          </li>
+          <li>Auf dem Spielfeld anklicken, wo Pre-Assist, Vorlage und Abschluss waren (Angriff nach rechts).</li>
+          <li>
+            <b>Veröffentlichen</b> klicken – nach etwa 5 Minuten stehen Ranglisten, Karten und Spielzüge online. Bis dahin
+            bleibt alles auf diesem Gerät gespeichert.
           </li>
         </ol>
-        <ManualEditor />
+        <DataDesk />
       </section>
     </>
   );

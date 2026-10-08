@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { arrowHead } from "@/lib/geom";
 import {
   PASS_TYPES,
-  emptySeason,
   type GoalKind,
   type ManualGoal,
   type ManualMatch,
@@ -13,22 +12,27 @@ import {
   type Pt,
 } from "@/lib/manualTypes";
 
-const STORAGE_KEY = "preassists-erfassung";
 const POSITIONS = ["", "TW", "IV", "RV", "LV", "ZDM", "ZM", "ZOM", "RM", "LM", "RF", "LF", "ST", "HS"];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-function load(): ManualSeasonFile {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* Speicher nicht verfügbar – mit leerer Saison starten */
-  }
-  return emptySeason();
+/** Kader aus eingefügtem Text: ein Spieler pro Zeile, optional „Name, Position, Nation“. */
+function parseSquad(text: string) {
+  return text
+    .split("\n")
+    .map((line) => line.split(/[,;\t]/).map((x) => x.trim()))
+    .filter(([name]) => name)
+    .map(([name, position, country]) => ({
+      // Rückennummern am Anfang weglassen, z. B. „7 Max Muster“
+      name: name.replace(/^\d+\.?\s+/, ""),
+      position: position && POSITIONS.includes(position.toUpperCase()) ? position.toUpperCase() : undefined,
+      country: country && /^[a-z-]{2,6}$/i.test(country) ? country.toLowerCase() : undefined,
+    }));
 }
 
 interface Draft {
+  /** ID des Tors, das gerade bearbeitet wird (sonst neues Tor) */
+  editing: string | null;
   minute: string;
   team: string;
   kind: GoalKind;
@@ -41,6 +45,7 @@ interface Draft {
 }
 
 const emptyDraft = (team: string): Draft => ({
+  editing: null,
   minute: "",
   team,
   kind: "Spiel",
@@ -93,38 +98,56 @@ function ClickPitch({ draft, onPoint }: { draft: Draft; onPoint: (p: Pt) => void
   );
 }
 
-export default function ManualEditor() {
-  const [data, setData] = useState<ManualSeasonFile | null>(null);
+export default function ManualEditor({
+  data,
+  onChange,
+}: {
+  data: ManualSeasonFile;
+  onChange: (fn: (d: ManualSeasonFile) => ManualSeasonFile) => void;
+}) {
   const [matchId, setMatchId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft(""));
   const [newMatch, setNewMatch] = useState({ round: "1", date: "", home: "", away: "", hs: "0", as: "0" });
   const [msg, setMsg] = useState("");
+  const [squadChoice, setSquadTeam] = useState("");
+  // Teams kommen evtl. erst nach dem Laden des Spielplans dazu
+  const squadTeam = data.teams.includes(squadChoice) ? squadChoice : (data.teams[0] ?? "");
+  const [squadText, setSquadText] = useState("");
 
-  useEffect(() => setData(load()), []);
-  useEffect(() => {
-    if (!data) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      /* ignorieren */
-    }
-  }, [data]);
-
-  const match = data?.matches.find((m) => m.id === matchId) ?? null;
+  const match = data.matches.find((m) => m.id === matchId) ?? null;
   useEffect(() => {
     if (match) setDraft(emptyDraft(match.home));
   }, [matchId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playersOf = useMemo(() => {
     const map = new Map<string, string[]>();
-    if (!data) return map;
     for (const [name, p] of Object.entries(data.players)) map.set(p.team, [...(map.get(p.team) ?? []), name].sort());
     return map;
   }, [data]);
 
-  if (!data) return <p className="empty">Lade …</p>;
+  const update = (fn: (d: ManualSeasonFile) => ManualSeasonFile) => onChange((d) => fn(structuredClone(d)));
+  const setData = (d: ManualSeasonFile) => onChange(() => d);
 
-  const update = (fn: (d: ManualSeasonFile) => ManualSeasonFile) => setData((d) => (d ? fn(structuredClone(d)) : d));
+  const addSquad = () => {
+    const list = parseSquad(squadText);
+    if (!squadTeam || list.length === 0) {
+      setMsg("Bitte ein Team wählen und mindestens einen Namen einfügen.");
+      return;
+    }
+    update((d) => {
+      for (const p of list) {
+        const prev = d.players[p.name];
+        d.players[p.name] = {
+          team: squadTeam,
+          position: p.position ?? prev?.position,
+          country: p.country ?? prev?.country,
+        };
+      }
+      return d;
+    });
+    setSquadText("");
+    setMsg(`${list.length} Spieler zu ${squadTeam} hinzugefügt.`);
+  };
 
   // Welcher Punkt als Nächstes angeklickt wird
   const needed: ("pre" | "assist" | "shot")[] = [];
@@ -168,7 +191,7 @@ export default function ManualEditor() {
       return;
     }
     const goal: ManualGoal = {
-      id: uid(),
+      id: draft.editing ?? uid(),
       match: match.id,
       minute: Number(draft.minute),
       team: draft.team,
@@ -185,11 +208,30 @@ export default function ManualEditor() {
       for (const n of [scorer, assist, pre]) {
         if (n && !d.players[n] && draft.kind !== "Eigentor") d.players[n] = { team: draft.team };
       }
-      d.goals.push(goal);
+      const i = d.goals.findIndex((x) => x.id === goal.id);
+      if (i >= 0) d.goals[i] = goal;
+      else d.goals.push(goal);
       return d;
     });
     setDraft(emptyDraft(draft.team));
-    setMsg("Tor gespeichert.");
+    setMsg(draft.editing ? "Tor aktualisiert." : "Tor gespeichert.");
+  };
+
+  const editGoal = (g: ManualGoal) => {
+    setDraft({
+      editing: g.id,
+      minute: String(g.minute),
+      team: g.team,
+      kind: g.kind,
+      scorer: g.scorer,
+      assist: g.assist ?? "",
+      assistType: g.assistType ?? "",
+      pre: g.pre ?? "",
+      preType: g.preType ?? "",
+      points: g.points,
+    });
+    setMsg("");
+    document.querySelector(".editor-goal-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const exportFile = () => {
@@ -224,7 +266,7 @@ export default function ManualEditor() {
           <b>{data.name}</b> {data.season} · {data.matches.length} Spiele · {data.goals.length} Tore
         </div>
         <div className="editor-actions">
-          <button type="button" className="btn btn-small" onClick={exportFile}>
+          <button type="button" className="btn btn-ghost btn-small" onClick={exportFile} title="Sicherungskopie als Datei">
             Exportieren
           </button>
           <label className="btn btn-ghost btn-small">
@@ -235,8 +277,8 @@ export default function ManualEditor() {
             type="button"
             className="btn btn-ghost btn-small"
             onClick={() => {
-              if (confirm("Alle erfassten Daten in diesem Browser löschen?")) {
-                setData(emptySeason());
+              if (confirm("Alle Spiele, Tore und Spieler dieser Saison löschen? (Erst mit „Veröffentlichen“ auch online.)")) {
+                setData({ ...data, matches: [], goals: [], players: {} });
                 setMatchId(null);
               }
             }}
@@ -298,7 +340,9 @@ export default function ManualEditor() {
               {data.matches
                 .filter((m) => m.round === r)
                 .map((m) => {
-                  const n = data.goals.filter((g) => g.match === m.id).length;
+                  const mg = data.goals.filter((g) => g.match === m.id);
+                  const open = mg.filter((g) => g.open).length;
+                  const n = mg.length - open;
                   const total = m.homeScore + m.awayScore;
                   return (
                     <button
@@ -311,7 +355,7 @@ export default function ManualEditor() {
                         {m.home} {m.homeScore}:{m.awayScore} {m.away}
                       </span>
                       <span className={`ci-meta ${n < total ? "is-open" : ""}`}>
-                        {n}/{total} Tore erfasst
+                        {n}/{total} Tore erfasst{open > 0 && ` · ${open} offen`}
                       </span>
                     </button>
                   );
@@ -325,8 +369,8 @@ export default function ManualEditor() {
             <p className="muted">Wähle links ein Spiel oder lege ein neues an.</p>
           ) : (
             <>
-              <h2 className="sub-title">
-                Tor erfassen · {match.home} {match.homeScore}:{match.awayScore} {match.away}
+              <h2 className="sub-title editor-goal-form">
+                {draft.editing ? "Tor bearbeiten" : "Tor erfassen"} · {match.home} {match.homeScore}:{match.awayScore} {match.away}
               </h2>
               <div className="form-grid">
                 <label>
@@ -412,15 +456,22 @@ export default function ManualEditor() {
                   />
                 </>
               )}
-              <button type="button" className="btn" onClick={saveGoal}>
-                Tor speichern
-              </button>
+              <div className="player-actions">
+                <button type="button" className="btn" onClick={saveGoal}>
+                  Tor speichern
+                </button>
+                {draft.editing && (
+                  <button type="button" className="btn btn-ghost" onClick={() => setDraft(emptyDraft(draft.team))}>
+                    Abbrechen
+                  </button>
+                )}
+              </div>
 
               <h2 className="sub-title">Erfasste Tore</h2>
               {matchGoals.length === 0 && <p className="muted">Noch keine Tore.</p>}
               <ul className="editor-goals">
                 {matchGoals.map((g) => (
-                  <li key={g.id}>
+                  <li key={g.id} className={`${g.open ? "is-open" : ""} ${draft.editing === g.id ? "is-editing" : ""}`}>
                     <span className="muted">{g.minute}&apos;</span>
                     <span className="chain-names">
                       {g.pre && (
@@ -437,7 +488,11 @@ export default function ManualEditor() {
                       )}
                       <span className="c-goal">{g.scorer}</span>
                       {g.kind !== "Spiel" && <span className="muted"> ({g.kind})</span>}
+                      {g.open && <span className="goal-open">offen</span>}
                     </span>
+                    <button type="button" className="link-btn" onClick={() => editGoal(g)}>
+                      {g.open ? "Ergänzen" : "Bearbeiten"}
+                    </button>
                     <button
                       type="button"
                       className="link-btn"
@@ -470,6 +525,33 @@ export default function ManualEditor() {
       </div>
 
       <section className="editor-panel">
+        <h2 className="sub-title">Kader eintragen</h2>
+        <p className="muted small">
+          Ein Spieler pro Zeile, optional mit Position und Nation: <code>Marco Grüll, LF, at</code>. Am einfachsten die
+          Kaderliste von der Vereins- oder Bundesliga-Seite kopieren und einfügen; Rückennummern am Zeilenanfang werden
+          entfernt. Danach schlagen die Eingabefelder für Torschütze, Assist und Pre-Assist die Spieler vor.
+        </p>
+        <div className="squad-form">
+          <select value={squadTeam} onChange={(e) => setSquadTeam(e.target.value)} aria-label="Team">
+            {data.teams.map((t) => (
+              <option key={t} value={t}>
+                {t} ({playersOf.get(t)?.length ?? 0})
+              </option>
+            ))}
+          </select>
+          <textarea
+            rows={6}
+            value={squadText}
+            placeholder={"Alexander Schlager, TW, at\nNikolai Baden Frederiksen, ST, dk\n…"}
+            onChange={(e) => setSquadText(e.target.value)}
+          />
+          <button type="button" className="btn btn-small" onClick={addSquad}>
+            Zum Kader hinzufügen
+          </button>
+        </div>
+      </section>
+
+      <section className="editor-panel">
         <h2 className="sub-title">Spieler ({Object.keys(data.players).length})</h2>
         <p className="muted small">Position und Nation erscheinen auf den Spielerkarten. Nation als Kürzel, z. B. at, de, hr.</p>
         <div className="table-wrap">
@@ -480,6 +562,7 @@ export default function ManualEditor() {
                 <th>Team</th>
                 <th>Position</th>
                 <th>Nation</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -519,6 +602,17 @@ export default function ManualEditor() {
                           update((d) => ((d.players[name].country = e.target.value.toLowerCase() || undefined), d))
                         }
                       />
+                    </td>
+                    <td>
+                      {!data.goals.some((g) => [g.scorer, g.assist, g.pre].includes(name)) && (
+                        <button
+                          type="button"
+                          className="link-btn"
+                          onClick={() => update((d) => (delete d.players[name], d))}
+                        >
+                          Entfernen
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

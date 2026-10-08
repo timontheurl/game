@@ -1,5 +1,5 @@
 // Dateiformat für händisch erfasste Saisons (Erfassungs-Tool unter /erfassen).
-// Exportierte Dateien gehören nach web/data/manual/<slug>.json.
+// Gespeichert wird je Liga und Saison als web/data/manual/<slug>.json (direkt aus dem Tool oder per Export).
 
 export type Pt = [number, number]; // Spielfeld 120 × 80, Angriff nach rechts
 
@@ -31,6 +31,8 @@ export interface ManualGoal {
   preType: PassType | null;
   /** Geklickte Punkte auf dem Spielfeld */
   points: { pre?: Pt; assist?: Pt; shot?: Pt };
+  /** Aus dem Spielplan übernommen, Assist und Pre-Assist noch nicht geprüft */
+  open?: boolean;
 }
 
 export interface ManualPlayer {
@@ -41,7 +43,7 @@ export interface ManualPlayer {
 
 export interface ManualSeasonFile {
   version: 1;
-  slug: string; // z. B. "oesterreich-bundesliga-2025-26"
+  slug: string; // z. B. "oesterreich-bundesliga-2026-27"
   name: string;
   country: string;
   season: string;
@@ -49,33 +51,4 @@ export interface ManualSeasonFile {
   matches: ManualMatch[];
   goals: ManualGoal[];
   players: Record<string, ManualPlayer>;
-}
-
-export const AUSTRIA_TEAMS_2025_26 = [
-  "Red Bull Salzburg",
-  "Sturm Graz",
-  "LASK",
-  "Austria Wien",
-  "SK Rapid",
-  "Wolfsberger AC",
-  "TSV Hartberg",
-  "SV Ried",
-  "SCR Altach",
-  "WSG Tirol",
-  "GAK",
-  "Blau-Weiß Linz",
-];
-
-export function emptySeason(): ManualSeasonFile {
-  return {
-    version: 1,
-    slug: "oesterreich-bundesliga-2025-26",
-    name: "Österreichische Bundesliga",
-    country: "Österreich",
-    season: "2025/26",
-    teams: [...AUSTRIA_TEAMS_2025_26],
-    matches: [],
-    goals: [],
-    players: {},
-  };
 }
