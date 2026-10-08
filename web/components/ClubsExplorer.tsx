@@ -43,9 +43,9 @@ export interface ExplorerCountry {
 
 type Rotation = [number, number];
 const EUROPE: Rotation = [-8, -48];
-const SIZE = 520;
-const ZOOMS = [1, 1.6, 2.4, 3.4];
-const START_ZOOM = 2;
+// Zoomstufen: 1 = ganze Erdkugel in der linken Spalte, danach wächst sie über die Seite hinaus
+const ZOOMS = [1, 1.6, 2.6, 4, 6];
+const START_ZOOM = 1;
 
 // Beschriftung neben dem Punkt, damit sich Nachbarländer nicht überdecken
 const LABEL: Record<string, { dx: number; dy: number; anchor: "start" | "middle" | "end" }> = {
@@ -78,6 +78,24 @@ function useCountries() {
   return world;
 }
 
+/** Größe der Fläche hinter dem Inhalt; daraus Mittelpunkt und Grundgröße der Kugel. */
+function useLayout(ref: React.RefObject<HTMLDivElement | null>) {
+  const [box, setBox] = useState({ w: 1200, h: 680 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  const wide = box.w >= 860;
+  // Am Desktop sitzt die Kugel in der linken Spalte, am Handy mittig im Streifen oben
+  const col = wide ? box.w * 0.44 : box.w;
+  const cy = wide ? Math.min(box.h / 2, 330) : box.h / 2;
+  const r0 = Math.max(120, Math.min(col, wide ? 620 : box.h) / 2 - 14);
+  return { ...box, cx: col / 2, cy, r0 };
+}
+
 function Globe({
   countries,
   selected,
@@ -90,26 +108,28 @@ function Globe({
   lang: Lang;
 }) {
   const world = useCountries();
+  const layer = useRef<HTMLDivElement>(null);
+  const { w, h, cx, cy, r0 } = useLayout(layer);
   const [rotation, setRotation] = useState<Rotation>(EUROPE);
   const [zoomStep, setZoomStep] = useState(START_ZOOM);
-  const zoom = ZOOMS[zoomStep];
+  const [zoom, setZoom] = useState(ZOOMS[START_ZOOM]);
   const [hover, setHover] = useState<string | null>(null);
   const rotRef = useRef(rotation);
   rotRef.current = rotation;
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
   const anim = useRef(0);
+  const zoomAnim = useRef(0);
   const drag = useRef<{ x: number; y: number; r: Rotation; moved: boolean } | null>(null);
 
+  const r = r0 * zoom;
   const byIso = useMemo(() => new Map(countries.map((c) => [c.iso, c])), [countries]);
   const projection = useMemo(
-    () =>
-      geoOrthographic()
-        .scale((SIZE / 2 - 6) * zoom)
-        .translate([SIZE / 2, SIZE / 2])
-        .rotate(rotation)
-        .clipAngle(90),
-    [rotation, zoom],
+    () => geoOrthographic().scale(r).translate([cx, cy]).rotate(rotation).clipAngle(90),
+    [rotation, r, cx, cy],
   );
   const path = useMemo(() => geoPath(projection), [projection]);
+  const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Sanft zu einem Punkt drehen (Längen-/Breitengrad)
   const flyTo = useCallback((target: Rotation) => {
@@ -117,8 +137,7 @@ function Globe({
     const from = rotRef.current;
     // kürzester Weg um die Erde
     const dLon = ((((target[0] - from[0]) % 360) + 540) % 360) - 180;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
+    if (reduce()) {
       setRotation([from[0] + dLon, target[1]]);
       return;
     }
@@ -132,9 +151,35 @@ function Globe({
     anim.current = requestAnimationFrame(tick);
   }, []);
 
-  useEffect(() => () => cancelAnimationFrame(anim.current), []);
+  // Zoom fließend: die Kugel wächst bzw. schrumpft
+  useEffect(() => {
+    cancelAnimationFrame(zoomAnim.current);
+    const from = zoomRef.current;
+    const to = ZOOMS[zoomStep];
+    if (reduce()) {
+      setZoom(to);
+      return;
+    }
+    const start = performance.now();
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - start) / 600);
+      const e = 1 - Math.pow(1 - k, 3);
+      // gleichmäßig wirkend: im logarithmischen Maßstab überblenden
+      setZoom(Math.exp(Math.log(from) + (Math.log(to) - Math.log(from)) * e));
+      if (k < 1) zoomAnim.current = requestAnimationFrame(tick);
+    };
+    zoomAnim.current = requestAnimationFrame(tick);
+  }, [zoomStep]);
 
-  // Beim Auswählen (auch über die Knöpfe) zum Land drehen; ohne Auswahl zurück nach Europa
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(anim.current);
+      cancelAnimationFrame(zoomAnim.current);
+    },
+    [],
+  );
+
+  // Beim Auswählen (auch über die Knöpfe) zum Land drehen und etwas näher heran; ohne Auswahl zurück nach Europa
   useEffect(() => {
     if (!world) return;
     if (!selected) {
@@ -144,6 +189,7 @@ function Globe({
     const c = countries.find((x) => x.iso === selected);
     if (!c) return;
     flyTo([-c.center[0], -c.center[1]]);
+    setZoomStep((z) => Math.max(z, 2));
   }, [selected, world, flyTo, countries]);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -158,14 +204,14 @@ function Globe({
     if (!d.moved && Math.hypot(dx, dy) < 4) return;
     if (!d.moved) e.currentTarget.setPointerCapture(e.pointerId);
     d.moved = true;
-    const k = 180 / (SIZE / 2) / 1.6 / zoom;
+    // Grad pro Pixel passend zur aktuellen Größe der Kugel
+    const k = 57.3 / r;
     setRotation([d.r[0] + dx * k, Math.max(-80, Math.min(80, d.r[1] - dy * k))]);
   };
   const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     const d = drag.current;
     drag.current = null;
     if (d?.moved) return;
-    // Klick: Land unter dem Zeiger finden
     const id = (e.target as Element).getAttribute("data-iso");
     if (id && byIso.has(id)) onSelect(id === selected ? null : id);
   };
@@ -174,9 +220,11 @@ function Globe({
   const hoverCountry = hover ? byIso.get(hover) : null;
 
   return (
-    <div className="globe-wrap">
+    <div className="globe-layer" ref={layer}>
       <svg
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        width={w}
+        height={h}
+        viewBox={`0 0 ${w} ${h}`}
         className="globe"
         role="img"
         aria-label={pick(lang, "Weltkugel mit den Ländern, in denen es Ligen gibt", "Globe with the countries that have leagues")}
@@ -191,7 +239,7 @@ function Globe({
             <stop offset="1" stopColor="#121417" />
           </radialGradient>
         </defs>
-        <circle cx={SIZE / 2} cy={SIZE / 2} r={(SIZE / 2 - 6) * zoom} className="globe-sphere" fill="url(#globe-shade)" />
+        <circle cx={cx} cy={cy} r={r} className="globe-sphere" fill="url(#globe-shade)" />
         <path d={path(geoGraticule10()) ?? ""} className="globe-graticule" />
         {world?.map((f) => {
           const iso = String(f.id);
@@ -205,16 +253,16 @@ function Globe({
               data-iso={iso}
               className={`globe-country ${cls} ${selected === iso ? "is-selected" : ""}`}
               onPointerEnter={() => c && setHover(iso)}
-              onPointerLeave={() => setHover((h) => (h === iso ? null : h))}
+              onPointerLeave={() => setHover((x) => (x === iso ? null : x))}
             />
           );
         })}
-        {/* Namen der Länder mit Ligen, wenn sie auf der Vorderseite liegen */}
+        {/* Namen der Länder mit Ligen, wenn sie auf der Vorderseite und im Bild liegen */}
         {world &&
           countries.map((c) => {
             if (geoDistance(c.center, center) > Math.PI / 2 - 0.15) return null;
             const p = projection(c.center);
-            if (!p || p[0] < 0 || p[0] > SIZE || p[1] < 0 || p[1] > SIZE) return null;
+            if (!p || p[0] < 0 || p[0] > w || p[1] < 0 || p[1] > h) return null;
             const l = LABEL[c.iso] ?? { dx: 0, dy: -9, anchor: "middle" as const };
             return (
               <g key={c.iso} className={`globe-label ${selected === c.iso ? "is-selected" : ""}`} transform={`translate(${p[0]} ${p[1]})`}>
@@ -226,15 +274,14 @@ function Globe({
             );
           })}
         {!world && (
-          <text x={SIZE / 2} y={SIZE / 2} className="globe-loading" textAnchor="middle">
+          <text x={cx} y={cy} className="globe-loading" textAnchor="middle">
             {pick(lang, "Lade Karte …", "Loading map …")}
           </text>
         )}
       </svg>
       {hoverCountry && (
-        <div className="globe-tip" aria-hidden="true">
-          <Flag code={hoverCountry.flag} /> {hoverCountry.name} ·{" "}
-          {hoverCountry.leagues.map((l) => l.name).join(", ")}
+        <div className="globe-tip" style={{ left: cx }} aria-hidden="true">
+          <Flag code={hoverCountry.flag} /> {hoverCountry.name} · {hoverCountry.leagues.map((l) => l.name).join(", ")}
         </div>
       )}
       <div className="globe-tools">
@@ -358,8 +405,8 @@ export default function ClubsExplorer({
 
   return (
     <div className="clubs-explorer">
+      <Globe countries={countries} selected={selected} onSelect={select} lang={lang} />
       <div className="clubs-map">
-        <Globe countries={countries} selected={selected} onSelect={select} lang={lang} />
         <div className="country-chips" role="group" aria-label={pick(lang, "Land wählen", "Choose a country")}>
           {countries.map((c) => (
             <button
