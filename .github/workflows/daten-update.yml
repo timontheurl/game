@@ -40,12 +40,17 @@ jobs:
       - name: Pre-Assists berechnen
         run: python pipeline/build_data.py
 
+      - name: Spielszenen für „Finde den Pre-Assist“ erzeugen
+        run: python pipeline/build_scenes.py
+
       - name: Pull Request bei Änderungen
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automatisch/daten-update
           delete-branch: true
-          add-paths: web/data
+          add-paths: |
+            web/data
+            web/public/daten/szenen
           commit-message: "Daten-Update: Pre-Assists neu berechnet"
           title: "Daten-Update: Pre-Assists neu berechnet"
           body: |

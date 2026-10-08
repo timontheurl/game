@@ -5282,3 +5282,68 @@ td.name a {
     translate: none;
   }
 }
+
+/* Echte Szenen: Namen, Bewerbsauswahl, „So lief es wirklich“ */
+.pg-name {
+  font-family: var(--body, inherit);
+  font-size: 1.75px;
+  font-weight: 700;
+  fill: #f3f4f6;
+  paint-order: stroke;
+  stroke: rgba(11, 12, 14, 0.85);
+  stroke-width: 0.55px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.pg-player .pg-name {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1.75px;
+  font-weight: 700;
+  fill: #f3f4f6;
+}
+
+.pg-player .pg-name.is-you {
+  fill: var(--accent);
+}
+
+.pg-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.pg-filter select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  max-width: 100%;
+}
+
+.pg-tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.pg-tag.is-real {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.pg-final-list small {
+  color: var(--muted);
+}

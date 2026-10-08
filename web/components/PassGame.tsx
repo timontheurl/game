@@ -20,8 +20,8 @@ import {
   type Result,
   type Run,
   type Scene,
+  type Text,
 } from "@/lib/passGame";
-import { SCENES } from "@/lib/scenes";
 import LogoLoader from "./LogoLoader";
 
 // Spiel „Finde den Pre-Assist“: Du hast den Ball und entscheidest, wohin du passt.
@@ -53,14 +53,57 @@ const shuffle = <T,>(list: T[]) => {
   return a;
 };
 
-function newDeck(): Round[] {
-  return shuffle(SCENES)
-    .slice(0, ROUND)
+// Echte Szenen liegen je Bewerb in /daten/szenen/<slug>.json und werden nur bei Bedarf geladen
+interface SceneIndex {
+  slug: string;
+  name: Text;
+  count: number;
+}
+
+const seasonCache = new Map<string, Promise<Scene[]>>();
+function loadSeason(slug: string): Promise<Scene[]> {
+  let p = seasonCache.get(slug);
+  if (!p) {
+    p = fetch(`/daten/szenen/${slug}.json`).then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json() as Promise<Scene[]>;
+    });
+    p.catch(() => seasonCache.delete(slug));
+    seasonCache.set(slug, p);
+  }
+  return p;
+}
+
+/** Zieht zufällig ROUND Szenen aus den gewählten Bewerben (gewichtet nach Anzahl) */
+async function newDeck(index: SceneIndex[], filter: string): Promise<Round[]> {
+  const pool = filter === ALL ? index : index.filter((s) => s.slug === filter);
+  const total = pool.reduce((a, s) => a + s.count, 0);
+  const picks = new Set<number>();
+  while (picks.size < Math.min(ROUND, total)) picks.add(Math.floor(Math.random() * total));
+  const wanted: { slug: string; i: number }[] = [];
+  for (const n of picks) {
+    let rest = n;
+    for (const s of pool) {
+      if (rest < s.count) {
+        wanted.push({ slug: s.slug, i: rest });
+        break;
+      }
+      rest -= s.count;
+    }
+  }
+  const seasons = new Map(
+    await Promise.all([...new Set(wanted.map((w) => w.slug))].map(async (slug) => [slug, await loadSeason(slug)] as const)),
+  );
+  return shuffle(wanted)
+    .map((w) => seasons.get(w.slug)?.[w.i])
+    .filter((s): s is Scene => !!s)
     .map((s) => {
-      const scene = Math.random() < 0.5 ? mirror(s) : s;
+      const scene = mirror(s);
       return { scene, order: shuffle(scene.options.map((_, i) => i)) };
     });
 }
+
+const ALL = "alle";
 
 const BEST_KEY = "preassists-spiel-pre-assist";
 
@@ -83,7 +126,7 @@ const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)"
 
 export const VERDICT: Record<Outcome, { de: string; en: string; tone: "win" | "half" | "miss" }> = {
   pre: { de: "Pre-Assist!", en: "Pre-assist!", tone: "win" },
-  assist: { de: "Das war schon der Assist", en: "That was already the assist", tone: "half" },
+  assist: { de: "Schon der Assist", en: "Already the assist", tone: "half" },
   early: { de: "Zu früh", en: "Too early", tone: "miss" },
   nocount: { de: "Tor – aber kein Pre-Assist", en: "Goal – but no pre-assist", tone: "miss" },
   lost: { de: "Fehlpass", en: "Misplaced pass", tone: "miss" },
@@ -161,7 +204,7 @@ function sceneView(scene: Scene): [number, number, number] {
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
   const clamp = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
-  const x0 = clamp(cx - size / 2, 38.5, 124 - size);
+  const x0 = clamp(cx - size / 2, -2, 124 - size);
   const y0 = clamp(cy - size / 2, -4, 84 - size);
   return [x0, y0, size];
 }
@@ -177,6 +220,10 @@ function Markings() {
       <rect x={120} y={36} width={1.6} height={8} className="pg-goal" />
       <circle cx={108} cy={40} r={0.4} className="spot" />
       <path d="M 102 32.7 A 10 10 0 0 0 102 47.3" />
+      <rect x={0} y={18} width={18} height={44} />
+      <rect x={0} y={30} width={6} height={20} />
+      <circle cx={12} cy={40} r={0.4} className="spot" />
+      <path d="M 18 32.7 A 10 10 0 0 1 18 47.3" />
     </g>
   );
 }
@@ -214,6 +261,7 @@ function PassPitch({
   t: number;
 }) {
   const { pos, ball, lift } = frame(scene, r, t);
+  const names = scene.names ?? {};
   const opt = shown !== null ? scene.options[shown] : null;
   const [vx, vy, vs] = view;
   const inView = (p: Pt, m: number) => p[0] > vx + m && p[0] < vx + vs - m && p[1] > vy + m && p[1] < vy + vs - m;
@@ -353,6 +401,11 @@ function PassPitch({
                 {id}
               </text>
             )}
+            {!opp && names[id] && (
+              <text y={4.4} textAnchor="middle" className="pg-name">
+                {names[id]}
+              </text>
+            )}
           </g>
         );
       })}
@@ -362,6 +415,11 @@ function PassPitch({
         <text y={0.6} textAnchor="middle">
           {pick(lang, "DU", "YOU")}
         </text>
+        {names.you && (
+          <text y={4.7} textAnchor="middle" className="pg-name is-you">
+            {names.you}
+          </text>
+        )}
       </g>
 
       {/* Buchstaben ganz oben, damit ein Tipp immer die richtige Option trifft */}
@@ -420,8 +478,12 @@ export default function PassGame({ lang }: { lang: Lang }) {
   const [t, setT] = useState(0);
   const [over, setOver] = useState(false);
   const [announce, setAnnounce] = useState("");
+  const [index, setIndex] = useState<SceneIndex[] | null>(null);
+  const [filter, setFilter] = useState(ALL);
+  const [failed, setFailed] = useState(false);
   const raf = useRef(0);
   const focusChoices = useRef(false);
+  const questionRef = useRef<HTMLParagraphElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -429,10 +491,16 @@ export default function PassGame({ lang }: { lang: Lang }) {
   const finalRef = useRef<HTMLHeadingElement>(null);
   const choicesRef = useRef<HTMLDivElement>(null);
 
-  // Zufall erst im Browser – sonst passt das vorgerenderte HTML nicht
+  // Szenen-Übersicht laden; Zufall erst im Browser – sonst passt das vorgerenderte HTML nicht
   useEffect(() => {
-    setDeck(newDeck());
     setBest(loadBestScore());
+    fetch("/daten/szenen/index.json")
+      .then((r) => r.json() as Promise<SceneIndex[]>)
+      .then(async (list) => {
+        setIndex(list);
+        setDeck(await newDeck(list, ALL));
+      })
+      .catch(() => setFailed(true));
     return () => cancelAnimationFrame(raf.current);
   }, []);
 
@@ -523,11 +591,11 @@ export default function PassGame({ lang }: { lang: Lang }) {
     if (phase === "play") skipRef.current?.focus({ preventScroll: true });
   }, [phase]);
 
-  // Nach „Weiter“ und „Nochmal“ steht der Fokus auf der ersten Option
+  // Nach „Weiter“ und „Nochmal“ steht der Fokus auf der Frage – ohne eine Option vorzuwählen
   useEffect(() => {
     if (phase === "choose" && focusChoices.current) {
       focusChoices.current = false;
-      choicesRef.current?.querySelector("button")?.focus({ preventScroll: true });
+      questionRef.current?.focus({ preventScroll: true });
     }
   }, [phase, idx, deck]);
 
@@ -570,16 +638,29 @@ export default function PassGame({ lang }: { lang: Lang }) {
     finalRef.current?.focus({ preventScroll: true });
   }, [over]);
 
-  const restart = () => {
+  const restart = async (nextFilter = filter) => {
+    if (!index) return;
     reset();
-    setDeck(newDeck());
+    setFilter(nextFilter);
+    setDeck(null);
     setIdx(0);
     setPlayed([]);
     setOver(false);
+    try {
+      setDeck(await newDeck(index, nextFilter));
+    } catch {
+      setFailed(true);
+    }
     toTop();
   };
 
-  if (!deck || !scene || !round) return <LogoLoader label={pick(lang, "Lade Spielszenen …", "Loading situations …")} />;
+  if (failed)
+    return (
+      <p className="empty">
+        {pick(lang, "Die Spielszenen konnten nicht geladen werden. Bitte lade die Seite neu.", "The situations could not be loaded. Please reload the page.")}
+      </p>
+    );
+  if (!deck || !scene || !round) return <LogoLoader label={pick(lang, "Lade echte Spielszenen …", "Loading real situations …")} />;
 
   const verdict = result ? VERDICT[result.outcome] : null;
   const letterOf = (oi: number) => LETTERS[round.order.indexOf(oi)];
@@ -590,6 +671,21 @@ export default function PassGame({ lang }: { lang: Lang }) {
       <p className="sr-only" role="status" aria-live="polite">
         {announce}
       </p>
+      {index && (
+        <label className="pg-filter">
+          <span>{pick(lang, "Bewerb", "Competition")}</span>
+          <select value={filter} onChange={(e) => restart(e.target.value)}>
+            <option value={ALL}>
+              {pick(lang, "Alle Bewerbe", "All competitions")} ({index.reduce((a, s) => a + s.count, 0)})
+            </option>
+            {index.map((s) => (
+              <option key={s.slug} value={s.slug}>
+                {s.name[lang]} ({s.count})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="game-score pg-score">
         <span>
           {pick(lang, "Situation", "Situation")}{" "}
@@ -652,7 +748,9 @@ export default function PassGame({ lang }: { lang: Lang }) {
         <div className="pg-panel">
           {phase === "choose" && (
             <>
-              <p className="pg-question">{pick(lang, "Welcher Pass wird zum Pre-Assist?", "Which pass becomes the pre-assist?")}</p>
+              <p className="pg-question" ref={questionRef} tabIndex={-1}>
+                {pick(lang, "Welcher Pass wird zum Pre-Assist?", "Which pass becomes the pre-assist?")}
+              </p>
               <div className="pg-options" ref={choicesRef}>
                 {round.order.map((oi, n) => (
                   <button
@@ -662,7 +760,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
                     onClick={() => pickOption(oi)}
                     onMouseEnter={() => setHover(oi)}
                     onMouseLeave={() => setHover(null)}
-                    onFocus={() => setHover(oi)}
+                    onFocus={(e) => e.currentTarget.matches(":focus-visible") && setHover(oi)}
                     onBlur={() => setHover(null)}
                   >
                     <span className="pg-choice-letter" aria-hidden="true">
@@ -689,6 +787,11 @@ export default function PassGame({ lang }: { lang: Lang }) {
 
           {phase === "result" && verdict && result && shown !== null && (
             <div ref={resultRef} tabIndex={-1} className={`pg-result is-${verdict.tone}`}>
+              {scene.meta && (
+                <span className={`pg-tag ${scene.options[shown].real ? "is-real" : ""}`}>
+                  {scene.options[shown].real ? pick(lang, "So lief es wirklich", "What really happened") : pick(lang, "Was wäre wenn", "What if")}
+                </span>
+              )}
               <p className="pg-verdict">
                 {isReplay && <small>{pick(lang, `Option ${letterOf(shown)}:`, `Option ${letterOf(shown)}:`)} </small>}
                 {verdict[lang]}
@@ -728,6 +831,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
                         </span>
                         <span className="pg-other-verdict">
                           {VERDICT[o][lang]}
+                          {scene.options[oi].real && <em>{pick(lang, " · so war's", " · real")}</em>}
                           {oi === choice && <em>{pick(lang, " · deine Wahl", " · your pick")}</em>}
                         </span>
                       </button>
@@ -749,7 +853,10 @@ export default function PassGame({ lang }: { lang: Lang }) {
           <ol className="pg-final-list">
             {played.map((p, i) => (
               <li key={i} className={`is-${VERDICT[p.outcome].tone}`}>
-                <span>{p.scene.title[lang]}</span>
+                <span>
+                  {p.scene.title[lang]}
+                  {p.scene.meta && <small> · {p.scene.meta.minute}</small>}
+                </span>
                 <span>
                   {VERDICT[p.outcome][lang]} · +{p.points}
                 </span>
@@ -757,7 +864,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
             ))}
           </ol>
           <div className="player-actions">
-            <button type="button" className="btn" onClick={restart}>
+            <button type="button" className="btn" onClick={() => restart()}>
               {pick(lang, "Nochmal spielen", "Play again")}
             </button>
             <ShareResult played={played} score={score} max={max} lang={lang} />

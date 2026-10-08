@@ -2,7 +2,7 @@
 // Ohne Importe, damit auch das Prüfskript (scripts/check-scenes.mts) die Datei direkt mit Node laden kann.
 //
 // Koordinaten wie StatsBomb: x 0–120 (Angriff nach rechts, Tor bei x = 120), y 0–80.
-// Gezeigt wird nur die Angriffshälfte ab x = 40 – ein Quadrat, das am Handy wie am Desktop passt.
+// Die Szenen sind echte Tore aus den StatsBomb-Daten (pipeline/build_scenes.py).
 
 export type Pt = [number, number];
 export type Text = { de: string; en: string };
@@ -28,10 +28,22 @@ export type Step =
   | { k: "foul"; on: Actor; by: number; result: "goal" | "saved" };
 
 export interface Option {
-  label: Text; // kurz, z. B. „Steil auf die 9“
+  label: Text; // kurz, z. B. „Steil auf Giroud“
   steps: Step[]; // erster Schritt ist immer dein Pass
   expect: Outcome; // was die Auswertung ergeben muss (vom Prüfskript kontrolliert)
   explain: Text; // Auflösung nach dem Abspielen
+  /** So ist es wirklich passiert – alle anderen Optionen sind „Was wäre wenn“ */
+  real?: boolean;
+}
+
+/** Spiel, aus dem eine echte Szene stammt */
+export interface SceneMeta {
+  competition: Text;
+  date: string;
+  minute: string; // wie auf der Website: 38', 45+2'
+  team: string; // angreifendes Team
+  score: [number, number]; // Stand vor dem Tor (Heim:Gast)
+  final: [number, number];
 }
 
 export interface Scene {
@@ -44,6 +56,9 @@ export interface Scene {
   mates: Record<string, Pt>; // Rückennummer → Position
   opps: Pt[]; // Index 0 = Torwart
   options: Option[]; // 3–4, genau eine ergibt einen Pre-Assist
+  /** Kurznamen der Spieler: "you", Rückennummern der Mitspieler */
+  names?: Record<string, string>;
+  meta?: SceneMeta;
 }
 
 export type Outcome =
@@ -236,8 +251,9 @@ export function run(scene: Scene, option: Option): Run {
   return { segments, total: t, before, end: { ...pos }, ballEnd: ball };
 }
 
-/** Szene gespiegelt (oben ↔ unten) – doppelt so viele Varianten ohne neue Daten. */
+/** Szene gespiegelt (oben ↔ unten). Echte Szenen (mit `meta`) bleiben, wie sie waren. */
 export function mirror(scene: Scene): Scene {
+  if (scene.meta) return scene;
   const m = (p: Pt): Pt => [p[0], 80 - p[1]];
   const step = (s: Step): Step => {
     switch (s.k) {

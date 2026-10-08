@@ -299,21 +299,26 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         else:
             opps[ref[1]] = p
 
-    for _ in range(6):
-        everyone = [you] + [mates[k] for k in fixed if k != "you"] + [get(r) for r in movable] + [opps[0]]
-        for ref in movable:
+    for _ in range(12):
+        for n, ref in enumerate(movable):
             p = get(ref)
-            for q in everyone:
-                if q is p:
-                    continue
+            others_now = [you] + [mates[k] for k in fixed if k != "you"] + [opps[0]] + [get(r) for r in movable if r != ref]
+            for q in others_now:
                 d = dist(p, q)
-                if d < 3.0:
-                    if d < 0.01:
-                        p = [p[0] + 1.5, p[1] + 1.5]
-                    else:
-                        k = (3.0 - d) / d
-                        p = [p[0] + (p[0] - q[0]) * k, p[1] + (p[1] - q[1]) * k]
+                if d >= 3.0:
+                    continue
+                if d < 0.01:
+                    # genau übereinander: in eine feste, je Spieler andere Richtung schieben
+                    a = math.radians(n * 137.5)
+                    ux, uy = math.cos(a), math.sin(a)
+                else:
+                    ux, uy = (p[0] - q[0]) / d, (p[1] - q[1]) / d
+                p = [p[0] + ux * (3.0 - d), p[1] + uy * (3.0 - d)]
+                # am Rand nicht hinausschieben, sondern entlang der Linie ausweichen
+                if not (0.5 <= p[0] <= 120 and 0.5 <= p[1] <= 79.5):
                     p = clamp_pitch(p)
+                    p = [p[0] - uy * 1.5, p[1] + ux * 1.5]
+                p = clamp_pitch(p)
             put(ref, p)
 
     pos = {"you": you, **mates}
@@ -416,7 +421,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         # Über einen anderen Mitspieler -> zu früh
         def early_ok(k) -> bool:
             p = pos[k]
-            return k not in used and 6 <= dist(you, p) <= 55 and separated(p) and dist(p, pos[kA]) >= 5
+            return k not in used and min_d <= dist(you, p) <= 60 and separated(p) and dist(p, pos[kA]) >= min_d - 1
 
         cands = sorted(
             (k for k in others if early_ok(k)),
@@ -464,7 +469,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         return options
 
     options: list[dict] = []
-    for tier in [(6, 9, 2.5, 24), (5, 7, 3.0, 30), (4, 5, 3.5, 40)]:
+    for tier in [(6, 9, 2.5, 24), (5, 7, 3.0, 30), (4, 5, 3.5, 40), (3, 3, 4.0, 60)]:
         options = make_options(*tier)
         if len(options) >= 3:
             break
