@@ -32,5 +32,7 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - name: Szenen für „Finde den Pre-Assist“ prüfen
-        run: node --experimental-strip-types --no-warnings scripts/check-scenes.mts
+        run: |
+          npx tsc --noEmit --allowImportingTsExtensions --module nodenext --moduleResolution nodenext --target es2022 --strict --skipLibCheck scripts/check-scenes.mts
+          node --experimental-strip-types --no-warnings scripts/check-scenes.mts
       - run: npm run build

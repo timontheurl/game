@@ -9,7 +9,7 @@ export default function GameView({ lang }: { lang: Lang }) {
         <Link href={url(lang, "spiele")} className="pg-back">
           ‹ {pick(lang, "Alle Spiele", "All games")}
         </Link>
-        <h1>{pick(lang, "Das Pre-Assist-Spiel", "The pre-assist game")}</h1>
+        <h1>{pick(lang, "Das Zahlen-Quiz", "The numbers quiz")}</h1>
         <p>
           {pick(
             lang,

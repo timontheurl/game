@@ -15,7 +15,7 @@ const dir = join(here, "..", "lib", "scenes");
 const args = process.argv.slice(2);
 const htmlAt = args.indexOf("--html");
 const htmlOut = htmlAt >= 0 ? args[htmlAt + 1] : null;
-const only = args.filter((a, i) => a.endsWith(".json") && i !== htmlAt + 1);
+const only = args.filter((a, i) => a.endsWith(".json") && (htmlAt < 0 || i !== htmlAt + 1));
 const files = (only.length ? only.map((f) => f.split("/").pop()!) : readdirSync(dir).filter((f) => f.endsWith(".json"))).sort();
 
 const errors: string[] = [];
@@ -53,6 +53,13 @@ for (const file of files) {
     all.push({ file, scene });
     checkScene(file, scene);
   }
+}
+
+// Jede Szenendatei muss im Spiel eingebunden sein (lib/scenes/index.ts)
+if (!only.length) {
+  const idx = readFileSync(join(dir, "index.ts"), "utf8");
+  const registered = new Set([...idx.matchAll(/from "\.\/([\w-]+\.json)"/g)].map((m) => m[1]));
+  for (const f of files) if (!registered.has(f)) errors.push(`${f}: nicht in lib/scenes/index.ts eingetragen – die Szenen kämen nie ins Spiel`);
 }
 
 // IDs über alle Dateien eindeutig
@@ -107,14 +114,20 @@ function checkScene(file: string, s: Scene) {
     errors.push(`${w}: 3–4 Optionen erwartet`);
     return;
   }
-  const outcomes: Outcome[] = [];
+  const outcomes: (Outcome | null)[] = [];
   const firstTargets = new Set<string>();
+  let broken = false;
   s.options.forEach((o, i) => {
     const ow = `${w} Option ${String.fromCharCode(65 + i)}`;
     text(`${ow} label`, o.label, 34);
     text(`${ow} explain`, o.explain, 240);
     if (!OUTCOMES.includes(o.expect)) errors.push(`${ow}: expect muss eins von ${OUTCOMES.join(", ")} sein`);
-    if (!checkSteps(ow, s, o)) return;
+    if (!checkSteps(ow, s, o)) {
+      // Fehlerhafte Option: Folgeprüfungen würden nur abstürzen
+      broken = true;
+      outcomes.push(null);
+      return;
+    }
     const target = optionTarget(s, o);
     if (firstTargets.has(target.who)) errors.push(`${ow}: zwei Optionen zielen auf denselben Mitspieler (${target.who}) – im Spielfeld nicht unterscheidbar`);
     firstTargets.add(target.who);
@@ -124,7 +137,8 @@ function checkScene(file: string, s: Scene) {
     checkGeometry(ow, s, o);
   });
   // Optionen müssen sich im Spielfeld klar unterscheiden lassen
-  const targets = s.options.map((o) => (Array.isArray(o.steps) && o.steps[0]?.k === "pass" ? optionTarget(s, o).at : null));
+  if (broken) return;
+  const targets = s.options.map((o) => optionTarget(s, o).at);
   for (let i = 0; i < targets.length; i++)
     for (let j = i + 1; j < targets.length; j++) {
       const a = targets[i];
@@ -162,6 +176,12 @@ function checkScene(file: string, s: Scene) {
 function checkSteps(w: string, s: Scene, o: Option): boolean {
   const pos = startPositions(s);
   const exists = (a: Actor) => a in pos;
+  let ok = true;
+  const need = (sw: string, a: Actor | undefined, what: string) => {
+    if (a !== undefined && exists(a)) return;
+    errors.push(`${sw}: ${what} ${a ?? "(fehlt)"} gibt es nicht`);
+    ok = false;
+  };
   if (!Array.isArray(o.steps) || !o.steps.length) {
     errors.push(`${w}: keine Schritte`);
     return false;
@@ -173,7 +193,6 @@ function checkSteps(w: string, s: Scene, o: Option): boolean {
   }
   let holder: Actor | null = "you";
   let ended = false;
-  let ok = true;
   o.steps.forEach((st, i) => {
     const sw = `${w} Schritt ${i + 1}`;
     if (ended) {
@@ -184,22 +203,30 @@ function checkSteps(w: string, s: Scene, o: Option): boolean {
     switch (st.k) {
       case "pass":
         if (st.from !== holder) errors.push(`${sw}: Pass von ${st.from}, aber am Ball ist ${holder}`);
-        if (!exists(st.to)) errors.push(`${sw}: Empfänger ${st.to} gibt es nicht`);
+        need(sw, st.to, "Empfänger");
         if (st.to === st.from) errors.push(`${sw}: Pass an sich selbst`);
         if (st.at && !inPitch(st.at)) errors.push(`${sw}: Zielpunkt außerhalb`);
-        if (isOpp(st.to) && (!st.aim || isOpp(st.aim) || !exists(st.aim)))
+        if (isOpp(st.to) && (!st.aim || isOpp(st.aim) || !exists(st.aim))) {
           errors.push(`${sw}: bei einem abgefangenen Pass mit "aim" den gemeinten Mitspieler angeben`);
-        if (isOpp(st.to) && !st.at) errors.push(`${sw}: bei einem abgefangenen Pass mit "at" den Abfangpunkt angeben`);
+          ok = false;
+        }
+        if (st.aim !== undefined && !isOpp(st.to)) errors.push(`${sw}: "aim" nur bei abgefangenen Pässen`);
+        if (isOpp(st.to) && !st.at) {
+          errors.push(`${sw}: bei einem abgefangenen Pass mit "at" den Abfangpunkt angeben`);
+          ok = false;
+        }
         holder = st.to;
         if (isOpp(st.to)) ended = true;
         break;
       case "carry":
+        need(sw, st.who, "Dribbler");
         if (st.who !== holder) errors.push(`${sw}: Dribbling von ${st.who}, aber am Ball ist ${holder}`);
         if (!inPitch(st.to)) errors.push(`${sw}: Dribbling endet außerhalb`);
         break;
       case "shot":
+        need(sw, st.who, "Schütze");
         if (st.who !== holder) errors.push(`${sw}: Schuss von ${st.who}, aber am Ball ist ${holder}`);
-        if (st.by !== undefined && !exists(`o${st.by}`)) errors.push(`${sw}: Gegner o${st.by} gibt es nicht`);
+        if (st.by !== undefined) need(sw, `o${st.by}`, "Gegner");
         holder = null;
         if (st.result === "goal") ended = true;
         else {
@@ -209,8 +236,8 @@ function checkSteps(w: string, s: Scene, o: Option): boolean {
         }
         break;
       case "loose":
-        if (!exists(st.to)) errors.push(`${sw}: ${st.to} gibt es nicht`);
-        if (st.off !== undefined && !exists(`o${st.off}`)) errors.push(`${sw}: Gegner o${st.off} gibt es nicht`);
+        need(sw, st.to, "Spieler");
+        if (st.off !== undefined) need(sw, `o${st.off}`, "Gegner");
         if (!inPitch(st.at)) errors.push(`${sw}: Abpraller landet außerhalb`);
         holder = st.to;
         if (isOpp(st.to)) ended = true;
@@ -218,9 +245,8 @@ function checkSteps(w: string, s: Scene, o: Option): boolean {
       case "foul":
         if (st.on !== holder) errors.push(`${sw}: gefoult werden kann nur, wer am Ball ist (${holder})`);
         if (isOpp(st.on)) errors.push(`${sw}: Foul muss an einem Mitspieler sein`);
-        if (!exists(`o${st.by}`)) errors.push(`${sw}: Gegner o${st.by} gibt es nicht`);
-        if (pos[st.on] && !(pos[st.on][0] >= 102 && pos[st.on][1] >= 18 && pos[st.on][1] <= 62))
-          warnings.push(`${sw}: Elfmeter gibt es nur bei Fouls im Strafraum – Spieler am Foulzeitpunkt prüfen`);
+        need(sw, st.on, "Gefoulter");
+        need(sw, `o${st.by}`, "Gegner");
         ended = true;
         break;
       default:
@@ -270,6 +296,26 @@ function checkGeometry(w: string, s: Scene, o: Option) {
       if (!(near <= 4.5)) errors.push(`${sw}: abfangender Gegner ${st.to} steht nicht sichtbar in der Bahn zur ${st.aim} (${near.toFixed(1)})`);
       if (!(atLane <= 2)) errors.push(`${sw}: Abfangpunkt liegt nicht auf dem Weg zur ${st.aim}`);
       if (d(pos[st.to], st.at) > 6) errors.push(`${sw}: Gegner ${st.to} muss zu weit zum Abfangpunkt laufen`);
+    }
+    if (st.k === "foul") {
+      const at = pos[st.on];
+      if (!(at[0] >= 102 && at[1] >= 18 && at[1] <= 62))
+        errors.push(`${sw}: Elfmeter gibt es nur bei Fouls im Strafraum – ${st.on} steht beim Foul bei [${at.map((v) => v.toFixed(0))}]`);
+    }
+    if (st.k === "loose" && !isOpp(st.to)) {
+      // Abseits beim Abpraller: entscheidend ist, wann ein Mitspieler den Ball zuletzt gespielt hat
+      const prev = o.steps[i - 1];
+      const j = prev && prev.k === "shot" ? i - 1 : i;
+      const at = r.before[j];
+      const ballAt = r.segments.find((x) => x.step === j)!.ball[0];
+      const recv = at[st.to];
+      const xs = Object.entries(at)
+        .filter(([id]) => isOpp(id))
+        .map(([, p]) => p[0])
+        .sort((a, b) => b - a);
+      const secondLast = xs[1] ?? 0;
+      if (recv[0] > 60 && recv[0] > ballAt[0] + 0.3 && recv[0] > secondLast + 0.3)
+        errors.push(`${sw}: ${st.to} steht beim letzten Ballkontakt im Abseits und darf den Abpraller nicht nutzen`);
     }
     if (st.k === "carry") {
       const len = d(pos[st.who], st.to);

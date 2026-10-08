@@ -6,5 +6,5 @@ export const contentType = "image/png";
 export const alt = "Spiele rund um den Pre-Assist";
 
 export default function Image() {
-  return ogText("Spiele", "Finde den Pre-Assist, Mehr oder weniger und Wer ist es? – teste dein Auge für den Pass vor dem Assist.", "PreAssists");
+  return ogText("Spiele", "Finde den Pre-Assist, „Mehr oder weniger?“ und „Wer ist es?“ – teste dein Auge für den Pass vor dem Assist.", "3 Spiele");
 }

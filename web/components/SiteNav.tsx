@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Flag } from "./PlayerCard";
 import { langFromPath, pick, switchPath, t, url, type Lang, type RouteKey, type TKey } from "@/lib/i18n";
@@ -79,6 +79,7 @@ function CompetitionsMenu({ lang, live, active }: { lang: Lang; live: string[]; 
 
 export default function SiteNav({ live = [] }: { live?: string[] }) {
   const pathname = usePathname() ?? "/";
+  const router = useRouter();
   const lang = langFromPath(pathname);
   const other: Lang = lang === "de" ? "en" : "de";
   const [open, setOpen] = useState(false);
@@ -136,6 +137,13 @@ export default function SiteNav({ live = [] }: { live?: string[] }) {
           lang={other}
           className="lang-switch"
           style={{ "--i": NAV.length + 1 } as React.CSSProperties}
+          onClick={(e) => {
+            // Abfrage mitnehmen (z. B. ?modus=raten), sie wird erst beim Klick gelesen
+            const query = window.location.search;
+            if (!query || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            router.push(switchPath(pathname, other) + query);
+          }}
         >
           {other.toUpperCase()}
           <span className="sr-only"> – {t(lang, "lang.switch")}</span>

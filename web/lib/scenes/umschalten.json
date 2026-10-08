@@ -60,8 +60,8 @@
     "options": [
       {
         "label": {
-          "de": "In den Lauf der 7",
-          "en": "Into the 7's run"
+          "de": "Auf den Flügel zur 7",
+          "en": "Out to the 7 on the wing"
         },
         "expect": "pre",
         "steps": [
@@ -753,8 +753,8 @@
     "options": [
       {
         "label": {
-          "de": "In den Fuß der 9",
-          "en": "Into the 9's feet"
+          "de": "Flach zur 9",
+          "en": "Low pass to the 9"
         },
         "expect": "pre",
         "steps": [
@@ -891,12 +891,12 @@
   {
     "id": "umschalten-schneller-freistoss",
     "title": {
-      "de": "Schnell ausgeführter Freistoß",
-      "en": "Quick free kick"
+      "de": "Freistoß im Mittelfeld",
+      "en": "Free kick in midfield"
     },
     "setup": {
       "de": "Freistoß für euch, 50 m vor dem Tor. Der Gegner ist noch nicht sortiert, einer steht noch direkt am Ball. Die 10 ist zwischen den Linien frei, die 9 lauert am letzten Mann.",
-      "en": "Free kick to you, 50 metres out. They haven't reorganised and one of them is still standing right by the ball. The 10 is free between the lines, the 9 is on the last defender."
+      "en": "Free kick to you, 50 m out. They haven't reorganised and one of them is still standing right by the ball. The 10 is free between the lines, the 9 is on the last defender."
     },
     "restart": "free-kick",
     "you": [
@@ -962,8 +962,8 @@
     "options": [
       {
         "label": {
-          "de": "Schnell zur 10",
-          "en": "Quickly into the 10"
+          "de": "Zwischen die Linien zur 10",
+          "en": "Between the lines to the 10"
         },
         "expect": "pre",
         "steps": [
@@ -992,8 +992,8 @@
           }
         ],
         "explain": {
-          "de": "Pre-Assist! Die 10 dreht sich auf und steckt zwischen den Innenverteidigern auf die 9 durch. Der Steilpass ist der Assist, dein Freistoß der Pre-Assist – auch Standards zählen.",
-          "en": "Pre-assist! The 10 turns and threads it between the centre-backs for the 9 to score. The through ball is the assist, your free kick the pre-assist – set pieces count too."
+          "de": "Pre-Assist! Die 10 nimmt den Ball im Aufdrehen mit und schickt die 9 zwischen den Innenverteidigern auf die Reise. Der Steilpass ist der Assist, dein Freistoß der Pre-Assist – auch Standards zählen.",
+          "en": "Pre-assist! The 10 takes it on the turn and sends the 9 away between the centre-backs. The through ball is the assist, your free kick the pre-assist – set pieces count too."
         }
       },
       {

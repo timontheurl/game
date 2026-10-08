@@ -227,8 +227,8 @@
   {
     "id": "zentrum-dritter-mann",
     "title": {
-      "de": "Der dritte Mann",
-      "en": "The third man"
+      "de": "Aus dem Sechserraum",
+      "en": "From the base of midfield"
     },
     "setup": {
       "de": "Du bist der Sechser, 55 m vor dem Tor. Die 9 lässt sich fallen und zieht einen Innenverteidiger mit. Die 8 sprintet schon in die Lücke dahinter.",
@@ -387,14 +387,14 @@
           }
         ],
         "explain": {
-          "de": "Tor – aber das war schon der Assist: Die 11 nimmt deinen langen Ball mit und schließt selbst ab. Dein Pass ist die Vorlage, nicht der Pass davor.",
-          "en": "Goal – but that was already the assist: the 11 brings your long ball down and finishes. Your pass set up the goal directly; it wasn't the one before."
+          "de": "Tor – aber das war schon der Assist. Die 11 nimmt deinen langen Ball mit und schließt selbst ab. Dein Pass ist die Vorlage, nicht der Pass davor.",
+          "en": "Goal – but that was already the assist. The 11 brings your long ball down and finishes. Your pass set up the goal directly; it wasn't the one before."
         }
       },
       {
         "label": {
           "de": "Flach in die Spitze zur 9",
-          "en": "Into the 9's feet"
+          "en": "Low into the 9 up front"
         },
         "expect": "pre",
         "steps": [
@@ -827,7 +827,7 @@
           }
         ],
         "explain": {
-          "de": "Kein Tor: Die 7 kommt zwar durch, scheitert aus spitzem Winkel aber am Torwart. Ohne Tor zählt weder Assist noch Pre-Assist.",
+          "de": "Kein Tor: Die 7 kommt zwar durch, scheitert aus spitzem Winkel aber am Tormann. Ohne Tor zählt weder Assist noch Pre-Assist.",
           "en": "No goal: the 7 gets in behind but is denied by the keeper from a tight angle. Without a goal there's no assist and no pre-assist."
         }
       },
@@ -949,8 +949,8 @@
     "options": [
       {
         "label": {
-          "de": "In den Lauf der 11",
-          "en": "Into the 11's run"
+          "de": "Schräg in die Tiefe zur 11",
+          "en": "Angled ball for the 11"
         },
         "expect": "pre",
         "steps": [
@@ -1115,7 +1115,7 @@
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Der Torwart pariert den Schuss der 7, die 9 staubt ab. Ein Abpraller ist kein Pass – das Tor hat keinen Assist und damit keinen Pre-Assist.",
+          "de": "Tor, aber kein Pre-Assist: Der Tormann pariert den Schuss der 7, die 9 staubt ab. Ein Abpraller ist kein Pass – das Tor hat keinen Assist und damit keinen Pre-Assist.",
           "en": "Goal, but no pre-assist: the keeper parries the 7's shot and the 9 follows up. A rebound isn't a pass – the goal has no assist, so no pre-assist."
         }
       }

@@ -102,8 +102,8 @@
       },
       {
         "label": {
-          "de": "In den Lauf der 2",
-          "en": "Into the 2's run"
+          "de": "Die Linie entlang zur 2",
+          "en": "Down the line to the 2"
         },
         "expect": "pre",
         "steps": [
@@ -426,8 +426,8 @@
   {
     "id": "fluegel-seitenwechsel",
     "title": {
-      "de": "Seitenwechsel",
-      "en": "Switch of play"
+      "de": "Alles auf einer Seite",
+      "en": "Everyone on one side"
     },
     "setup": {
       "de": "Der Gegner verschiebt komplett auf deine Seite, die 11 an der Linie wird gedoppelt. Auf der ballfernen Seite wartet die 7, die 9 steht im Zentrum.",
@@ -1039,8 +1039,8 @@
       },
       {
         "label": {
-          "de": "In den Lauf der 10",
-          "en": "Into the 10's run"
+          "de": "Steil zur 10",
+          "en": "Forward to the 10"
         },
         "expect": "pre",
         "steps": [
@@ -1134,7 +1134,7 @@
         ],
         "explain": {
           "de": "Fehlpass: Der gegnerische Flügelspieler ahnt den Einwurf zur 2 und geht dazwischen. Kein Tor, kein Pre-Assist.",
-          "en": "Misplaced throw: the opposing winger reads the ball back to the 2 and nips in. No goal, no pre-assist."
+          "en": "Misplaced pass: the opposing winger reads the ball back to the 2 and nips in. No goal, no pre-assist."
         }
       }
     ]

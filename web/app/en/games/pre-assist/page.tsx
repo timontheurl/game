@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   description:
     "You have the ball: which pass becomes the pre-assist? Decide on the pitch and see whether it turns into a pre-assist, an assist or a misplaced pass.",
   alternates: alternates("passspiel"),
-  openGraph: { images: ["/spiele/pre-assist/opengraph-image"] },
 };
 
 export default function PassGamePage() {

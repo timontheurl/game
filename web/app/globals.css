@@ -4512,8 +4512,8 @@ td.name a {
 
 .games-art .is-opp,
 .pg-legend .is-opp {
-  fill: #5d6773;
-  background: #5d6773;
+  fill: #6b7684;
+  background: #6b7684;
 }
 
 .games-art .is-keeper,
@@ -4566,14 +4566,30 @@ td.name a {
 .pg-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 28px;
+  grid-template-areas:
+    "field intro"
+    "field panel";
+  grid-template-rows: auto 1fr;
+  gap: 12px 28px;
   align-items: start;
 }
 
+.pg-intro {
+  grid-area: intro;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .pg-field {
+  grid-area: field;
   position: sticky;
   top: 76px;
   scroll-margin-top: 72px;
+}
+
+.pg-panel {
+  grid-area: panel;
 }
 
 .pg-pitch {
@@ -4621,7 +4637,17 @@ td.name a {
 
 .pg-option-hit {
   stroke: transparent;
-  stroke-width: 5;
+  stroke-width: 3;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.pg-letter-group {
+  cursor: pointer;
+}
+
+.pg-letter-group.is-active .pg-letter {
+  fill: var(--accent);
 }
 
 .pg-letter {
@@ -4643,8 +4669,11 @@ td.name a {
   stroke-dasharray: none;
 }
 
-.pg-option.is-active .pg-option-head,
-.pg-option.is-active .pg-letter {
+.pg-option {
+  pointer-events: none;
+}
+
+.pg-option.is-active .pg-option-head {
   fill: var(--accent);
 }
 
@@ -4670,7 +4699,7 @@ td.name a {
 }
 
 .pg-player.is-opp circle {
-  fill: #5d6773;
+  fill: #6b7684;
 }
 
 .pg-player.is-keeper circle {
@@ -4688,6 +4717,7 @@ td.name a {
 }
 
 .pg-pulse {
+  pointer-events: none;
   fill: none !important;
   stroke: var(--accent) !important;
   stroke-width: 0.5 !important;
@@ -4904,7 +4934,18 @@ td.name a {
   border-radius: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
-  animation: game-in 0.3s ease;
+  animation: pg-rise 0.3s ease;
+}
+
+.pg-result:focus {
+  outline: none;
+}
+
+@keyframes pg-rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
 }
 
 .pg-result p {
@@ -4982,12 +5023,12 @@ td.name a {
   font-size: 0.92rem;
 }
 
-.pg-other:disabled {
+.pg-other[aria-disabled="true"] {
   cursor: default;
   opacity: 0.6;
 }
 
-.pg-other:not(:disabled):hover,
+.pg-other:not([aria-disabled="true"]):hover,
 .pg-other.is-shown {
   border-color: #6b737d;
   background: var(--surface-2);
@@ -5033,13 +5074,18 @@ td.name a {
 }
 
 .pg-final {
+  scroll-margin-top: 80px;
   margin-top: 28px;
   padding: 22px 24px;
   background: var(--surface);
   border: 1px solid var(--accent);
   border-radius: 12px;
   text-align: center;
-  animation: game-in 0.35s ease;
+  animation: pg-rise 0.35s ease;
+}
+
+.pg-final h2:focus {
+  outline: none;
 }
 
 .pg-final h2 {
@@ -5102,7 +5148,20 @@ td.name a {
 @media (max-width: 860px) {
   .pg-layout {
     grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-areas:
+      "intro"
+      "field"
+      "panel";
+    grid-template-rows: auto;
+    gap: 14px;
+  }
+
+  .pg-setup {
+    font-size: 0.98rem;
+  }
+
+  .pg-legend {
+    margin-top: 6px;
   }
 
   .pg-field {
@@ -5135,7 +5194,21 @@ td.name a {
   text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
-  animation: pg-flash 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation:
+    pg-flash 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both,
+    pg-flash-out 0.4s ease 1.8s forwards;
+}
+
+.pg-flash small {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@keyframes pg-flash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 .pg-flash.is-win {
@@ -5166,4 +5239,46 @@ td.name a {
   stroke: #ff6b6b;
   stroke-width: 0.5;
   stroke-dasharray: 1 0.7;
+}
+
+.pg {
+  scroll-margin-top: 72px;
+  overflow-x: clip;
+}
+
+@media (max-width: 480px) {
+  .pg-other {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .pg-other-label {
+    flex: 1 1 0;
+  }
+
+  .pg-other-verdict {
+    flex: 1 0 100%;
+    padding-left: 36px;
+  }
+
+  .pg-final-list li {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-result,
+  .pg-net,
+  .pg-final {
+    animation: none;
+  }
+
+  .pg-flash {
+    animation: pg-flash-out 0.01s linear 2.5s forwards;
+  }
+
+  .games-card:hover {
+    translate: none;
+  }
 }

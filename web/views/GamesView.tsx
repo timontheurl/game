@@ -84,7 +84,9 @@ export default function GamesView({ lang }: { lang: Lang }) {
       <section className="section games-grid">
         {games.map((g, i) => (
           <Link key={g.href} href={g.href} className={`games-card ${i === 0 ? "is-featured" : ""}`}>
-            <div className="games-card-art">{g.art}</div>
+            <div className="games-card-art" aria-hidden="true">
+              {g.art}
+            </div>
             <div className="games-card-body">
               <span className="league-kicker">{g.kicker}</span>
               <h2>{g.title}</h2>

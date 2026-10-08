@@ -4,7 +4,7 @@ import GamesView from "@/views/GamesView";
 
 export const metadata: Metadata = {
   title: "Spiele",
-  description: "Spiele rund um den Pre-Assist: Finde den Pre-Assist auf dem Spielfeld, Mehr oder weniger und Wer ist es?",
+  description: "Spiele rund um den Pre-Assist: Finde den Pre-Assist auf dem Spielfeld, „Mehr oder weniger?“ und „Wer ist es?“",
   alternates: alternates("spiele"),
 };
 

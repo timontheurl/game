@@ -2,12 +2,12 @@
   {
     "id": "standards-kurze-ecke",
     "title": {
-      "de": "Die kurze Ecke",
-      "en": "The short corner"
+      "de": "Ecke in der ersten Halbzeit",
+      "en": "First-half corner"
     },
     "setup": {
-      "de": "Ecke für euch. Die 7 kommt kurz, die 5 läuft den ersten Pfosten an, die 4 und die 9 lauern in der Mitte, die 10 wartet am Sechzehner.",
-      "en": "Corner to you. The 7 comes short, the 5 attacks the near post, the 4 and the 9 lurk in the middle and the 10 waits on the edge of the box."
+      "de": "Ecke für euch. Die 7 kommt kurz und steht frei, die 5 läuft den ersten Pfosten an, die 4 und die 9 lauern in der Mitte, die 10 wartet am Sechzehner.",
+      "en": "Corner to you. The 7 comes short and is unmarked, the 5 attacks the near post, the 4 and the 9 lurk in the middle and the 10 waits on the edge of the box."
     },
     "restart": "corner",
     "you": [
@@ -223,7 +223,7 @@
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Der Torwart pariert den Kopfball der 4, die 9 staubt ab. Ein Abpraller unterbricht die Kette – kein Assist, kein Pre-Assist.",
+          "de": "Tor, aber kein Pre-Assist: Der Tormann pariert den Kopfball der 4, die 9 staubt ab. Ein Abpraller unterbricht die Kette – kein Assist, kein Pre-Assist.",
           "en": "Goal, but no pre-assist: the keeper saves the 4's header and the 9 pounces on the rebound. A rebound breaks the chain – no assist, no pre-assist."
         }
       }
@@ -232,12 +232,12 @@
   {
     "id": "standards-erster-pfosten",
     "title": {
-      "de": "Verlängert am ersten Pfosten",
-      "en": "Flick-on at the near post"
+      "de": "Ecke in der Schlussminute",
+      "en": "Last-minute corner"
     },
     "setup": {
-      "de": "Ecke. Die 5 startet zum ersten Pfosten, die 9 lauert am zweiten, die 4 kommt aus dem Rückraum. Die 7 bietet sich kurz an, die 10 und die 8 warten vor dem Strafraum.",
-      "en": "Corner. The 5 attacks the near post, the 9 lurks at the far post, the 4 arrives from deep. The 7 offers a short option, the 10 and the 8 wait outside the box."
+      "de": "Ecke. Die 5 startet zum ersten Pfosten, die 9 lauert am zweiten, die 4 kommt aus dem Rückraum. Die 7 kommt kurz, um abzulegen, die 10 und die 8 warten vor dem Strafraum.",
+      "en": "Corner. The 5 attacks the near post, the 9 lurks at the far post, the 4 arrives from deep. The 7 comes short to lay it off, the 10 and the 8 wait outside the box."
     },
     "restart": "corner",
     "you": [
@@ -350,8 +350,8 @@
       },
       {
         "label": {
-          "de": "Hoch in die Mitte zur 4",
-          "en": "High to the 4 in the middle"
+          "de": "Hoch auf die nachrückende 4",
+          "en": "High for the onrushing 4"
         },
         "expect": "assist",
         "steps": [
@@ -690,8 +690,8 @@
       "en": "Free kick in front of goal"
     },
     "setup": {
-      "de": "Freistoß zentral, gut 25 Meter vor dem Tor. Die Mauer steht, die 10 wartet neben dir, die 6 hinter dir. Die 9 und die 4 stehen auf Höhe der Abwehrkette.",
-      "en": "Central free kick, about 25 metres out. The wall is set, the 10 waits beside you and the 6 behind you. The 9 and the 4 stand level with the back line."
+      "de": "Freistoß zentral, knapp 30 m vor dem Tor. Die Mauer steht, die 10 wartet neben dir, die 6 hinter dir. Die 9 und die 4 stehen auf Höhe der Abwehrkette.",
+      "en": "Central free kick, just under 30 m out. The wall is set, the 10 waits beside you and the 6 behind you. The 9 and the 4 stand level with the back line."
     },
     "restart": "free-kick",
     "you": [
@@ -750,8 +750,8 @@
         51
       ],
       [
-        97,
-        28.5
+        97.6,
+        27.9
       ]
     ],
     "options": [
@@ -800,8 +800,8 @@
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Der Schuss der 6 prallt von der Mauer ab, die 9 staubt ab. Der Abpraller unterbricht die Kette – kein Assist, kein Pre-Assist.",
-          "en": "Goal, but no pre-assist: the 6's shot cannons off the wall and the 9 tucks in the rebound. The deflection breaks the chain – no assist, no pre-assist."
+          "de": "Tor, aber kein Pre-Assist: Der Schuss der 6 wird von der Mauer abgefälscht, die 9 staubt ab. Der abgefälschte Ball unterbricht die Kette – kein Assist, kein Pre-Assist.",
+          "en": "Goal, but no pre-assist: the 6's shot takes a deflection off the wall and the 9 tucks it in. The deflection breaks the chain – no assist, no pre-assist."
         }
       },
       {
@@ -890,8 +890,8 @@
             "to": "o7",
             "aim": "7",
             "at": [
-              97,
-              28.6
+              97.5,
+              28
             ]
           }
         ],
