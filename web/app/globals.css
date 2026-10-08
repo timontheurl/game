@@ -3919,3 +3919,284 @@ td.name a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Vereine: Globus und Ligen ---------- */
+
+.clubs-explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.clubs-map {
+  position: sticky;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.globe-wrap {
+  position: relative;
+}
+
+.globe {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.globe:active {
+  cursor: grabbing;
+}
+
+.globe-sphere {
+  stroke: rgba(255, 122, 26, 0.35);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 28px rgba(255, 122, 26, 0.12));
+}
+
+.globe-graticule {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 0.6;
+}
+
+.globe-country {
+  fill: #2b3038;
+  stroke: #151719;
+  stroke-width: 0.5;
+  transition: fill 0.2s ease;
+}
+
+.globe-country.is-planned {
+  fill: rgba(255, 122, 26, 0.28);
+  cursor: pointer;
+}
+
+.globe-country.is-live {
+  fill: rgba(255, 122, 26, 0.7);
+  cursor: pointer;
+}
+
+.globe-country.is-live:hover,
+.globe-country.is-planned:hover {
+  fill: #ffb066;
+}
+
+.globe-country.is-selected {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.globe-label {
+  pointer-events: none;
+}
+
+.globe-label circle {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.globe-label text {
+  fill: var(--text);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(11, 12, 14, 0.85);
+  stroke-width: 3px;
+}
+
+.globe-label.is-selected text {
+  fill: var(--accent);
+  font-size: 15px;
+}
+
+.globe-loading {
+  fill: var(--muted);
+  font-size: 14px;
+}
+
+.globe-tip {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  translate: -50% 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(20, 21, 25, 0.95);
+  border: 1px solid var(--line);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.globe-tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.globe-tools .btn {
+  min-width: 34px;
+  justify-content: center;
+}
+
+.globe {
+  border-radius: 50%;
+}
+
+.country-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.country-chips .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.country-chips .pill.is-planned {
+  opacity: 0.6;
+}
+
+.country-chips .flag {
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.clubs-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.clubs-list .section-title .flag {
+  width: 28px;
+  height: 21px;
+  border-radius: 3px;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+
+.clubs-list .section-title:first-child {
+  margin-top: 0;
+}
+
+.clubs-national {
+  margin-top: 32px;
+}
+
+.league-acc {
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(20, 21, 25, 0.88);
+  overflow: hidden;
+}
+
+.league-acc[open] {
+  border-color: rgba(255, 122, 26, 0.45);
+}
+
+.league-acc summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.league-acc summary::-webkit-details-marker {
+  display: none;
+}
+
+.league-acc summary:hover {
+  background: var(--surface);
+}
+
+.league-acc summary .flag {
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.acc-name {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.acc-meta {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.acc-chevron {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  transition: transform 0.2s ease;
+}
+
+.league-acc[open] .acc-chevron {
+  transform: rotate(180deg);
+}
+
+.acc-body {
+  padding: 4px 16px 16px;
+}
+
+.acc-season + .acc-season {
+  margin-top: 14px;
+}
+
+.acc-body .club-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+@media (max-width: 900px) {
+  .clubs-explorer {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .clubs-map {
+    position: static;
+  }
+
+  .globe {
+    max-width: 340px;
+  }
+
+  .clubs-list {
+    scroll-margin-top: 76px;
+  }
+
+  .acc-meta {
+    display: none;
+  }
+}
