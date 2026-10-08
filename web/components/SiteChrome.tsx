@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { langFromPath, t, url } from "@/lib/i18n";
+import LogoMark from "./LogoMark";
 
 // Kopf- und Fußzeile in der Sprache der aktuellen Seite.
 
 export function Brand() {
-  const lang = langFromPath(usePathname());
+  const path = usePathname();
+  const lang = langFromPath(path);
+  // Bei jedem Seitenwechsel baut sich das Logo neu als Passkette auf
   return (
     <Link href={url(lang, "home")} className="brand" aria-label={t(lang, "nav.home")}>
-      <span className="brand-mark">PA</span>
+      <LogoMark key={path} play className="brand-mark" />
     </Link>
   );
 }

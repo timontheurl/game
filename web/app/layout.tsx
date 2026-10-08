@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import IntroSplash, { INTRO_SCRIPT } from "@/components/IntroSplash";
 import Motion from "@/components/Motion";
 import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
@@ -52,8 +53,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     .filter((s) => s.seasons.length > 0)
     .map((s) => s.league.key);
   return (
-    <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
+    <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Intro nur beim ersten Besuch pro Sitzung; muss vor dem ersten Zeichnen laufen */}
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
       <body>
+        <IntroSplash />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         <SkipLink />
         <PitchBackdrop />

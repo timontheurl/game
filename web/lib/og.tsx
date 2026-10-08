@@ -69,22 +69,16 @@ function Frame({ children }: { children: React.ReactNode }) {
         }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <div
-          style={{
-            width: 54,
-            height: 54,
-            borderRadius: 10,
-            background: ORANGE,
-            color: "#1f0c00",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "Display",
-            fontSize: 30,
-          }}
-        >
-          PA
-        </div>
+        <svg width="58" height="58" viewBox="0 0 256 256">
+          <g fill="none" stroke={ORANGE} strokeWidth="14" strokeLinecap="round">
+            <path d="M45 205 L200 48" />
+            <path d="M97 64 L200 202" />
+            <path d="M200 48 L200 202" />
+          </g>
+          <circle cx="45" cy="205" r="15" fill={ORANGE} />
+          <circle cx="200" cy="202" r="15" fill={ORANGE} />
+          <circle cx="200" cy="48" r="15" fill={ORANGE} />
+        </svg>
         <div style={{ display: "flex", fontFamily: "Display", fontSize: 40, textTransform: "uppercase" }}>
           Pre<span style={{ color: ORANGE }}>Assists</span>
         </div>
