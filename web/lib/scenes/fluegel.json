@@ -1,0 +1,1142 @@
+[
+  {
+    "id": "fluegel-hinterlaufen",
+    "title": {
+      "de": "Der Außenverteidiger stellt dich",
+      "en": "The full-back steps out"
+    },
+    "setup": {
+      "de": "Du hast den Ball an der Linie, der Außenverteidiger stellt dich. Die 2 hinterläuft, die 9 wartet im Strafraum, die 10 steht frei vor dem Sechzehner.",
+      "en": "You have the ball on the touchline and the full-back is closing you down. The 2 is overlapping, the 9 waits in the box, the 10 is free at the edge of the area."
+    },
+    "you": [
+      90,
+      10
+    ],
+    "mates": {
+      "2": [
+        86,
+        3
+      ],
+      "8": [
+        79,
+        24
+      ],
+      "9": [
+        108,
+        40
+      ],
+      "10": [
+        96,
+        30
+      ],
+      "11": [
+        101,
+        62
+      ]
+    },
+    "opps": [
+      [
+        117,
+        37
+      ],
+      [
+        97,
+        13
+      ],
+      [
+        110,
+        31
+      ],
+      [
+        112,
+        47
+      ],
+      [
+        105,
+        58
+      ],
+      [
+        91,
+        34
+      ],
+      [
+        90,
+        48
+      ],
+      [
+        85,
+        16
+      ]
+    ],
+    "options": [
+      {
+        "label": {
+          "de": "Früh auf die 9 flanken",
+          "en": "Early cross to the 9"
+        },
+        "expect": "nogoal",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "9",
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              118.4,
+              38.4
+            ],
+            "result": "saved",
+            "by": 0,
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Kein Tor: Die 9 kommt zum Kopfball, aber der Tormann hält. Ohne Tor gibt es weder Assist noch Pre-Assist – und deine Flanke wäre ohnehin schon der Assist gewesen.",
+          "en": "No goal: the 9 wins the header, but the keeper saves. No goal means no assist and no pre-assist – and your cross could only ever have been the assist."
+        }
+      },
+      {
+        "label": {
+          "de": "Die Linie entlang zur 2",
+          "en": "Down the line to the 2"
+        },
+        "expect": "pre",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "2",
+            "at": [
+              100,
+              5
+            ]
+          },
+          {
+            "k": "carry",
+            "who": "2",
+            "to": [
+              114,
+              11
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "2",
+            "to": "9",
+            "at": [
+              104,
+              33
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              43.3
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Pre-Assist! Die 2 geht bis zur Grundlinie und legt zurück, die 9 trifft. Der Rückpass der 2 ist der Assist, dein Pass in ihren Lauf der Pre-Assist.",
+          "en": "Pre-assist! The 2 carries it to the byline and cuts it back for the 9 to finish. The cut-back is the assist, your pass into the overlap the pre-assist."
+        }
+      },
+      {
+        "label": {
+          "de": "In den Halbraum zur 10",
+          "en": "Inside to the 10"
+        },
+        "expect": "assist",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "10",
+            "at": [
+              97,
+              29
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "10",
+            "to": [
+              120,
+              43.3
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor – aber das war schon der Assist. Die 10 zieht sofort ab, also ist dein Pass die Vorlage. Für einen Pre-Assist braucht es noch einen Pass dazwischen.",
+          "en": "Goal – but that was already the assist. The 10 shoots first time, so your pass is the final ball. A pre-assist needs one more pass in between."
+        }
+      },
+      {
+        "label": {
+          "de": "Zurück zur 8",
+          "en": "Back to the 8"
+        },
+        "expect": "lost",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "o7",
+            "at": [
+              85.2,
+              16.1
+            ],
+            "aim": "8"
+          }
+        ],
+        "explain": {
+          "de": "Fehlpass: Der zurückeilende Flügelspieler steht genau in der Passbahn zur 8 und fängt ab. Kein Tor, kein Pre-Assist.",
+          "en": "Misplaced pass: the winger tracking back is standing in the passing lane to the 8 and cuts it out. No goal, no pre-assist."
+        }
+      }
+    ]
+  },
+  {
+    "id": "fluegel-grundlinie",
+    "title": {
+      "de": "Durch bis zur Grundlinie",
+      "en": "Down to the byline"
+    },
+    "setup": {
+      "de": "Du bist an der Grundlinie durch. Die 9 geht an den kurzen Pfosten, die 8 kommt in den Rückraum, die 10 steht am Sechzehner, die 2 rückt nach, die 7 lauert am langen Pfosten.",
+      "en": "You've reached the byline. The 9 attacks the near post, the 8 arrives in the box, the 10 is at the edge of the area, the 2 is following up, the 7 lurks at the far post."
+    },
+    "you": [
+      116,
+      13
+    ],
+    "mates": {
+      "2": [
+        100,
+        6
+      ],
+      "7": [
+        106,
+        57
+      ],
+      "8": [
+        102,
+        40
+      ],
+      "9": [
+        113,
+        29
+      ],
+      "10": [
+        98,
+        24
+      ]
+    },
+    "opps": [
+      [
+        117,
+        36
+      ],
+      [
+        107,
+        14
+      ],
+      [
+        108,
+        35
+      ],
+      [
+        111,
+        45
+      ],
+      [
+        102,
+        60
+      ],
+      [
+        104,
+        28
+      ],
+      [
+        96,
+        37
+      ],
+      [
+        93,
+        14
+      ]
+    ],
+    "options": [
+      {
+        "label": {
+          "de": "Zurück zur 2",
+          "en": "Back to the 2"
+        },
+        "expect": "pre",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "2",
+            "at": [
+              101,
+              7
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "2",
+            "to": "7",
+            "at": [
+              110,
+              51
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "7",
+            "to": [
+              120,
+              42.4
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Pre-Assist! Die 2 flankt an den langen Pfosten, die 7 köpft ein. Die Flanke ist der Assist, dein Rückpass davor der Pre-Assist – auch ein Pass nach hinten zählt.",
+          "en": "Pre-assist! The 2 crosses to the far post and the 7 heads it in. The cross is the assist, your pass back before it the pre-assist – backward passes count too."
+        }
+      },
+      {
+        "label": {
+          "de": "In den Rückraum zur 8",
+          "en": "Cut-back to the 8"
+        },
+        "expect": "assist",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "8"
+          },
+          {
+            "k": "shot",
+            "who": "8",
+            "to": [
+              120,
+              43
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor – aber das war schon der Assist. Die 8 schiebt deinen Rückpass direkt ein, also ist dein Pass die Vorlage.",
+          "en": "Goal – but that was already the assist. The 8 sweeps your cut-back straight in, so your pass is the final ball."
+        }
+      },
+      {
+        "label": {
+          "de": "Zur 9 an den kurzen Pfosten",
+          "en": "To the 9 at the near post"
+        },
+        "expect": "nocount",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "9",
+            "at": [
+              113,
+              30
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              117.6,
+              36.6
+            ],
+            "result": "saved",
+            "by": 0
+          },
+          {
+            "k": "loose",
+            "to": "8",
+            "at": [
+              107,
+              40
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "8",
+            "to": [
+              120,
+              41
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor, aber kein Pre-Assist: Der Tormann pariert gegen die 9, die 8 staubt ab. Ein Abpraller nach einer Parade ist kein Pass – das Tor hat weder Assist noch Pre-Assist.",
+          "en": "Goal, but no pre-assist: the keeper saves from the 9 and the 8 pounces on the rebound. A rebound off a save isn't a pass – the goal has no assist and no pre-assist."
+        }
+      },
+      {
+        "label": {
+          "de": "Quer zur 10",
+          "en": "Square to the 10"
+        },
+        "expect": "nogoal",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "10"
+          },
+          {
+            "k": "shot",
+            "who": "10",
+            "to": [
+              103.2,
+              27.6
+            ],
+            "result": "blocked",
+            "by": 5
+          }
+        ],
+        "explain": {
+          "de": "Kein Tor: Die 10 zieht ab, aber der Sechser wirft sich in den Schuss. Ohne Tor gibt es keinen Assist und keinen Pre-Assist.",
+          "en": "No goal: the 10 lets fly, but the holding midfielder throws himself in front of it. No goal – no assist, no pre-assist."
+        }
+      }
+    ]
+  },
+  {
+    "id": "fluegel-seitenwechsel",
+    "title": {
+      "de": "Alles auf einer Seite",
+      "en": "Everyone on one side"
+    },
+    "setup": {
+      "de": "Der Gegner verschiebt komplett auf deine Seite, die 11 an der Linie wird gedoppelt. Auf der ballfernen Seite wartet die 7, die 9 steht im Zentrum.",
+      "en": "The opposition have shifted across to your side and the 11 on the touchline has two men on him. The 7 waits on the far side, the 9 is in the middle."
+    },
+    "you": [
+      70,
+      60
+    ],
+    "mates": {
+      "7": [
+        88,
+        8
+      ],
+      "8": [
+        74,
+        44
+      ],
+      "9": [
+        105,
+        40
+      ],
+      "10": [
+        95,
+        51
+      ],
+      "11": [
+        86,
+        71
+      ]
+    },
+    "opps": [
+      [
+        116,
+        41
+      ],
+      [
+        92,
+        70
+      ],
+      [
+        100,
+        43
+      ],
+      [
+        106,
+        31
+      ],
+      [
+        100,
+        23
+      ],
+      [
+        88,
+        54
+      ],
+      [
+        85,
+        42
+      ],
+      [
+        89,
+        63
+      ],
+      [
+        77,
+        56
+      ]
+    ],
+    "options": [
+      {
+        "label": {
+          "de": "Diagonal auf die 7",
+          "en": "Diagonal to the 7"
+        },
+        "expect": "pre",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "7",
+            "at": [
+              96,
+              12
+            ],
+            "air": true
+          },
+          {
+            "k": "carry",
+            "who": "7",
+            "to": [
+              105,
+              14
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "7",
+            "to": "9",
+            "at": [
+              110,
+              38
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              36.8
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Pre-Assist! Die 7 nimmt den Seitenwechsel mit, zieht Richtung Strafraum und flankt, die 9 köpft ein. Die Flanke ist der Assist, dein Diagonalball der Pre-Assist.",
+          "en": "Pre-assist! The 7 brings your switch down, drives at the box and crosses for the 9 to head in. The cross is the assist, your diagonal the pre-assist."
+        }
+      },
+      {
+        "label": {
+          "de": "Kurz zur 11",
+          "en": "Short to the 11"
+        },
+        "expect": "nogoal",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "11"
+          },
+          {
+            "k": "carry",
+            "who": "11",
+            "to": [
+              89.5,
+              70
+            ]
+          },
+          {
+            "k": "loose",
+            "to": "o1",
+            "at": [
+              91,
+              68.6
+            ]
+          }
+        ],
+        "explain": {
+          "de": "Kein Tor: Die 11 bleibt zwischen zwei Gegenspielern hängen und verliert den Ball. Ohne Tor gibt es keinen Assist und keinen Pre-Assist.",
+          "en": "No goal: the 11 gets squeezed between two defenders and loses the ball. No goal, so no assist and no pre-assist."
+        }
+      },
+      {
+        "label": {
+          "de": "Quer zur 8",
+          "en": "Square to the 8"
+        },
+        "expect": "early",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "8"
+          },
+          {
+            "k": "pass",
+            "from": "8",
+            "to": "7",
+            "at": [
+              95,
+              11
+            ],
+            "air": true
+          },
+          {
+            "k": "carry",
+            "who": "7",
+            "to": [
+              104,
+              13
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "7",
+            "to": "9",
+            "at": [
+              110,
+              38
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              36.8
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Zu früh: Tor, aber erst die 8 spielt den Seitenwechsel (Pre-Assist), die Flanke der 7 ist der Assist. Dein Pass zur 8 war der Pass davor.",
+          "en": "Too early: goal, but it's the 8 who plays the switch (pre-assist) and the 7's cross is the assist. Your pass to the 8 was the one before."
+        }
+      },
+      {
+        "label": {
+          "de": "Lang auf die 9",
+          "en": "Long ball to the 9"
+        },
+        "expect": "lost",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "o2",
+            "at": [
+              99.9,
+              42.9
+            ],
+            "aim": "9",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Fehlpass: Der Innenverteidiger steht vor der 9 und köpft deinen langen Ball weg. Kein Tor, kein Pre-Assist.",
+          "en": "Misplaced pass: the centre-back is in front of the 9 and heads your long ball clear. No goal, no pre-assist."
+        }
+      }
+    ]
+  },
+  {
+    "id": "fluegel-eins-gegen-eins",
+    "title": {
+      "de": "Eins gegen eins am Flügel",
+      "en": "One-on-one on the wing"
+    },
+    "setup": {
+      "de": "Die 11 hat an der Linie nur noch den Außenverteidiger vor sich. Die 8 steht im Halbraum, die 10 zwischen den Linien, die 9 wartet im Strafraum.",
+      "en": "The 11 has only the full-back to beat on the touchline. The 8 is in the half-space, the 10 between the lines, the 9 waiting in the box."
+    },
+    "you": [
+      74,
+      62
+    ],
+    "mates": {
+      "4": [
+        66,
+        50
+      ],
+      "7": [
+        102,
+        24
+      ],
+      "8": [
+        92,
+        54
+      ],
+      "9": [
+        105,
+        41
+      ],
+      "10": [
+        94,
+        40
+      ],
+      "11": [
+        90,
+        72
+      ]
+    },
+    "opps": [
+      [
+        116,
+        42
+      ],
+      [
+        95,
+        69
+      ],
+      [
+        107,
+        46
+      ],
+      [
+        108,
+        34
+      ],
+      [
+        104,
+        19
+      ],
+      [
+        99,
+        49
+      ],
+      [
+        91,
+        35
+      ],
+      [
+        76,
+        54
+      ]
+    ],
+    "options": [
+      {
+        "label": {
+          "de": "In den Halbraum zur 8",
+          "en": "Into the half-space to the 8"
+        },
+        "expect": "nocount",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "8",
+            "at": [
+              93,
+              53
+            ]
+          },
+          {
+            "k": "loose",
+            "to": "9",
+            "at": [
+              104,
+              38
+            ],
+            "off": 5
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              36.6
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor, aber kein Pre-Assist: Die Halbfeldflanke der 8 wird vom Sechser abgefälscht und fällt der 9 vor die Füße. Ein abgefälschter Ball ist kein Pass – das Tor hat keinen Assist und damit keinen Pre-Assist.",
+          "en": "Goal, but no pre-assist: the 8's cross takes a deflection off the holding midfielder and drops to the 9. A deflection isn't a pass – no assist, so no pre-assist either."
+        }
+      },
+      {
+        "label": {
+          "de": "Steil auf die 10",
+          "en": "Forward to the 10"
+        },
+        "expect": "assist",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "10",
+            "at": [
+              98,
+              40
+            ]
+          },
+          {
+            "k": "carry",
+            "who": "10",
+            "to": [
+              104,
+              37
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "10",
+            "to": [
+              120,
+              37.4
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor – aber das war schon der Assist. Die 10 dribbelt noch in den Strafraum und trifft. Auch wenn der Schütze vorher dribbelt, bleibt dein Pass die Vorlage.",
+          "en": "Goal – but that was already the assist. The 10 carries it into the box and scores. Even if the scorer dribbles first, your pass is still the final ball."
+        }
+      },
+      {
+        "label": {
+          "de": "In den Fuß der 11",
+          "en": "Into the 11's feet"
+        },
+        "expect": "pre",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "11"
+          },
+          {
+            "k": "carry",
+            "who": "11",
+            "to": [
+              108,
+              65
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "11",
+            "to": "9",
+            "at": [
+              110,
+              39
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              37.5
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Pre-Assist! Die 11 lässt den Außenverteidiger stehen und flankt, die 9 köpft ein. Das Dribbling davor ändert nichts: Flanke = Assist, dein Pass = Pre-Assist.",
+          "en": "Pre-assist! The 11 skins the full-back and crosses, the 9 heads home. The dribble doesn't change a thing: the cross is the assist, your pass the pre-assist."
+        }
+      },
+      {
+        "label": {
+          "de": "Zurück zur 4",
+          "en": "Back to the 4"
+        },
+        "expect": "early",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "4"
+          },
+          {
+            "k": "pass",
+            "from": "4",
+            "to": "11"
+          },
+          {
+            "k": "carry",
+            "who": "11",
+            "to": [
+              108,
+              65
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "11",
+            "to": "9",
+            "at": [
+              110,
+              39
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              37.5
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Zu früh: Die 4 spielt die 11 an (Pre-Assist), die 11 dribbelt und flankt zur 9 (Assist). Dein Pass zur 4 war der Pass davor.",
+          "en": "Too early: the 4 finds the 11 (pre-assist), who beats his man and crosses for the 9 (assist). Your pass to the 4 came before that."
+        }
+      }
+    ]
+  },
+  {
+    "id": "fluegel-einwurf",
+    "title": {
+      "de": "Einwurf am Strafraum",
+      "en": "Throw-in by the box"
+    },
+    "setup": {
+      "de": "Einwurf für euch auf Höhe des Strafraums. Die 7 kommt kurz, die 10 startet an der Linie, die 9 steht im Strafraum, die 8 wartet am Sechzehner, die 2 sichert ab.",
+      "en": "Your throw-in, level with the box. The 7 comes short, the 10 sprints down the line, the 9 is in the box, the 8 waits at the edge of the area, the 2 hangs back."
+    },
+    "restart": "throw-in",
+    "you": [
+      100,
+      1
+    ],
+    "mates": {
+      "2": [
+        88,
+        5
+      ],
+      "7": [
+        97,
+        11
+      ],
+      "8": [
+        99,
+        28
+      ],
+      "9": [
+        110,
+        28
+      ],
+      "10": [
+        106,
+        9
+      ]
+    },
+    "opps": [
+      [
+        117,
+        37
+      ],
+      [
+        108,
+        16
+      ],
+      [
+        114,
+        30
+      ],
+      [
+        111,
+        44
+      ],
+      [
+        106,
+        53
+      ],
+      [
+        97,
+        21
+      ],
+      [
+        95,
+        36
+      ],
+      [
+        94,
+        3
+      ]
+    ],
+    "options": [
+      {
+        "label": {
+          "de": "Kurz zur 7",
+          "en": "Short to the 7"
+        },
+        "expect": "early",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "7"
+          },
+          {
+            "k": "pass",
+            "from": "7",
+            "to": "you",
+            "at": [
+              106,
+              4
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "9",
+            "at": [
+              109,
+              38
+            ],
+            "air": true
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              43.3
+            ],
+            "result": "goal",
+            "air": true
+          }
+        ],
+        "explain": {
+          "de": "Zu früh: Die 7 spielt dir den Ball direkt zurück (Pre-Assist), die 9 köpft deine Flanke ein (Assist). Dein Einwurf war der Pass davor – die Doppelpass-Falle!",
+          "en": "Too early: the 7 plays it straight back to you (pre-assist) and the 9 heads home your cross (assist). Your throw was the pass before – the one-two trap!"
+        }
+      },
+      {
+        "label": {
+          "de": "Steil zur 10",
+          "en": "Forward to the 10"
+        },
+        "expect": "pre",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "10",
+            "at": [
+              114,
+              7
+            ]
+          },
+          {
+            "k": "carry",
+            "who": "10",
+            "to": [
+              117,
+              11
+            ]
+          },
+          {
+            "k": "pass",
+            "from": "10",
+            "to": "8",
+            "at": [
+              104,
+              31
+            ]
+          },
+          {
+            "k": "shot",
+            "who": "8",
+            "to": [
+              120,
+              43.4
+            ],
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Pre-Assist! Die 10 läuft bis zur Grundlinie und legt in den Rückraum, die 8 trifft. Der Rückpass ist der Assist, dein Einwurf der Pre-Assist – auch Einwürfe zählen.",
+          "en": "Pre-assist! The 10 races to the byline and cuts it back for the 8 to score. The cut-back is the assist, your throw the pre-assist – throw-ins count too."
+        }
+      },
+      {
+        "label": {
+          "de": "Weit auf die 9",
+          "en": "Long throw to the 9"
+        },
+        "expect": "nocount",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "9",
+            "at": [
+              109,
+              27
+            ],
+            "air": true
+          },
+          {
+            "k": "foul",
+            "on": "9",
+            "by": 2,
+            "result": "goal"
+          }
+        ],
+        "explain": {
+          "de": "Tor, aber kein Pre-Assist: Die 9 wird im Strafraum gefoult und verwandelt den Elfmeter selbst. Ein Elfmeter hat keinen Assist – und damit auch keinen Pre-Assist.",
+          "en": "Goal, but no pre-assist: the 9 is brought down in the box and converts the penalty. A penalty has no assist – so there's no pre-assist either."
+        }
+      },
+      {
+        "label": {
+          "de": "Zurück zur 2",
+          "en": "Back to the 2"
+        },
+        "expect": "lost",
+        "steps": [
+          {
+            "k": "pass",
+            "from": "you",
+            "to": "o7",
+            "at": [
+              93.9,
+              3
+            ],
+            "aim": "2"
+          }
+        ],
+        "explain": {
+          "de": "Fehlpass: Der gegnerische Flügelspieler ahnt den Einwurf zur 2 und geht dazwischen. Kein Tor, kein Pre-Assist.",
+          "en": "Misplaced pass: the opposing winger reads the ball back to the 2 and nips in. No goal, no pre-assist."
+        }
+      }
+    ]
+  }
+]

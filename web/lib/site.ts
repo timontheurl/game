@@ -10,6 +10,8 @@ export const SITE = {
     country: "Österreich",
     email: "timontheurl@gmail.com",
   },
+  // Wer hinter der Seite steht (im Impressum unter „Team“)
+  team: ["Timon Theurl", "Michael Zakary", "Benjamin Zakary", "Toni Luster"],
   // Newsletter: Formular-Adresse des Anbieters eintragen (z. B. Brevo oder Buttondown).
   // Solange sie leer ist, wird kein Anmeldeformular angezeigt.
   newsletter: {

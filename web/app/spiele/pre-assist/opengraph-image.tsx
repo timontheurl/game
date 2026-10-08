@@ -3,8 +3,8 @@ import { OG_SIZE, ogText } from "@/lib/og";
 export const dynamic = "force-static";
 export const size = OG_SIZE;
 export const contentType = "image/png";
-export const alt = "Mehr oder weniger? – das Pre-Assist-Quiz";
+export const alt = "Finde den Pre-Assist";
 
 export default function Image() {
-  return ogText("Mehr oder weniger?", "Wer hatte mehr Pre-Assists? Schätze, triff und bau deine Serie aus.", "Spiel");
+  return ogText("Finde den Pre-Assist", "Du hast den Ball: Welcher Pass wird zum Pre-Assist? Entscheide auf dem Spielfeld.", "Spiel");
 }

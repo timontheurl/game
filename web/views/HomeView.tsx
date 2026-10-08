@@ -167,21 +167,21 @@ export default function HomeView({ lang }: { lang: Lang }) {
       <section className="section game-teaser">
         <div>
           <span className="league-kicker">{t(lang, "nav.game")}</span>
-          <h2>{pick(lang, "Mehr oder weniger?", "Higher or lower?")}</h2>
+          <h2>{pick(lang, "Finde den Pre-Assist", "Find the pre-assist")}</h2>
           <p className="muted">
             {pick(
               lang,
-              "Zwei Spieler, eine Frage: Wer hatte mehr Pre-Assists? Liegst du richtig, kommt der nächste – wie lang wird deine Serie?",
-              "Two players, one question: who had more pre-assists? Get it right and the next one comes in – how long can your streak get?",
+              "Du hast den Ball – welcher Pass wird zum Pre-Assist? Entscheide auf dem Spielfeld. Dazu: „Mehr oder weniger?“ und „Wer ist es?“",
+              "You have the ball – which pass becomes the pre-assist? Decide on the pitch. Plus: “Higher or lower?” and “Who is it?”",
             )}
           </p>
         </div>
         <div className="player-actions">
-          <Link href={url(lang, "spiel")} className="btn">
+          <Link href={url(lang, "passspiel")} className="btn">
             {pick(lang, "Jetzt spielen", "Play now")}
           </Link>
-          <Link href={`${url(lang, "spiel")}?modus=raten`} className="btn btn-ghost">
-            {pick(lang, "Spieler erraten", "Guess the player")}
+          <Link href={url(lang, "spiele")} className="btn btn-ghost">
+            {pick(lang, "Alle Spiele", "All games")}
           </Link>
         </div>
       </section>

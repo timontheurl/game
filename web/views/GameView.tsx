@@ -1,11 +1,15 @@
+import Link from "next/link";
 import PlayerGame from "@/components/PlayerGame";
-import { pick, type Lang } from "@/lib/i18n";
+import { pick, url, type Lang } from "@/lib/i18n";
 
 export default function GameView({ lang }: { lang: Lang }) {
   return (
     <>
       <section className="page-intro">
-        <h1>{pick(lang, "Das Pre-Assist-Spiel", "The pre-assist game")}</h1>
+        <Link href={url(lang, "spiele")} className="pg-back">
+          ‹ {pick(lang, "Alle Spiele", "All games")}
+        </Link>
+        <h1>{pick(lang, "Das Zahlen-Quiz", "The numbers quiz")}</h1>
         <p>
           {pick(
             lang,
