@@ -8,7 +8,7 @@ export function Flag({ code, title }: { code: string | null; title?: string | nu
 }
 
 /**
- * Vorderseite der Spielerkarte: Grafik als Hintergrund (public/cards/karte.svg),
+ * Vorderseite der Spielerkarte: Grafik als Hintergrund (public/cards/karte.webp),
  * links Wert, Position, Flagge und Verein, unten Name und zwei Spalten Werte.
  */
 export function CardFace({

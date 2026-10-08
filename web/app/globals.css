@@ -1929,7 +1929,7 @@ h3 {
 }
 
 /* ---------- Spielerkarte ----------
-   Hintergrund ist die Kartengrafik (public/cards/karte.svg, 692 × 1024).
+   Hintergrund ist die Kartengrafik (public/cards/karte.webp, 600 × 932, Rand durchsichtig).
    Alle Maße in Prozent bzw. cqw (1 % der Kartenbreite), damit die Karte in jeder Größe gleich aussieht. */
 .pcard {
   position: relative;
@@ -1937,10 +1937,10 @@ h3 {
   width: 100%;
   max-width: 180px;
   margin: 0 auto;
-  aspect-ratio: 692 / 1024;
+  aspect-ratio: 600 / 932;
   container-type: inline-size;
   color: #fff6ea;
-  background: url("/cards/karte.svg") center / 100% 100% no-repeat;
+  background: url("/cards/karte.webp") center / 100% 100% no-repeat;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
   transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
   transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.2s ease;
@@ -1959,9 +1959,9 @@ h3 {
 
 .pc-left {
   position: absolute;
-  left: 7%;
-  top: 16%;
-  width: 22%;
+  left: 5%;
+  top: 14.5%;
+  width: 18%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2016,10 +2016,10 @@ h3 {
 
 .pc-name {
   position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 54.5%;
-  height: 7.6%;
+  left: 9%;
+  right: 9%;
+  top: 59%;
+  height: 7%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -2036,18 +2036,40 @@ h3 {
   white-space: nowrap;
 }
 
+/* goldene Linie unter dem Namen */
+.pc-name::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -2.2cqw;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ffc46b 15%, #ffc46b 85%, transparent);
+}
+
 .pc-name.is-long {
   font-size: 6.6cqw;
 }
 
 .pc-stats {
   position: absolute;
-  left: 18.8%;
-  right: 18.8%;
-  top: 66.5%;
-  height: 15.5%;
+  left: 15%;
+  right: 15%;
+  top: 70%;
+  height: 15%;
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+/* senkrechte Trennlinie zwischen den Spalten */
+.pc-stats::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  bottom: 4%;
+  width: 1px;
+  background: rgba(255, 196, 107, 0.75);
 }
 
 .pc-col {
@@ -2082,9 +2104,9 @@ h3 {
 
 .pc-bottom {
   position: absolute;
-  left: 14%;
-  right: 14%;
-  top: 67%;
+  left: 12%;
+  right: 12%;
+  top: 71%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3149,8 +3171,6 @@ td.name a {
 
 .game-card {
   cursor: default;
-  /* Im Spiel stehen Team und Saison statt Werten – Grafik ohne Trennlinien */
-  background-image: url("/cards/karte-ohne-linien.svg");
 }
 
 .game-card.pcard-lg {
