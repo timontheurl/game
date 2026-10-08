@@ -31,4 +31,6 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
+      - name: Szenen für „Finde den Pre-Assist“ prüfen
+        run: node --experimental-strip-types --no-warnings scripts/check-scenes.mts
       - run: npm run build

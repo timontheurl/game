@@ -12,7 +12,7 @@ const NAV: { key: RouteKey; label: TKey }[] = [
   { key: "torketten", label: "nav.chains" },
   { key: "vergleich", label: "nav.compare" },
   { key: "rekorde", label: "nav.records" },
-  { key: "spiel", label: "nav.game" },
+  { key: "spiele", label: "nav.game" },
   { key: "methodik", label: "nav.method" },
 ];
 
@@ -101,7 +101,8 @@ export default function SiteNav({ live = [] }: { live?: string[] }) {
   const section = (key: RouteKey) =>
     isActive(url(lang, key)) ||
     (key === "ligen" && (isActive(url(lang, "liga")) || isActive(url(lang, "wettbewerb")))) ||
-    (key === "vereine" && isActive(url(lang, "verein")));
+    (key === "vereine" && isActive(url(lang, "verein"))) ||
+    (key === "spiele" && isActive(url(lang, "spiel")));
 
   return (
     <>
