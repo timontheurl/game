@@ -1844,6 +1844,32 @@ h3 {
   border: 1px solid var(--line);
 }
 
+.daily-section .daily {
+  margin-top: 0;
+  border-color: rgba(255, 122, 26, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 122, 26, 0.15), 0 20px 50px rgba(255, 122, 26, 0.08);
+}
+
+.daily-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.daily-badge span {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .daily-info h2 {
   font-size: clamp(1.6rem, 3vw, 2.3rem);
   font-style: italic;
@@ -2758,6 +2784,7 @@ td.name a {
     opacity: 0;
     transform: translateY(-8px);
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
+    overflow-y: auto;
   }
 
   .mainnav.is-open {
@@ -2767,7 +2794,8 @@ td.name a {
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
 
-  .mainnav a {
+  .mainnav > a,
+  .navdrop-toggle {
     font-size: 1.8rem;
     padding: 12px 4px;
     border-bottom: 1px solid var(--line);
@@ -2777,7 +2805,8 @@ td.name a {
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
 
-  .mainnav.is-open a {
+  .mainnav.is-open > a,
+  .mainnav.is-open .navdrop-toggle {
     opacity: 1;
     transform: none;
     transition-delay: calc(var(--i) * 40ms + 60ms);
@@ -3626,4 +3655,267 @@ td.name a {
   padding: 7px 10px;
   font: inherit;
   font-weight: 600;
+}
+
+/* ---------- Menü „Bewerbe“ ---------- */
+
+.navdrop {
+  position: relative;
+}
+
+.navdrop-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.navdrop-toggle:hover,
+.navdrop.is-open .navdrop-toggle {
+  background: var(--surface-2);
+}
+
+.navdrop-toggle.is-active {
+  color: var(--accent);
+}
+
+.navdrop-toggle svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  transition: transform 0.2s ease;
+}
+
+.navdrop.is-open .navdrop-toggle svg {
+  transform: rotate(180deg);
+}
+
+.navdrop-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 22px;
+  width: 470px;
+  padding: 16px 18px;
+  background: rgba(20, 21, 25, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 -6px;
+  transition: opacity 0.15s ease, translate 0.15s ease, visibility 0s 0.15s;
+}
+
+/* Brücke über die Lücke, damit das Menü beim Hinüberfahren offen bleibt */
+.navdrop-panel::before {
+  content: "";
+  position: absolute;
+  inset: -10px 0 auto;
+  height: 10px;
+}
+
+.navdrop.is-open .navdrop-panel {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 0.15s ease, translate 0.15s ease;
+}
+
+.navdrop-title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.navdrop-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mainnav .navdrop-panel a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.mainnav .navdrop-panel a.is-planned {
+  color: var(--muted);
+}
+
+.navdrop-panel small {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.navdrop-panel .flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+}
+
+.mainnav .navdrop-panel a.navdrop-all {
+  margin-top: 10px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+  .navdrop-toggle {
+    width: 100%;
+    font-size: 1.8rem;
+    justify-content: space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    transform: translateX(-12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .navdrop-toggle:hover,
+  .navdrop.is-open .navdrop-toggle {
+    background: none;
+  }
+
+  .navdrop-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .navdrop-panel {
+    position: static;
+    display: none;
+    width: auto;
+    padding: 10px 0 14px;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: none;
+    visibility: visible;
+    opacity: 1;
+    translate: none;
+  }
+
+  .navdrop.is-open .navdrop-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .mainnav .navdrop-panel a {
+    font-size: 1rem;
+    white-space: normal;
+  }
+}
+
+/* ---------- Startseite: Ligen und Turniere ---------- */
+
+.comp-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.comp-col {
+  padding: 16px 18px;
+  background: rgba(20, 21, 25, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.comp-col .sub-title {
+  margin-top: 0;
+}
+
+.comp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.comp-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.comp-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+}
+
+.comp-list a.is-planned {
+  opacity: 0.55;
+}
+
+.comp-list .flag {
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.comp-name {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.comp-name small {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.comp-leader {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.comp-leader b {
+  margin-left: 6px;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .comp-columns {
+    grid-template-columns: 1fr;
+  }
 }

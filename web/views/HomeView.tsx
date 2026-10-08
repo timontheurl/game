@@ -2,68 +2,68 @@ import Link from "next/link";
 import AssistIllustration from "@/components/AssistIllustration";
 import DailyChain from "@/components/DailyChain";
 import Newsletter from "@/components/Newsletter";
-import PlayerCard from "@/components/PlayerCard";
-import { dailyCandidates, getSeasons, seasonLabel, toCard, type PlayerRow, type Season } from "@/lib/data";
+import PlayerCard, { Flag } from "@/components/PlayerCard";
+import { dailyCandidates, getLeagueStatuses, getSeasons, seasonLabel, toCard, type LeagueStatus } from "@/lib/data";
 import { num, pick, t, url, type Lang } from "@/lib/i18n";
+import { leagueText } from "@/lib/leagues";
 
-function joinNames(names: string[], lang: Lang) {
-  const and = pick(lang, " und ", " and ");
-  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")}${and}${names[names.length - 1]}`;
+/** Die besten Vorbereiter einer Saison über alle Ligen (ohne Turniere). */
+function topOverall(lang: Lang, limit = 3) {
+  return getSeasons(lang)
+    .filter((s) => !s.meta.national)
+    .flatMap((season) => season.players.map((row) => ({ season, row })))
+    .sort(
+      (a, b) =>
+        b.row.preAssists - a.row.preAssists || b.row.xpa - a.row.xpa || b.row.involvements - a.row.involvements,
+    )
+    .slice(0, limit);
 }
 
-/** Kurzer Text zur Spitze der Rangliste, aus den Daten erzeugt. */
-function leagueText(season: Season, top: PlayerRow[], lang: Lang) {
-  const { meta } = season;
-  const team = (p: PlayerRow) => season.teams[String(p.team)];
-  const best = top[0];
-  const leaders = top.filter((p) => p.preAssists === best.preAssists);
-  const share = meta.goals ? Math.round((meta.preAssists / meta.goals) * 100) : 0;
-  const names = (list: string[]) => joinNames(list, lang);
-
-  let lead: string;
-  if (leaders.length > 1) {
-    lead = pick(
-      lang,
-      `${names(leaders.map((p) => p.name))} teilen sich die Spitze mit je ${best.preAssists} Pre-Assists.`,
-      `${names(leaders.map((p) => p.name))} share the lead with ${best.preAssists} pre-assists each.`,
-    );
-  } else {
-    const extra =
-      best.assists === 0
-        ? pick(lang, " – und das ganz ohne eigenen Assist.", " – without a single assist of their own.")
-        : best.assists < best.preAssists
-          ? pick(lang, `, mehr als Assists (${best.assists}).`, `, more than assists (${best.assists}).`)
-          : pick(lang, `, dazu kommen ${best.assists} Assists.`, `, plus ${best.assists} assists.`);
-    lead = pick(
-      lang,
-      `${best.name} (${team(best)}) führt mit ${best.preAssists} Pre-Assists${extra}`,
-      `${best.name} (${team(best)}) leads with ${best.preAssists} pre-assists${extra}`,
-    );
-  }
-
-  const rest = top.filter((p) => !leaders.includes(p));
-  const follow = rest.length
-    ? `${pick(lang, "Dahinter", "Behind")}: ${names(rest.map((p) => `${p.name} (${p.preAssists})`))}.`
-    : "";
-
-  const context =
-    meta.coverage === "team"
-      ? pick(
-          lang,
-          `Ausgewertet sind die ${meta.matches} Spiele von ${meta.coverageTeam}. Bei ${share} % der Tore in diesen Spielen gab es einen Pre-Assist.`,
-          `Covers the ${meta.matches} matches of ${meta.coverageTeam}. ${share}% of the goals in these matches had a pre-assist.`,
-        )
-      : pick(
-          lang,
-          `In ${meta.matches} Spielen fielen ${num(lang, meta.goals)} Tore. Bei ${share} % davon gab es einen Pre-Assist.`,
-          `${num(lang, meta.goals)} goals were scored in ${meta.matches} matches. ${share}% of them had a pre-assist.`,
-        );
-
-  return { lead, follow, context };
+function CompetitionList({ title, statuses, lang }: { title: string; statuses: LeagueStatus[]; lang: Lang }) {
+  return (
+    <div className="comp-col">
+      <h3 className="sub-title">{title}</h3>
+      <ul className="comp-list">
+        {statuses.map(({ league, seasons }) => {
+          const text = leagueText(league, lang);
+          const leader = seasons[0]?.players[0];
+          return (
+            <li key={league.key}>
+              <Link href={url(lang, "liga", league.key)} className={seasons.length ? "" : "is-planned"}>
+                <Flag code={league.flag} title={text.country} />
+                <span className="comp-name">
+                  {text.name}
+                  <small>
+                    {seasons.length
+                      ? seasons.map((s) => s.meta.season).join(", ")
+                      : t(lang, "common.dataSoon")}
+                  </small>
+                </span>
+                {leader && (
+                  <span className="comp-leader">
+                    {leader.name} <b>{leader.preAssists}</b>
+                  </span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 export default function HomeView({ lang }: { lang: Lang }) {
-  const seasons = getSeasons(lang);
+  const top = topOverall(lang);
+  const statuses = getLeagueStatuses(lang);
+  const leagues = statuses.filter((s) => s.league.tier !== "turnier");
+  // Ligen mit Daten zuerst
+  leagues.sort((a, b) => Number(b.seasons.length > 0) - Number(a.seasons.length > 0));
+  const tournaments = statuses.filter((s) => s.league.tier === "turnier" && s.seasons.length > 0);
+  const [first, ...rest] = top;
+  const totalPre = getSeasons(lang)
+    .filter((s) => !s.meta.national)
+    .reduce((n, s) => n + s.meta.preAssists, 0);
 
   return (
     <>
@@ -110,36 +110,57 @@ export default function HomeView({ lang }: { lang: Lang }) {
         </figure>
       </section>
 
-      {seasons
-        .filter((s) => !s.meta.national)
-        .map((season, i) => {
-          const top = season.players.slice(0, 3);
-          if (top.length === 0) return null;
-          const text = leagueText(season, top, lang);
-          return (
-            <section key={season.meta.slug} className={`league-row ${i % 2 ? "is-reversed" : ""}`}>
-              <div className="league-box">
-                {top.map((p) => (
-                  <PlayerCard key={p.id} card={toCard(season, p)} lang={lang} />
-                ))}
-              </div>
-              <div className="league-text">
-                <span className="league-kicker">
-                  {t(lang, "home.top3")} · {season.meta.country}
-                </span>
-                <h2>{seasonLabel(season.meta)}</h2>
-                <p className="league-lead">{text.lead}</p>
-                {text.follow && <p>{text.follow}</p>}
-                <p className="muted">{text.context}</p>
-                <Link href={url(lang, "wettbewerb", season.meta.slug)} className="text-link">
-                  {t(lang, "common.fullRanking")}
-                </Link>
-              </div>
-            </section>
-          );
-        })}
+      {first && (
+        <section className="league-row">
+          <div className="league-box">
+            {top.map(({ season, row }) => (
+              <PlayerCard key={`${season.meta.slug}-${row.id}`} card={toCard(season, row)} lang={lang} />
+            ))}
+          </div>
+          <div className="league-text">
+            <span className="league-kicker">{pick(lang, "Top 3 · alle Ligen", "Top 3 · all leagues")}</span>
+            <h2>{pick(lang, "Die besten Vorbereiter", "The best creators")}</h2>
+            <p className="league-lead">
+              {pick(
+                lang,
+                `${first.row.name} (${first.season.teams[String(first.row.team)]}) hat mit ${first.row.preAssists} Pre-Assists in der ${seasonLabel(first.season.meta)} den Bestwert aller Ligen.`,
+                `${first.row.name} (${first.season.teams[String(first.row.team)]}) holds the best mark across all leagues with ${first.row.preAssists} pre-assists in ${seasonLabel(first.season.meta)}.`,
+              )}
+            </p>
+            {rest.length > 0 && (
+              <p>
+                {pick(lang, "Dahinter", "Behind")}:{" "}
+                {rest
+                  .map(({ season, row }) => `${row.name} (${row.preAssists}, ${seasonLabel(season.meta)})`)
+                  .join(pick(lang, " und ", " and "))}
+                .
+              </p>
+            )}
+            <p className="muted">
+              {pick(
+                lang,
+                `Insgesamt ${num(lang, totalPre)} Pre-Assists in allen ausgewerteten Ligen.`,
+                `${num(lang, totalPre)} pre-assists in all covered leagues.`,
+              )}
+            </p>
+            <Link href={url(lang, "rekorde")} className="text-link">
+              {pick(lang, "Alle Rekorde", "All records")}
+            </Link>
+          </div>
+        </section>
+      )}
 
-      <section className="section">
+      <section className="section daily-section">
+        <div className="section-head">
+          <h2 className="section-title">{t(lang, "home.daily")}</h2>
+          <span className="muted small">
+            {pick(
+              lang,
+              "Jeden Tag ein anderer Angriff – vom Pre-Assist bis zum Tor.",
+              "A different attack every day – from the pre-assist to the goal.",
+            )}
+          </span>
+        </div>
         <DailyChain candidates={dailyCandidates(lang)} lang={lang} />
       </section>
 
@@ -165,25 +186,16 @@ export default function HomeView({ lang }: { lang: Lang }) {
         </div>
       </section>
 
-      <section className="section tournaments">
-        <h2 className="section-title">{t(lang, "home.tournaments")}</h2>
-        <div className="league-grid">
-          {seasons
-            .filter((s) => s.meta.national)
-            .map((s) => {
-              const top = s.players[0];
-              return (
-                <Link key={s.meta.slug} href={url(lang, "wettbewerb", s.meta.slug)} className="league-tile is-live">
-                  <span className="lt-name">{seasonLabel(s.meta)}</span>
-                  <span className="lt-country">{s.meta.country}</span>
-                  {top && (
-                    <span className="lt-leader">
-                      {t(lang, "common.top")}: <b>{top.name}</b> · {top.preAssists} {t(lang, "common.preAssists")}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+      <section className="section">
+        <div className="section-head">
+          <h2 className="section-title">{t(lang, "nav.leagues")}</h2>
+          <Link href={url(lang, "ligen")} className="text-link">
+            {pick(lang, "Alle Bewerbe", "All competitions")}
+          </Link>
+        </div>
+        <div className="comp-columns">
+          <CompetitionList title={pick(lang, "Ligen", "Leagues")} statuses={leagues} lang={lang} />
+          <CompetitionList title={t(lang, "home.tournaments")} statuses={tournaments} lang={lang} />
         </div>
       </section>
 

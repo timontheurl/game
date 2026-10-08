@@ -110,7 +110,7 @@ export function countryLabel(country: string, lang: Lang) {
 
 const de = {
   // Navigation
-  "nav.leagues": "Ligen",
+  "nav.leagues": "Bewerbe",
   "nav.clubs": "Vereine",
   "nav.chains": "Torketten",
   "nav.compare": "Vergleich",
@@ -299,7 +299,7 @@ const de = {
 export type TKey = keyof typeof de;
 
 const en: Record<TKey, string> = {
-  "nav.leagues": "Leagues",
+  "nav.leagues": "Competitions",
   "nav.clubs": "Clubs",
   "nav.chains": "Goal chains",
   "nav.compare": "Compare",
