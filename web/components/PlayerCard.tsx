@@ -7,22 +7,63 @@ export function Flag({ code, title }: { code: string | null; title?: string | nu
   return <span className={`fi fi-${code} flag`} title={title ?? undefined} aria-label={title ?? undefined} />;
 }
 
-/** Neutrale Spieler-Silhouette (Kopf und Schultern) – wir haben keine Rechte an Spielerfotos. */
-export function Silhouette() {
+/**
+ * Vorderseite der Spielerkarte: Grafik als Hintergrund (public/cards/karte.webp),
+ * links Wert, Position, Flagge und Verein, unten Name und zwei Spalten Werte.
+ */
+export function CardFace({
+  rating,
+  ratingClass = "",
+  position,
+  country,
+  countryName,
+  team,
+  name,
+  stats,
+  bottom,
+}: {
+  rating: React.ReactNode;
+  ratingClass?: string;
+  position: string | null;
+  country: string | null;
+  countryName: string | null;
+  team: string;
+  name: string;
+  /** Zwei Spalten mit je drei Werten [Wert, Kürzel] */
+  stats?: [[string, string][], [string, string][]];
+  /** Statt der Werte, z. B. im Spiel, wo sie noch geheim sind */
+  bottom?: React.ReactNode;
+}) {
   return (
-    <svg viewBox="0 0 100 100" className="pcard-bust" aria-hidden="true">
-      <defs>
-        <linearGradient id="bust-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8a6a55" />
-          <stop offset="0.75" stopColor="#4a362a" />
-          <stop offset="1" stopColor="#4a362a" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#bust-fill)"
-        d="M50 8c11.5 0 19 9 19 22 0 9-3.6 17-9 21.5V58c11 2 24 6.5 30 14 4 5 6 15 6 28H4c0-13 2-23 6-28 6-7.5 19-12 30-14v-6.5C34.6 47 31 39 31 30 31 17 38.5 8 50 8Z"
-      />
-    </svg>
+    <>
+      <span className="pc-left">
+        <b className={`pc-rating ${ratingClass}`}>{rating}</b>
+        <span className="pc-pos">{position ?? "–"}</span>
+        <span className="pc-rule" />
+        {country ? <Flag code={country} title={countryName} /> : <span className="flag" />}
+        <span className="pc-rule" />
+        <span className="pc-club" title={team}>
+          {clubShort(team)}
+        </span>
+      </span>
+      <span className={`pc-name ${name.length > 16 ? "is-long" : ""}`}>{name}</span>
+      {stats ? (
+        <span className="pc-stats">
+          {stats.map((col, i) => (
+            <span key={i} className="pc-col">
+              {col.map(([v, l]) => (
+                <span key={l}>
+                  <small>{l}</small>
+                  <b>{v}</b>
+                </span>
+              ))}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className="pc-bottom">{bottom}</span>
+      )}
+    </>
   );
 }
 
@@ -35,59 +76,28 @@ export default function PlayerCard({
   size?: "md" | "lg";
   lang?: Lang;
 }) {
-  const left: [string, string][] = [
-    [String(card.preAssists), t(lang, "card.pa")],
-    [String(card.assists), t(lang, "card.ast")],
-    [String(card.goals), t(lang, "card.goal")],
-  ];
-  const right: [string, string][] = [
-    [num(lang, card.xpa, 1), t(lang, "card.xpa")],
-    [String(card.involvements), t(lang, "card.inv")],
-    [String(card.matches), t(lang, "card.apps")],
-  ];
-
   return (
-    <Link href={url(lang, "spieler", card.slug)} className={`pcard pcard-${size}`}>
-      <span className="pcard-upper">
-        <span className="pcard-watermark" aria-hidden="true">
-          P
-        </span>
-        <Silhouette />
-        <span className="pcard-side">
-          <span className="pcard-rating">{card.preAssists}</span>
-          <span className="pcard-pos">{card.position ?? "–"}</span>
-          {card.country && (
-            <span className="pcard-badge">
-              <Flag code={card.country} title={card.countryName} />
-            </span>
-          )}
-          <span className="pcard-club" title={card.team}>
-            {clubShort(card.team)}
-          </span>
-        </span>
-      </span>
-      <span className="pcard-lower">
-        <span className="pcard-name">{card.name}</span>
-        <span className="pcard-rule" />
-        <span className="pcard-stats">
-          <span className="pcard-col">
-            {left.map(([v, l]) => (
-              <span key={l}>
-                <b>{v}</b> <small>{l}</small>
-              </span>
-            ))}
-          </span>
-          <span className="pcard-divider" />
-          <span className="pcard-col">
-            {right.map(([v, l]) => (
-              <span key={l}>
-                <b>{v}</b> <small>{l}</small>
-              </span>
-            ))}
-          </span>
-        </span>
-        <span className="pcard-rule short" />
-      </span>
+    <Link href={url(lang, "spieler", card.slug)} className={`pcard pcard-${size}`} aria-label={card.name}>
+      <CardFace
+        rating={card.preAssists}
+        position={card.position}
+        country={card.country}
+        countryName={card.countryName}
+        team={card.team}
+        name={card.name}
+        stats={[
+          [
+            [String(card.preAssists), t(lang, "card.pa")],
+            [String(card.assists), t(lang, "card.ast")],
+            [String(card.goals), t(lang, "card.goal")],
+          ],
+          [
+            [num(lang, card.xpa, 1), t(lang, "card.xpa")],
+            [String(card.involvements), t(lang, "card.inv")],
+            [String(card.matches), t(lang, "card.apps")],
+          ],
+        ]}
+      />
     </Link>
   );
 }

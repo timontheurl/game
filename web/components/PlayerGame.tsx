@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Flag, Silhouette } from "./PlayerCard";
-import { clubShort, initials } from "@/lib/cards";
+import { CardFace, Flag } from "./PlayerCard";
+import { initials } from "@/lib/cards";
 import { pick, url, type Lang } from "@/lib/i18n";
 import type { CompareEntry } from "@/lib/indexes";
 
@@ -32,32 +32,21 @@ function saveBest(key: string, value: number) {
 function GameCard({ entry, shown, state }: { entry: CompareEntry; shown: boolean; state?: "win" | "lose" }) {
   return (
     <div className={`pcard pcard-lg game-card ${state ? `is-${state}` : ""}`}>
-      <span className="pcard-upper">
-        <span className="pcard-watermark" aria-hidden="true">
-          P
-        </span>
-        <Silhouette />
-        <span className="pcard-side">
-          <span className={`pcard-rating ${shown ? "is-shown" : "is-hidden"}`}>{shown ? entry.preAssists : "?"}</span>
-          <span className="pcard-pos">{entry.position ?? "–"}</span>
-          {entry.country && (
-            <span className="pcard-badge">
-              <Flag code={entry.country} title={entry.countryName} />
-            </span>
-          )}
-          <span className="pcard-club" title={entry.team}>
-            {clubShort(entry.team)}
-          </span>
-        </span>
-      </span>
-      <span className="pcard-lower">
-        <span className="pcard-name">{entry.name}</span>
-        <span className="pcard-rule" />
-        <span className="game-card-meta">
-          {entry.team}
-          <small>{entry.season}</small>
-        </span>
-      </span>
+      <CardFace
+        rating={shown ? entry.preAssists : "?"}
+        ratingClass={shown ? "is-shown" : "is-hidden"}
+        position={entry.position}
+        country={entry.country}
+        countryName={entry.countryName}
+        team={entry.team}
+        name={entry.name}
+        bottom={
+          <>
+            {entry.team}
+            <small>{entry.season}</small>
+          </>
+        }
+      />
     </div>
   );
 }
