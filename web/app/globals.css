@@ -3602,3 +3602,28 @@ td.name a {
     margin-left: 0;
   }
 }
+
+.goal-open {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 122, 26, 0.15);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.editor-goals li.is-editing {
+  outline: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.desk-bar select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: inherit;
+  font-weight: 600;
+}

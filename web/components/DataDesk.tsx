@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import ManualEditor from "./ManualEditor";
 import { checkLogin, GitHubError, readSeason, writeSeason } from "@/lib/github";
-import { CURRENT_SLUG, emptySeason, type ManualSeasonFile } from "@/lib/manualTypes";
+import { emptySeasonFor, LEAGUE_SOURCES, loadFixtures, mergeFixtures, seasonSlug, type LeagueSource } from "@/lib/fixtures";
+import type { ManualSeasonFile } from "@/lib/manualTypes";
 import { DATA_REPO } from "@/lib/site";
 
 // Anmeldung und Speichern für /erfassen. Die Daten liegen als JSON-Datei im Repository;
@@ -11,6 +12,7 @@ import { DATA_REPO } from "@/lib/site";
 
 const TOKEN_KEY = "preassists-zugang";
 const DRAFT_KEY = "preassists-erfassung";
+const LEAGUE_KEY = "preassists-erfassung-liga";
 
 interface Draft {
   data: ManualSeasonFile;
@@ -44,8 +46,10 @@ const storage = {
   },
 };
 
-function loadDraft(): Draft | null {
-  const raw = storage.get(DRAFT_KEY);
+const draftKey = (slug: string) => `${DRAFT_KEY}:${slug}`;
+
+function loadDraft(slug: string): Draft | null {
+  const raw = storage.get(draftKey(slug));
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
@@ -136,7 +140,22 @@ function Login({ onLogin }: { onLogin: (token: string, user: string, persist: bo
   );
 }
 
+/** Teams und neue Ergebnisse aus dem Spielplan übernehmen; Text für die Meldung, wenn sich etwas geändert hat. */
+async function syncFixtures(data: ManualSeasonFile, source: LeagueSource) {
+  const merged = mergeFixtures(data, await loadFixtures(source));
+  const parts = [
+    merged.added && `${merged.added} neue Spiele`,
+    merged.updated && `${merged.updated} geänderte Ergebnisse`,
+    merged.goalsAdded && `${merged.goalsAdded} Torschützen`,
+  ].filter(Boolean);
+  const teamsChanged = merged.data.teams.join("|") !== data.teams.join("|");
+  return { data: merged.data, changed: parts.length > 0 || teamsChanged, note: parts.join(", ") };
+}
+
 export default function DataDesk() {
+  const [leagueKey, setLeagueKey] = useState(LEAGUE_SOURCES[0].key);
+  const source = LEAGUE_SOURCES.find((l) => l.key === leagueKey) ?? LEAGUE_SOURCES[0];
+  const slug = seasonSlug(source.key);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -144,8 +163,10 @@ export default function DataDesk() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
 
-  // Gespeicherten Schlüssel prüfen
+  // Gespeicherten Schlüssel und zuletzt gewählte Liga übernehmen
   useEffect(() => {
+    const league = storage.get(LEAGUE_KEY);
+    if (league && LEAGUE_SOURCES.some((l) => l.key === league)) setLeagueKey(league);
     const saved = storage.get(TOKEN_KEY);
     if (!saved) {
       setState("login");
@@ -164,7 +185,7 @@ export default function DataDesk() {
 
   // Entwurf auf dem Gerät mitschreiben, damit nichts verloren geht
   useEffect(() => {
-    if (draft) storage.set(DRAFT_KEY, JSON.stringify(draft));
+    if (draft) storage.set(draftKey(draft.data.slug), JSON.stringify(draft));
   }, [draft]);
 
   // Warnen, bevor ungespeicherte Änderungen beim Schließen verloren gehen
@@ -179,38 +200,69 @@ export default function DataDesk() {
     async (tok: string, askLocal: boolean) => {
       setState("loading");
       setMsg(null);
+      let next: Draft;
       try {
-        const remote = await readSeason(tok, CURRENT_SLUG);
+        const remote = await readSeason(tok, slug);
         const remoteSha = remote?.sha ?? null;
-        const local = loadDraft();
-        if (askLocal && local?.dirty && local.data.slug === CURRENT_SLUG) {
-          const same = local.sha === remoteSha;
-          if (
-            same ||
+        const local = loadDraft(slug);
+        if (
+          askLocal &&
+          local?.dirty &&
+          (local.sha === remoteSha ||
             !confirm(
               "Auf diesem Gerät gibt es nicht veröffentlichte Änderungen, online aber einen neueren Stand.\n\nOK = Online-Stand laden (lokale Änderungen verwerfen)\nAbbrechen = lokale Änderungen behalten",
-            )
-          ) {
-            setDraft({ ...local, sha: remoteSha });
-            setMsg({ text: "Nicht veröffentlichte Änderungen von diesem Gerät geladen." });
-            setState("ready");
-            return;
-          }
+            ))
+        ) {
+          next = { ...local, sha: remoteSha };
+        } else {
+          next = { data: remote ? JSON.parse(remote.text) : emptySeasonFor(source), sha: remoteSha, dirty: false };
         }
-        setDraft({ data: remote ? JSON.parse(remote.text) : emptySeason(), sha: remoteSha, dirty: false });
-        setState("ready");
       } catch (err) {
         setMsg({ text: err instanceof GitHubError ? err.message : "Keine Verbindung zu GitHub.", error: true });
-        setState("ready");
-        setDraft((d) => d ?? loadDraft() ?? { data: emptySeason(), sha: null, dirty: false });
+        next = loadDraft(slug) ?? { data: emptySeasonFor(source), sha: null, dirty: false };
+      }
+      setDraft(next);
+      setState("ready");
+      // Neue Ergebnisse gleich mitnehmen
+      try {
+        const synced = await syncFixtures(next.data, source);
+        if (synced.changed) {
+          setDraft((d) => (d && d.data.slug === next.data.slug ? { ...d, data: synced.data, dirty: true } : d));
+          setMsg({ text: `Aus dem Spielplan übernommen: ${synced.note || "Teams"}. Zum Speichern „Veröffentlichen“ klicken.` });
+        }
+      } catch {
+        setMsg({ text: "Der Spielplan konnte gerade nicht geladen werden. Spiele lassen sich trotzdem von Hand anlegen.", error: true });
       }
     },
-    [],
+    [slug, source],
   );
 
   useEffect(() => {
     if (token) loadRemote(token, true);
   }, [token, loadRemote]);
+
+  const updateFixtures = async () => {
+    if (!draft) return;
+    setBusy(true);
+    try {
+      const synced = await syncFixtures(draft.data, source);
+      if (synced.changed) {
+        setDraft((d) => (d ? { ...d, data: synced.data, dirty: true } : d));
+        setMsg({ text: `Übernommen: ${synced.note || "Teams"}.` });
+      } else setMsg({ text: "Der Spielplan ist schon aktuell." });
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : "Spielplan nicht erreichbar.", error: true });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const chooseLeague = (key: string) => {
+    if (key === leagueKey) return;
+    if (draft?.dirty && !confirm("Nicht veröffentlichte Änderungen bleiben auf diesem Gerät gespeichert. Liga wechseln?")) return;
+    storage.set(LEAGUE_KEY, key);
+    setLeagueKey(key);
+  };
 
   const login = (tok: string, u: string, persist: boolean) => {
     storage.set(TOKEN_KEY, tok, persist);
@@ -256,6 +308,13 @@ export default function DataDesk() {
   return (
     <>
       <div className="desk-bar">
+        <select value={leagueKey} onChange={(e) => chooseLeague(e.target.value)} aria-label="Liga">
+          {LEAGUE_SOURCES.map((l) => (
+            <option key={l.key} value={l.key}>
+              {l.name} {draft.data.season}
+            </option>
+          ))}
+        </select>
         <span className="muted small">
           Angemeldet als <b>{user}</b>
         </span>
@@ -265,6 +324,9 @@ export default function DataDesk() {
         <div className="editor-actions">
           <button type="button" className="btn btn-small" onClick={publish} disabled={busy || !draft.dirty}>
             {busy ? "Speichere …" : "Veröffentlichen"}
+          </button>
+          <button type="button" className="btn btn-ghost btn-small" onClick={updateFixtures} disabled={busy}>
+            Spielplan aktualisieren
           </button>
           <button
             type="button"
@@ -280,6 +342,7 @@ export default function DataDesk() {
       </div>
       {msg && <p className={`notice ${msg.error ? "is-error" : ""}`}>{msg.text}</p>}
       <ManualEditor
+        key={draft.data.slug}
         data={draft.data}
         onChange={(fn) => setDraft((d) => (d ? { ...d, data: fn(d.data), dirty: true } : d))}
       />

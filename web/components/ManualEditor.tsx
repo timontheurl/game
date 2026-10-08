@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { arrowHead } from "@/lib/geom";
 import {
   PASS_TYPES,
-  emptySeason,
   type GoalKind,
   type ManualGoal,
   type ManualMatch,
@@ -32,6 +31,8 @@ function parseSquad(text: string) {
 }
 
 interface Draft {
+  /** ID des Tors, das gerade bearbeitet wird (sonst neues Tor) */
+  editing: string | null;
   minute: string;
   team: string;
   kind: GoalKind;
@@ -44,6 +45,7 @@ interface Draft {
 }
 
 const emptyDraft = (team: string): Draft => ({
+  editing: null,
   minute: "",
   team,
   kind: "Spiel",
@@ -107,7 +109,9 @@ export default function ManualEditor({
   const [draft, setDraft] = useState<Draft>(emptyDraft(""));
   const [newMatch, setNewMatch] = useState({ round: "1", date: "", home: "", away: "", hs: "0", as: "0" });
   const [msg, setMsg] = useState("");
-  const [squadTeam, setSquadTeam] = useState(data.teams[0] ?? "");
+  const [squadChoice, setSquadTeam] = useState("");
+  // Teams kommen evtl. erst nach dem Laden des Spielplans dazu
+  const squadTeam = data.teams.includes(squadChoice) ? squadChoice : (data.teams[0] ?? "");
   const [squadText, setSquadText] = useState("");
 
   const match = data.matches.find((m) => m.id === matchId) ?? null;
@@ -187,7 +191,7 @@ export default function ManualEditor({
       return;
     }
     const goal: ManualGoal = {
-      id: uid(),
+      id: draft.editing ?? uid(),
       match: match.id,
       minute: Number(draft.minute),
       team: draft.team,
@@ -204,11 +208,30 @@ export default function ManualEditor({
       for (const n of [scorer, assist, pre]) {
         if (n && !d.players[n] && draft.kind !== "Eigentor") d.players[n] = { team: draft.team };
       }
-      d.goals.push(goal);
+      const i = d.goals.findIndex((x) => x.id === goal.id);
+      if (i >= 0) d.goals[i] = goal;
+      else d.goals.push(goal);
       return d;
     });
     setDraft(emptyDraft(draft.team));
-    setMsg("Tor gespeichert.");
+    setMsg(draft.editing ? "Tor aktualisiert." : "Tor gespeichert.");
+  };
+
+  const editGoal = (g: ManualGoal) => {
+    setDraft({
+      editing: g.id,
+      minute: String(g.minute),
+      team: g.team,
+      kind: g.kind,
+      scorer: g.scorer,
+      assist: g.assist ?? "",
+      assistType: g.assistType ?? "",
+      pre: g.pre ?? "",
+      preType: g.preType ?? "",
+      points: g.points,
+    });
+    setMsg("");
+    document.querySelector(".editor-goal-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const exportFile = () => {
@@ -254,8 +277,8 @@ export default function ManualEditor({
             type="button"
             className="btn btn-ghost btn-small"
             onClick={() => {
-              if (confirm("Alle erfassten Daten in diesem Browser löschen?")) {
-                setData(emptySeason());
+              if (confirm("Alle Spiele, Tore und Spieler dieser Saison löschen? (Erst mit „Veröffentlichen“ auch online.)")) {
+                setData({ ...data, matches: [], goals: [], players: {} });
                 setMatchId(null);
               }
             }}
@@ -317,7 +340,9 @@ export default function ManualEditor({
               {data.matches
                 .filter((m) => m.round === r)
                 .map((m) => {
-                  const n = data.goals.filter((g) => g.match === m.id).length;
+                  const mg = data.goals.filter((g) => g.match === m.id);
+                  const open = mg.filter((g) => g.open).length;
+                  const n = mg.length - open;
                   const total = m.homeScore + m.awayScore;
                   return (
                     <button
@@ -330,7 +355,7 @@ export default function ManualEditor({
                         {m.home} {m.homeScore}:{m.awayScore} {m.away}
                       </span>
                       <span className={`ci-meta ${n < total ? "is-open" : ""}`}>
-                        {n}/{total} Tore erfasst
+                        {n}/{total} Tore erfasst{open > 0 && ` · ${open} offen`}
                       </span>
                     </button>
                   );
@@ -344,8 +369,8 @@ export default function ManualEditor({
             <p className="muted">Wähle links ein Spiel oder lege ein neues an.</p>
           ) : (
             <>
-              <h2 className="sub-title">
-                Tor erfassen · {match.home} {match.homeScore}:{match.awayScore} {match.away}
+              <h2 className="sub-title editor-goal-form">
+                {draft.editing ? "Tor bearbeiten" : "Tor erfassen"} · {match.home} {match.homeScore}:{match.awayScore} {match.away}
               </h2>
               <div className="form-grid">
                 <label>
@@ -431,15 +456,22 @@ export default function ManualEditor({
                   />
                 </>
               )}
-              <button type="button" className="btn" onClick={saveGoal}>
-                Tor speichern
-              </button>
+              <div className="player-actions">
+                <button type="button" className="btn" onClick={saveGoal}>
+                  Tor speichern
+                </button>
+                {draft.editing && (
+                  <button type="button" className="btn btn-ghost" onClick={() => setDraft(emptyDraft(draft.team))}>
+                    Abbrechen
+                  </button>
+                )}
+              </div>
 
               <h2 className="sub-title">Erfasste Tore</h2>
               {matchGoals.length === 0 && <p className="muted">Noch keine Tore.</p>}
               <ul className="editor-goals">
                 {matchGoals.map((g) => (
-                  <li key={g.id}>
+                  <li key={g.id} className={`${g.open ? "is-open" : ""} ${draft.editing === g.id ? "is-editing" : ""}`}>
                     <span className="muted">{g.minute}&apos;</span>
                     <span className="chain-names">
                       {g.pre && (
@@ -456,7 +488,11 @@ export default function ManualEditor({
                       )}
                       <span className="c-goal">{g.scorer}</span>
                       {g.kind !== "Spiel" && <span className="muted"> ({g.kind})</span>}
+                      {g.open && <span className="goal-open">offen</span>}
                     </span>
+                    <button type="button" className="link-btn" onClick={() => editGoal(g)}>
+                      {g.open ? "Ergänzen" : "Bearbeiten"}
+                    </button>
                     <button
                       type="button"
                       className="link-btn"
