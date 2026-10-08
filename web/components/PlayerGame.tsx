@@ -6,6 +6,7 @@ import { CardFace, Flag } from "./PlayerCard";
 import { initials } from "@/lib/cards";
 import { pick, url, type Lang } from "@/lib/i18n";
 import type { CompareEntry } from "@/lib/indexes";
+import LogoLoader from "./LogoLoader";
 
 type Mode = "duell" | "raten";
 
@@ -423,7 +424,7 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
         </button>
       </div>
       {!entries ? (
-        <p className="empty">{pick(lang, "Lade Spieler …", "Loading players …")}</p>
+        <LogoLoader label={pick(lang, "Lade Spieler …", "Loading players …")} />
       ) : mode === "duell" ? (
         <Duel pool={duelPool} lang={lang} />
       ) : (

@@ -8,6 +8,7 @@ import { describePass, formatClock } from "@/lib/cards";
 import { LOCALE, num, passLabel, t as tr, url, type Lang } from "@/lib/i18n";
 import type { ChainData } from "@/app/daten/[file]/route";
 import type { Goal } from "@/lib/data";
+import LogoLoader from "./LogoLoader";
 
 type Sort = "datum" | "xg" | "laenge";
 const PAGE = 40;
@@ -165,7 +166,7 @@ export default function ChainExplorer({
       </div>
 
       {!data ? (
-        <p className="empty">{tr(lang, "ex.loading")}</p>
+        <LogoLoader label={tr(lang, "ex.loading")} />
       ) : (
         <div className="explorer-grid">
           <div className="explorer-list">

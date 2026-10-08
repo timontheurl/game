@@ -6,6 +6,7 @@ import { checkLogin, GitHubError, readSeason, writeSeason } from "@/lib/github";
 import { emptySeasonFor, LEAGUE_SOURCES, loadFixtures, mergeFixtures, seasonSlug, type LeagueSource } from "@/lib/fixtures";
 import type { ManualSeasonFile } from "@/lib/manualTypes";
 import { DATA_REPO } from "@/lib/site";
+import LogoLoader from "./LogoLoader";
 
 // Anmeldung und Speichern für /erfassen. Die Daten liegen als JSON-Datei im Repository;
 // „Veröffentlichen“ schreibt sie dorthin, danach baut Vercel die Seite automatisch neu.
@@ -301,9 +302,9 @@ export default function DataDesk() {
     }
   };
 
-  if (state === "start" || (token && state === "loading")) return <p className="empty">Lade …</p>;
+  if (state === "start" || (token && state === "loading")) return <LogoLoader label="Lade …" />;
   if (!token || state === "login") return <Login onLogin={login} />;
-  if (!draft) return <p className="empty">Lade …</p>;
+  if (!draft) return <LogoLoader label="Lade …" />;
 
   return (
     <>

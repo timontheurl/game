@@ -118,19 +118,18 @@ h3 {
   gap: 18px;
 }
 
+.brand {
+  display: flex;
+  color: var(--accent);
+}
+
+.brand:hover {
+  color: var(--assist);
+}
+
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-family: var(--display);
-  font-weight: 800;
-  font-style: italic;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
+  width: 44px;
+  height: 44px;
 }
 
 .mainnav {
@@ -4268,5 +4267,173 @@ td.name a {
 
   .season-stats .stat-table {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------- Logo ---------- */
+/* Das Logo ist eine Passkette: Ausgangspunkt, drei Pässe, dann steht das PA.
+   Ein Durchlauf: Station 1 → Pass 1 → Station 2 → Pass 2 → Station 3 → Pass 3. */
+.logo-mark {
+  display: block;
+  overflow: visible;
+  --logo-dur: 1.5s;
+}
+
+.logo-ball {
+  fill: var(--logo-ball, #fff);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .logo-mark.is-playing .logo-pass {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: var(--logo-dur) linear var(--logo-delay, 0s) var(--logo-iter, 1) both;
+  }
+  .logo-mark.is-playing .logo-pass-1 {
+    animation-name: logo-pass-1;
+  }
+  .logo-mark.is-playing .logo-pass-2 {
+    animation-name: logo-pass-2;
+  }
+  .logo-mark.is-playing .logo-pass-3 {
+    animation-name: logo-pass-3;
+  }
+  .logo-mark.is-playing .logo-stop {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: var(--logo-dur) cubic-bezier(0.3, 1.6, 0.5, 1) var(--logo-delay, 0s) var(--logo-iter, 1) both;
+  }
+  .logo-mark.is-playing .logo-stop-1 {
+    animation-name: logo-stop-1;
+  }
+  .logo-mark.is-playing .logo-stop-2 {
+    animation-name: logo-stop-2;
+  }
+  .logo-mark.is-playing .logo-stop-3 {
+    animation-name: logo-stop-3;
+  }
+  .logo-mark.is-playing .logo-ball {
+    animation: logo-ball var(--logo-dur) linear var(--logo-delay, 0s) var(--logo-iter, 1) both;
+  }
+  .logo-mark.is-loop {
+    --logo-dur: 2.2s;
+    --logo-iter: infinite;
+  }
+  .logo-mark.is-loop .logo-body {
+    animation: logo-loop-fade var(--logo-dur) linear infinite;
+  }
+}
+
+@keyframes logo-pass-1 {
+  0%, 8% { stroke-dashoffset: 1; }
+  36%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes logo-pass-2 {
+  0%, 40% { stroke-dashoffset: 1; }
+  64%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes logo-pass-3 {
+  0%, 68% { stroke-dashoffset: 1; }
+  92%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes logo-stop-1 {
+  0% { opacity: 0; transform: scale(0.2); }
+  9%, 100% { opacity: 1; transform: none; }
+}
+@keyframes logo-stop-2 {
+  0%, 34% { opacity: 0; transform: scale(0.2); }
+  43%, 100% { opacity: 1; transform: none; }
+}
+@keyframes logo-stop-3 {
+  0%, 62% { opacity: 0; transform: scale(0.2); }
+  71%, 100% { opacity: 1; transform: none; }
+}
+@keyframes logo-ball {
+  0% { transform: translate(45px, 205px); opacity: 0; }
+  6%, 8% { transform: translate(45px, 205px); opacity: 1; }
+  36%, 40% { transform: translate(200px, 48px); }
+  64%, 68% { transform: translate(200px, 202px); }
+  92% { transform: translate(97px, 64px); opacity: 1; }
+  100% { transform: translate(97px, 64px); opacity: 0; }
+}
+@keyframes logo-loop-fade {
+  0%, 90% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+
+/* Ladeanzeige */
+.logo-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px;
+  color: var(--accent);
+}
+
+.logo-loader .logo-mark {
+  width: 64px;
+  height: 64px;
+}
+
+.logo-loader span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Intro beim ersten Öffnen */
+.intro-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--bg-deep);
+  color: var(--accent);
+  animation: intro-out 0.45s ease 2.1s forwards;
+}
+
+.intro-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.intro-splash .logo-mark {
+  width: min(160px, 40vw);
+  height: auto;
+  aspect-ratio: 1;
+  --logo-delay: 0.15s;
+}
+
+.intro-splash-word {
+  font-size: clamp(2rem, 7vw, 3rem);
+  color: var(--text);
+  animation: intro-word 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 1.45s both;
+}
+
+@keyframes intro-word {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+@keyframes intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.no-intro .intro-splash {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-splash {
+    display: none;
   }
 }

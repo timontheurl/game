@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import PlayerCard from "./PlayerCard";
 import { LOCALE, t, type Lang, type TKey } from "@/lib/i18n";
 import type { CompareEntry } from "@/lib/indexes";
+import LogoLoader from "./LogoLoader";
 
 interface Metric {
   label: TKey;
@@ -124,7 +125,7 @@ export default function PlayerCompare({ lang = "de" }: { lang?: Lang }) {
     setBKey(second);
   };
 
-  if (!entries) return <p className="empty">{t(lang, "cmp.loading")}</p>;
+  if (!entries) return <LogoLoader label={t(lang, "cmp.loading")} />;
 
   let winsA = 0;
   let winsB = 0;
