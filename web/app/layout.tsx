@@ -6,6 +6,7 @@ import PitchBackdrop from "@/components/PitchBackdrop";
 import Search from "@/components/Search";
 import SiteNav from "@/components/SiteNav";
 import { Brand, SiteFooter, SkipLink } from "@/components/SiteChrome";
+import { getLeagueStatuses } from "@/lib/data";
 import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
@@ -46,6 +47,10 @@ const JSON_LD = {
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Für das Menü „Bewerbe“: Ligen und Turniere, für die es schon Daten gibt
+  const live = getLeagueStatuses()
+    .filter((s) => s.seasons.length > 0)
+    .map((s) => s.league.key);
   return (
     <html lang="de" className={`${barlow.variable} ${barlowCondensed.variable}`}>
       <body>
@@ -57,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="topbar-inner">
             <Brand />
             <Search />
-            <SiteNav />
+            <SiteNav live={live} />
           </div>
         </header>
         <main id="inhalt" className="page">{children}</main>

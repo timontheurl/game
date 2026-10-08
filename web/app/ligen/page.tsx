@@ -3,7 +3,7 @@ import { alternates } from "@/lib/i18n";
 import LeaguesView from "@/views/LeaguesView";
 
 export const metadata: Metadata = {
-  title: "Ligen",
+  title: "Bewerbe",
   description: "Alle Ligen auf PreAssists – mit Pre-Assist-Ranglisten und den Ligen, die als Nächstes dazukommen.",
   alternates: alternates("ligen"),
 };

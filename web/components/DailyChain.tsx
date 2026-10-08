@@ -6,7 +6,7 @@ import ChainReplay from "./ChainReplay";
 import ShareButton from "./ShareButton";
 import { describePass, formatClock } from "@/lib/cards";
 import type { Goal } from "@/lib/data";
-import { num, passLabel, t, url, type Lang } from "@/lib/i18n";
+import { LOCALE, num, passLabel, t, url, type Lang } from "@/lib/i18n";
 
 export interface DailyCandidate {
   goal: Goal;
@@ -26,7 +26,11 @@ function pickIndex(n: number, date = new Date()) {
 export default function DailyChain({ candidates, lang = "de" }: { candidates: DailyCandidate[]; lang?: Lang }) {
   // Vor dem Laden im Browser den ersten Kandidaten zeigen, danach den des Tages (vermeidet Abweichungen beim Rendern)
   const [index, setIndex] = useState(0);
-  useEffect(() => setIndex(pickIndex(candidates.length)), [candidates.length]);
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setIndex(pickIndex(candidates.length));
+    setToday(new Date().toLocaleDateString(LOCALE[lang], { weekday: "long", day: "numeric", month: "long" }));
+  }, [candidates.length, lang]);
   const c = candidates[index];
   if (!c) return null;
   const { goal, names, slugs } = c;
@@ -39,7 +43,10 @@ export default function DailyChain({ candidates, lang = "de" }: { candidates: Da
         <ChainReplay goal={goal} names={names} lang={lang} />
       </div>
       <div className="daily-info">
-        <span className="league-kicker">{t(lang, "home.daily")}</span>
+        <span className="daily-badge">
+          {lang === "en" ? "Today" : "Heute"}
+          {today && <span> · {today}</span>}
+        </span>
         <h2>{c.match}</h2>
         <p className="muted">
           {c.season} · {formatClock(goal.period, goal.minute)}

@@ -63,8 +63,8 @@ export default function LeaguesView({ lang }: { lang: Lang }) {
         </p>
       </section>
 
-      <section className="section">
-        <h2 className="section-title">{t(lang, "nav.leagues")}</h2>
+      <section className="section" id="ligen">
+        <h2 className="section-title">{pick(lang, "Ligen", "Leagues")}</h2>
         <div className="league-grid">
           {live.map((s) => (
             <LiveTile key={s.league.key} status={s} lang={lang} />
@@ -72,7 +72,7 @@ export default function LeaguesView({ lang }: { lang: Lang }) {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" id="turniere">
         <h2 className="section-title">{t(lang, "home.tournaments")}</h2>
         <div className="league-grid">
           {tournaments.map((s) => (
