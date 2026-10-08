@@ -1,13 +1,13 @@
 [
   {
-    "id": "zentrum-doppelpass-falle",
+    "id": "zentrum-vier-wege",
     "title": {
-      "de": "Die Doppelpass-Falle",
-      "en": "The one-two trap"
+      "de": "Vier Wege zur 9",
+      "en": "Four routes to the 9"
     },
     "setup": {
-      "de": "Du hast den Ball im Zentrum, 40 m vor dem Tor. Die 8 bietet sich neben dir an, die 10 lauert zwischen den Linien, die 9 steht zwischen den Innenverteidigern.",
-      "en": "You're on the ball centrally, 40 m out. The 8 offers a short option, the 10 lurks between the lines and the 9 sits between the centre-backs."
+      "de": "Ball im Zentrum, 40 m vor dem Tor. Die 8 bietet sich neben dir an, die 10 lauert zwischen den Linien, die 7 klebt an der Linie. Vorne ist die 9 allein gegen zwei Innenverteidiger.",
+      "en": "You're on the ball centrally, 40 m out. The 8 offers a short option, the 10 lurks between the lines, the 7 hugs the touchline. Up top, the 9 is alone against two centre-backs."
     },
     "you": [
       80,
@@ -15,8 +15,8 @@
     ],
     "mates": {
       "7": [
-        94,
-        72
+        93,
+        74
       ],
       "8": [
         85,
@@ -24,7 +24,7 @@
       ],
       "9": [
         99,
-        41
+        40
       ],
       "10": [
         93,
@@ -37,20 +37,20 @@
         40
       ],
       [
-        101,
-        35
+        102.5,
+        32.5
       ],
       [
-        102,
-        46
+        102.5,
+        47.5
       ],
       [
         99,
         24
       ],
       [
-        99,
-        60
+        100,
+        58
       ],
       [
         88,
@@ -75,7 +75,7 @@
             "to": "o5",
             "at": [
               88,
-              41.6
+              41.2
             ],
             "aim": "9"
           }
@@ -194,20 +194,32 @@
             "k": "carry",
             "who": "7",
             "to": [
-              106,
-              58
+              105,
+              60
             ]
           },
           {
-            "k": "foul",
-            "on": "7",
-            "by": 4,
+            "k": "loose",
+            "to": "9",
+            "at": [
+              108,
+              42
+            ],
+            "off": 2
+          },
+          {
+            "k": "shot",
+            "who": "9",
+            "to": [
+              120,
+              41.2
+            ],
             "result": "goal"
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Die 7 zieht in den Strafraum, wird gefoult und verwandelt den Elfmeter selbst. Elfmeter haben keinen Assist – also auch keinen Pre-Assist.",
-          "en": "Goal, but no pre-assist: the 7 drives into the box, is brought down and converts the penalty. Penalties have no assist – so no pre-assist either."
+          "de": "Tor, aber kein Pre-Assist: Die Hereingabe der 7 wird vom Innenverteidiger abgefälscht, die 9 staubt ab. Abgefälschter Ball = Unterbrechung – kein Assist, kein Pre-Assist.",
+          "en": "Goal, but no pre-assist: the 7's cross is deflected by a centre-back and drops for the 9. A deflection breaks the chain – no assist, no pre-assist."
         }
       }
     ]
@@ -240,7 +252,7 @@
         58
       ],
       "11": [
-        93,
+        97,
         60
       ]
     },
@@ -250,8 +262,8 @@
         40
       ],
       [
-        88.5,
-        43
+        89.5,
+        44.5
       ],
       [
         100,
@@ -277,8 +289,8 @@
     "options": [
       {
         "label": {
-          "de": "Quer zur 10",
-          "en": "Square to the 10"
+          "de": "Raus zur 10",
+          "en": "Out to the 10"
         },
         "expect": "early",
         "steps": [
@@ -352,7 +364,7 @@
             "to": "11",
             "at": [
               106,
-              54
+              53
             ],
             "air": true
           },
@@ -361,7 +373,7 @@
             "who": "11",
             "to": [
               108,
-              50
+              49
             ]
           },
           {
@@ -424,17 +436,21 @@
       "en": "Back to goal"
     },
     "setup": {
-      "de": "Du bist die 9, 23 m vor dem Tor, den Innenverteidiger im Rücken. Die 8 rückt nach, die 7 wartet im Halbraum, die 11 steht auf der ballfernen Seite.",
-      "en": "You're the 9, 23 m out with a centre-back tight on you. The 8 is arriving from deep, the 7 waits in the half-space, the 11 is on the far side."
+      "de": "Du bist die 9, 23 m vor dem Tor, den Innenverteidiger im Rücken. Die 8 rückt nach, die 7 wartet im Halbraum, die 3 schiebt an der Linie mit, die 11 lauert im Strafraum.",
+      "en": "You're the 9, 23 m out with a centre-back tight on you. The 8 is arriving from deep, the 7 waits in the half-space, the 3 is overlapping down the line and the 11 lurks in the box."
     },
     "you": [
       97,
       42
     ],
     "mates": {
+      "3": [
+        87,
+        72
+      ],
       "6": [
-        82,
-        46
+        80,
+        44
       ],
       "7": [
         94,
@@ -467,16 +483,16 @@
         51
       ],
       [
-        102,
-        27
+        103,
+        29
       ],
       [
         101,
         62
       ],
       [
-        88,
-        30
+        87,
+        29
       ],
       [
         93,
@@ -521,8 +537,8 @@
       },
       {
         "label": {
-          "de": "Quer zur 10",
-          "en": "Across to the 10"
+          "de": "Schräg zurück zur 10",
+          "en": "Angled back to the 10"
         },
         "expect": "lost",
         "steps": [
@@ -563,7 +579,7 @@
             "who": "7",
             "to": [
               107,
-              28
+              26
             ]
           },
           {
@@ -603,27 +619,35 @@
             "to": "6"
           },
           {
-            "k": "loose",
-            "to": "11",
+            "k": "pass",
+            "from": "6",
+            "to": "3",
             "at": [
-              106,
-              48
+              97,
+              71
             ],
-            "off": 2
+            "air": true
           },
           {
-            "k": "shot",
-            "who": "11",
-            "to": [
-              120,
-              41
+            "k": "pass",
+            "from": "3",
+            "to": "11",
+            "at": [
+              107,
+              50
             ],
+            "air": true
+          },
+          {
+            "k": "foul",
+            "on": "11",
+            "by": 2,
             "result": "goal"
           }
         ],
         "explain": {
-          "de": "Tor, aber kein Pre-Assist: Der Steilpass der 6 wird vom Innenverteidiger abgefälscht, die 11 staubt ab. Abgefälschter Ball = Unterbrechung – kein Assist, kein Pre-Assist.",
-          "en": "Goal, but no pre-assist: the 6's through ball is deflected off a centre-back and the 11 pounces. A deflection breaks the chain – no assist, no pre-assist."
+          "de": "Tor, aber kein Pre-Assist: Die 6 chippt auf die 3, deren Flanke findet die 11 – Foul, Elfmeter, die 11 verwandelt. Elfmeter haben keinen Assist und damit keinen Pre-Assist. Dein Pass wäre ohnehin zu früh gewesen.",
+          "en": "Goal, but no pre-assist: the 6 chips it out to the 3, whose cross finds the 11 – fouled, penalty, the 11 converts. Penalties have no assist, so no pre-assist either. Your pass came too early anyway."
         }
       }
     ]
@@ -656,8 +680,8 @@
         40
       ],
       "10": [
-        92,
-        52
+        93,
+        56
       ],
       "11": [
         96,
@@ -709,10 +733,10 @@
           {
             "k": "pass",
             "from": "you",
-            "to": "o6",
+            "to": "o7",
             "at": [
-              89.6,
-              46.2
+              87.8,
+              42.3
             ],
             "aim": "10"
           }
@@ -863,8 +887,8 @@
       "en": "Turned between the lines"
     },
     "setup": {
-      "de": "Du hast dich als 10 aufgedreht, 30 m vor dem Tor. Die 9 lauert zwischen den Innenverteidigern, die 11 startet in den Halbraum, die 7 steht an der Strafraumkante.",
-      "en": "You've turned as the 10, 30 m out. The 9 lurks between the centre-backs, the 11 darts into the half-space, the 7 waits on the edge of the box."
+      "de": "Du hast dich als 10 aufgedreht, 30 m vor dem Tor. Die 9 lauert zwischen den Innenverteidigern, die 11 startet in den Halbraum, die 7 steht frei vor dem Strafraum.",
+      "en": "You've turned as the 10, 30 m out. The 9 lurks between the centre-backs, the 11 darts into the half-space, the 7 is free just outside the box."
     },
     "you": [
       90,
@@ -888,8 +912,8 @@
         41
       ],
       "11": [
-        96,
-        21
+        98,
+        22
       ]
     },
     "opps": [
@@ -936,7 +960,7 @@
             "to": "11",
             "at": [
               106,
-              27
+              28
             ]
           },
           {
