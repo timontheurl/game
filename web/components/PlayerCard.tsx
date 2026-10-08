@@ -8,7 +8,7 @@ export function Flag({ code, title }: { code: string | null; title?: string | nu
 }
 
 /** Neutrale Spieler-Silhouette (Kopf und Schultern) – wir haben keine Rechte an Spielerfotos. */
-function Silhouette() {
+export function Silhouette() {
   return (
     <svg viewBox="0 0 100 100" className="pcard-bust" aria-hidden="true">
       <defs>

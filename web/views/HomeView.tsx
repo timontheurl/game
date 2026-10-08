@@ -143,6 +143,28 @@ export default function HomeView({ lang }: { lang: Lang }) {
         <DailyChain candidates={dailyCandidates(lang)} lang={lang} />
       </section>
 
+      <section className="section game-teaser">
+        <div>
+          <span className="league-kicker">{t(lang, "nav.game")}</span>
+          <h2>{pick(lang, "Mehr oder weniger?", "Higher or lower?")}</h2>
+          <p className="muted">
+            {pick(
+              lang,
+              "Zwei Spieler, eine Frage: Wer hatte mehr Pre-Assists? Liegst du richtig, kommt der nächste – wie lang wird deine Serie?",
+              "Two players, one question: who had more pre-assists? Get it right and the next one comes in – how long can your streak get?",
+            )}
+          </p>
+        </div>
+        <div className="player-actions">
+          <Link href={url(lang, "spiel")} className="btn">
+            {pick(lang, "Jetzt spielen", "Play now")}
+          </Link>
+          <Link href={`${url(lang, "spiel")}?modus=raten`} className="btn btn-ghost">
+            {pick(lang, "Spieler erraten", "Guess the player")}
+          </Link>
+        </div>
+      </section>
+
       <section className="section tournaments">
         <h2 className="section-title">{t(lang, "home.tournaments")}</h2>
         <div className="league-grid">
