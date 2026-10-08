@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="692" height="1024" viewBox="0 0 692 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Orange football card - blank SVG template</title>
+  <desc id="desc">Decorative football card with a copper-orange multipeak frame, midnight-charcoal and ember-orange graphic background, and pure-white player silhouette. No text, statistics, teams, or branding.</desc>
+  <defs>
+    <!-- Shared silhouette of the card. Leave surrounding canvas transparent. -->
+    <path id="card-outline" d="M346 9 C330 31 318 43 299 43 C282 43 269 33 261 18 C218 23 174 48 125 88 C89 118 67 130 30 144 L30 846 C30 876 43 890 70 902 L330 1005 Q346 1013 362 1005 L622 902 C650 890 662 876 662 846 L662 144 C625 130 603 118 567 88 C518 48 474 23 431 18 C423 33 410 43 393 43 C374 43 362 31 346 9 Z" />
+    <clipPath id="card-clip"><use href="#card-outline"/></clipPath>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22140d"/><stop offset="0.48" stop-color="#0d1014"/><stop offset="1" stop-color="#25170d"/>
+    </linearGradient>
+    <linearGradient id="cerise" x1="0" y1="0" x2="0.8" y2="1">
+      <stop stop-color="#ffb21a"/><stop offset="0.57" stop-color="#f36d0a"/><stop offset="1" stop-color="#8a3209"/>
+    </linearGradient>
+    <linearGradient id="royal" x1="0" y1="0" x2="1" y2="0.7">
+      <stop stop-color="#a83d0b"/><stop offset="0.53" stop-color="#e36b12"/><stop offset="1" stop-color="#5e270d"/>
+    </linearGradient>
+    <linearGradient id="portrait-shade" x1="0" y1="0" x2="0.9" y2="1">
+      <stop stop-color="#fff"/><stop offset="0.45" stop-color="#fff"/><stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="portrait-rim" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#ffdd8a" stop-opacity="0.80"/><stop offset="0.22" stop-color="#f98816" stop-opacity="0.05"/><stop offset="0.76" stop-color="#ffeec9" stop-opacity="0.02"/><stop offset="1" stop-color="#fff5de" stop-opacity="0.76"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffe8a2"/><stop offset="0.45" stop-color="#ff8b1b"/><stop offset="1" stop-color="#b34405"/>
+    </linearGradient>
+    <linearGradient id="fade-bottom" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#130f0a" stop-opacity="0"/><stop offset="0.65" stop-color="#130f0a" stop-opacity=".24"/><stop offset="1" stop-color="#130f0a" stop-opacity=".66"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="54%" cy="39%" r="58%">
+      <stop stop-color="#ff6d1b" stop-opacity=".20"/><stop offset="1" stop-color="#0d1014" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="microtexture" width="26" height="26" patternUnits="userSpaceOnUse">
+      <path d="M0 26 L13 19 L26 26 M0 13 L13 6 L26 13" fill="none" stroke="#ffffff" stroke-opacity=".028" stroke-width=".9"/>
+    </pattern>
+    <pattern id="fine-lines" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+      <path d="M0 0 V18" stroke="#ffc389" stroke-opacity=".035" stroke-width="1.1"/>
+    </pattern>
+    <filter id="soft-glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="13"/>
+    </filter>
+    <clipPath id="stripe-zone">
+      <path d="M175 0 H692 V490 Q590 560 460 535 Q323 475 270 300 Z"/>
+    </clipPath>
+    <clipPath id="bottom-zone">
+      <path d="M0 647 Q106 668 203 716 T414 791 T692 839 V1024 H0 Z"/>
+    </clipPath>
+    <g id="player-shape">
+      <!-- The player is intentionally a stylised vector silhouette, not a photo. -->
+      <!-- Torso -->
+      <path d="M301 327 C282 339 262 345 241 362 C221 378 205 401 199 428 L195 560 C214 601 238 644 244 706 L235 791 L475 791 L468 703 C473 651 485 614 509 552 L498 429 C489 397 477 378 450 362 C429 346 410 338 393 327 L382 302 L315 302 Z"/>
+      <!-- Left arm bent with hand at the chest -->
+      <path d="M244 362 C206 370 182 394 168 435 L151 480 C144 500 147 518 160 535 L203 588 C213 601 231 598 240 583 C247 572 240 562 234 554 L199 507 L223 467 L258 420 Z"/>
+      <path d="M151 479 C136 467 126 455 126 440 C122 423 129 414 140 410 C146 407 150 402 157 404 C167 397 176 405 180 412 C190 410 198 417 197 428 C209 439 201 449 195 456 L183 482 Z"/>
+      <!-- Right arm in a celebratory lifted bend -->
+      <path d="M447 359 C473 366 492 375 514 397 L542 417 L557 376 C562 357 584 351 599 364 C609 372 609 388 604 403 L587 475 C582 501 565 511 542 503 L486 472 L450 428 Z"/>
+      <path d="M555 381 C545 360 547 345 550 334 C548 323 555 315 561 313 C565 297 582 296 590 303 C601 300 612 309 614 320 C629 326 633 338 628 349 C637 363 629 375 614 382 L592 394 Z"/>
+      <!-- Neck, ears, head and hairline -->
+      <path d="M313 322 L316 293 C307 283 299 266 296 247 C288 249 282 242 280 232 C277 217 285 209 292 214 C289 186 301 163 323 152 C347 139 378 142 399 157 C420 174 423 194 420 214 C428 207 437 217 434 230 C433 244 425 252 417 249 C415 275 404 292 390 302 L393 327 C370 350 339 356 313 322 Z"/>
+      <path d="M292 214 C288 197 292 172 302 161 Q292 167 297 150 Q313 127 337 135 Q350 123 367 132 Q389 126 408 149 Q428 164 421 189 L419 214 Q410 199 409 178 Q398 186 381 168 Q366 174 350 162 Q336 176 317 169 Q308 184 305 205 Z"/>
+    </g>
+  </defs>
+
+  <!-- Layer 1: card fill and graphics; all contents clipped into the decorative frame. -->
+  <g id="card-background" clip-path="url(#card-clip)">
+    <use href="#card-outline" fill="url(#base)"/>
+    <path d="M174 0 L695 0 L695 532 C610 520 561 531 500 518 C372 482 290 366 236 208 Z" fill="#a53804" opacity=".43"/>
+    <g clip-path="url(#stripe-zone)" opacity=".97">
+      <path d="M168 48 L707 -95 M177 84 L711 -58 M187 120 L715 -21 M200 156 L718 16 M213 192 L720 53 M226 228 L722 90 M239 264 L726 127 M253 300 L730 164 M267 336 L733 201 M281 372 L737 238 M295 408 L741 275 M309 444 L745 312 M323 480 L749 349 M337 516 L752 386 M351 552 L755 423" fill="none" stroke="url(#cerise)" stroke-width="22"/>
+      <path d="M334 -5 C402 106 482 -27 544 62 S637 178 701 86 M348 32 C416 143 496 10 558 99 S651 215 715 123" fill="none" stroke="#ffdb6b" stroke-opacity=".26" stroke-width="4"/>
+    </g>
+    <!-- Dark left-side field for future rating/role overlays. -->
+    <path d="M0 80 L185 0 L315 348 L285 685 L0 712 Z" fill="#101114" opacity=".86"/>
+    <path d="M0 85 L175 0 L306 351 L270 692 L0 712 Z" fill="url(#fine-lines)"/>
+    <rect x="0" y="0" width="692" height="1024" fill="url(#spot)"/>
+    <!-- Deliberately subtle geometric panels, behind the figure. -->
+    <g fill="none" stroke="#ef9b35" opacity=".12" stroke-width="1.5">
+      <path d="M83 334 L145 299 L208 334 L208 405 L145 440 L83 405 Z M94 343 L145 313 L197 343 L197 397 L145 425 L94 397 Z"/>
+      <path d="M472 531 L538 494 L604 531 L604 606 L538 645 L472 606 Z M483 540 L538 509 L593 540 L593 598 L538 630 L483 598 Z"/>
+      <path d="M66 554 L121 521 L177 554 L177 617 L121 649 L66 617 Z"/>
+    </g>
+    <rect width="692" height="1024" fill="url(#microtexture)"/>
+
+    <!-- Layer 2: the editable standalone player silhouette. -->
+    <g id="footballer-silhouette" transform="translate(372 100) scale(0.73) translate(-380 -127)">
+      <use href="#player-shape" fill="#ff7a00" opacity=".21" transform="translate(-7 1)" filter="url(#soft-glow)"/>
+      <use href="#player-shape" fill="#ffca50" opacity=".22" transform="translate(7 2)" filter="url(#soft-glow)"/>
+      <use href="#player-shape" fill="#ffffff" stroke="#ffe9d2" stroke-opacity=".25" stroke-width="2" stroke-linejoin="round"/>
+      
+      
+    </g>
+
+    <!-- Layer 3: decorative lower zone, with no numbers or placeholders. -->
+    <path d="M0 603 H692 V1024 H0 Z" fill="url(#fade-bottom)"/>
+    <g id="lower-ribbon" clip-path="url(#bottom-zone)">
+      <rect x="0" y="641" width="692" height="383" fill="url(#base)"/>
+      <path d="M-128 1060 L179 689 L276 715 L-36 1100 Z M79 1115 L396 775 L491 799 L181 1139 Z M291 1158 L591 824 L690 845 L391 1194 Z M518 1212 L770 931 L840 963 L612 1234 Z" fill="url(#cerise)" opacity=".70"/>
+      <path d="M-110 1028 L167 699 M95 1097 L389 783 M318 1131 L597 837" fill="none" stroke="#ffd493" stroke-width="2" stroke-opacity=".30"/>
+      <rect x="0" y="638" width="692" height="386" fill="url(#microtexture)"/>
+    </g>
+    <!-- Available space for website-controlled stats and labels; SVG intentionally contains none. -->
+  </g>
+
+  <!-- Layer 4: outside borders; never clip away their thickness. -->
+  <use href="#card-outline" fill="none" stroke="#ffad26" stroke-width="10" stroke-linejoin="round"/>
+  <use href="#card-outline" fill="none" stroke="#ffd273" stroke-width="5.7" stroke-linejoin="round" transform="translate(0 0)"/>
+  <use href="#card-outline" fill="none" stroke="#fff0ca" stroke-opacity=".84" stroke-width="2.2" stroke-linejoin="round"/>
+</svg>
