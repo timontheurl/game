@@ -41,7 +41,7 @@ export interface ManualPlayer {
 
 export interface ManualSeasonFile {
   version: 1;
-  slug: string; // z. B. "oesterreich-bundesliga-2025-26"
+  slug: string; // z. B. "oesterreich-bundesliga-2026-27"
   name: string;
   country: string;
   season: string;
@@ -51,7 +51,8 @@ export interface ManualSeasonFile {
   players: Record<string, ManualPlayer>;
 }
 
-export const AUSTRIA_TEAMS_2025_26 = [
+// Teams der aktuellen Saison 2026/27 (Aufsteiger Austria Lustenau statt Blau-Weiß Linz)
+export const AUSTRIA_TEAMS_2026_27 = [
   "Red Bull Salzburg",
   "Sturm Graz",
   "LASK",
@@ -63,17 +64,19 @@ export const AUSTRIA_TEAMS_2025_26 = [
   "SCR Altach",
   "WSG Tirol",
   "GAK",
-  "Blau-Weiß Linz",
+  "Austria Lustenau",
 ];
+
+export const CURRENT_SLUG = "oesterreich-bundesliga-2026-27";
 
 export function emptySeason(): ManualSeasonFile {
   return {
     version: 1,
-    slug: "oesterreich-bundesliga-2025-26",
+    slug: CURRENT_SLUG,
     name: "Österreichische Bundesliga",
     country: "Österreich",
-    season: "2025/26",
-    teams: [...AUSTRIA_TEAMS_2025_26],
+    season: "2026/27",
+    teams: [...AUSTRIA_TEAMS_2026_27],
     matches: [],
     goals: [],
     players: {},

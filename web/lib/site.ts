@@ -20,6 +20,14 @@ export const SITE = {
   },
 };
 
+// Erfassung: Hier speichert /erfassen die händisch erfassten Saisons (direkt ins Repository).
+export const DATA_REPO = {
+  owner: "timontheurl",
+  repo: "game",
+  branch: "main",
+  dir: "web/data/manual",
+};
+
 export function filled(value: string) {
   return value.trim().length > 0;
 }

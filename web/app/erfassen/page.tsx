@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ManualEditor from "@/components/ManualEditor";
+import DataDesk from "@/components/DataDesk";
 
 export const metadata: Metadata = {
   title: "Erfassen",
@@ -12,20 +12,21 @@ export default function ErfassenPage() {
       <section className="page-intro">
         <h1>Erfassen</h1>
         <p>
-          Hier werden Tore mit Assist und Pre-Assist von Hand erfasst – z. B. für die österreichische Bundesliga. Alles
-          bleibt in diesem Browser gespeichert, bis du es exportierst.
+          Tore mit Assist und Pre-Assist der österreichischen Bundesliga 2026/27 eintragen. Nach dem Anmelden werden die
+          Daten mit einem Klick veröffentlicht; die Website aktualisiert sich danach automatisch.
         </p>
       </section>
       <section className="section">
         <ol className="howto">
+          <li>Einmalig je Team den Kader einfügen (unten bei „Kader eintragen“).</li>
           <li>Spiel anlegen, dann je Tor Minute, Torschütze, Assist und Pre-Assist eintragen.</li>
           <li>Auf dem Spielfeld nacheinander anklicken, wo Pre-Assist, Vorlage und Abschluss waren (Angriff nach rechts).</li>
           <li>
-            <b>Exportieren</b> und die Datei auf GitHub nach <code>web/data/manual/</code> hochladen – nach dem nächsten
-            Build steht die Liga mit Ranglisten, Karten und Spielzügen online.
+            <b>Veröffentlichen</b> klicken – nach etwa 5 Minuten stehen Ranglisten, Karten und Spielzüge online. Bis dahin
+            bleibt alles auf diesem Gerät gespeichert.
           </li>
         </ol>
-        <ManualEditor />
+        <DataDesk />
       </section>
     </>
   );
