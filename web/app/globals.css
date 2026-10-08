@@ -3922,30 +3922,28 @@ td.name a {
 
 /* ---------- Vereine: Globus und Ligen ---------- */
 
+/* Die Kugel liegt als Ebene hinter dem ganzen Bereich; beim Zoomen wächst sie unter die Liste */
 .clubs-explorer {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
   gap: 32px;
   align-items: start;
+  min-height: 680px;
 }
 
-.clubs-map {
-  position: sticky;
-  top: 84px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.globe-wrap {
-  position: relative;
+.globe-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  /* sanft ausblenden statt harter Kante */
+  mask-image: linear-gradient(to bottom, #000 80%, transparent), linear-gradient(to right, #000 92%, transparent);
+  mask-composite: intersect;
 }
 
 .globe {
   display: block;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
   touch-action: none;
   cursor: grab;
   user-select: none;
@@ -3953,6 +3951,25 @@ td.name a {
 
 .globe:active {
   cursor: grabbing;
+}
+
+.clubs-map {
+  position: relative;
+  z-index: 1;
+  min-height: 680px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.clubs-map > * {
+  pointer-events: auto;
+}
+
+.clubs-list {
+  position: relative;
+  z-index: 2;
 }
 
 .globe-sphere {
@@ -4028,8 +4045,8 @@ td.name a {
 
 .globe-tip {
   position: absolute;
-  left: 50%;
-  bottom: 12px;
+  top: 54px;
+  z-index: 3;
   translate: -50% 0;
   padding: 6px 12px;
   border-radius: 999px;
@@ -4043,7 +4060,8 @@ td.name a {
 .globe-tools {
   position: absolute;
   top: 6px;
-  right: 6px;
+  left: 0;
+  z-index: 3;
   display: flex;
   gap: 6px;
 }
@@ -4053,15 +4071,29 @@ td.name a {
   justify-content: center;
 }
 
-.globe {
-  border-radius: 50%;
-}
+
 
 .country-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
+  padding-bottom: 8px;
+}
+
+.country-chips .pill:not(.is-active) {
+  background: rgba(20, 21, 25, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+/* Ligen leicht durchscheinend, die Kugel bleibt dahinter sichtbar */
+.clubs-list .league-acc {
+  background: rgba(18, 20, 23, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.clubs-list .league-acc[open] {
+  background: rgba(18, 20, 23, 0.86);
 }
 
 .country-chips .pill {
@@ -4178,18 +4210,27 @@ td.name a {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .clubs-explorer {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  /* Am Handy: Kugel in einem Streifen oben, Liste darunter */
+  .globe-layer {
+    position: relative;
+    inset: auto;
+    height: 380px;
+    margin: 0 -16px;
   }
 
   .clubs-map {
-    position: static;
+    min-height: 0;
   }
 
-  .globe {
-    max-width: 340px;
+  .globe-tools {
+    left: 16px;
   }
 
   .clubs-list {
@@ -4200,6 +4241,7 @@ td.name a {
     display: none;
   }
 }
+
 
 /* ---------- Spielerseite: Gesamtprofil, Karriere, Saison-Filter ---------- */
 
