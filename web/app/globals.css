@@ -120,16 +120,27 @@ h3 {
 
 .brand {
   display: flex;
-  color: var(--accent);
+  color: #000;
 }
 
 .brand:hover {
-  color: var(--assist);
+  color: #000;
 }
 
+/* Schwarzes Logo im orangen Kästchen */
 .brand-mark {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--accent);
+  overflow: hidden;
+  --logo-ball: #fff;
+  transition: background 0.15s ease;
+}
+
+.brand:hover .brand-mark {
+  background: #ff9440;
 }
 
 .mainnav {
