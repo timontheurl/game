@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { arrowHead, shorten } from "@/lib/geom";
-import { pick, url, type Lang } from "@/lib/i18n";
+import { countryName, pick, url, type Lang } from "@/lib/i18n";
 import {
   POINTS,
   classify,
@@ -105,6 +105,15 @@ async function newDeck(index: SceneIndex[], filter: string): Promise<Round[]> {
 
 const ALL = "alle";
 
+/** „Heim – Gast“; Nationalteams in der Sprache der Seite */
+function sceneTitle(scene: Scene, lang: Lang) {
+  const m = scene.meta;
+  if (!m) return scene.title[lang];
+  const home = countryName(m.homeCode ?? null, m.home, lang) ?? m.home;
+  const away = countryName(m.awayCode ?? null, m.away, lang) ?? m.away;
+  return `${home} – ${away}`;
+}
+
 const BEST_KEY = "preassists-spiel-pre-assist";
 
 function loadBestScore() {
@@ -185,7 +194,8 @@ function frame(scene: Scene, r: Run | null, t: number) {
  * mit etwas Rand. So ist das Geschehen am Handy deutlich größer als mit der ganzen Hälfte.
  */
 function sceneView(scene: Scene): [number, number, number] {
-  const pts: Pt[] = [...Object.values(startPositions(scene)), [121.6, 36], [121.6, 44]];
+  // Nur das Geschehen zählt: du, alle Laufwege und Pässe der Optionen und das Tor
+  const pts: Pt[] = [scene.you, [121.6, 36], [121.6, 44]];
   for (const o of scene.options) {
     const r = run(scene, o);
     for (const seg of r.segments) {
@@ -200,12 +210,12 @@ function sceneView(scene: Scene): [number, number, number] {
   const maxX = Math.max(...xs) + pad - 3; // hinter dem Tor reicht weniger Rand
   const minY = Math.min(...ys) - pad;
   const maxY = Math.max(...ys) + pad;
-  const size = Math.min(88, Math.max(52, maxX - minX, maxY - minY));
+  const size = Math.min(124, Math.max(52, maxX - minX, maxY - minY));
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
   const clamp = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
   const x0 = clamp(cx - size / 2, -2, 124 - size);
-  const y0 = clamp(cy - size / 2, -4, 84 - size);
+  const y0 = size >= 88 ? 40 - size / 2 : clamp(cy - size / 2, -4, 84 - size);
   return [x0, y0, size];
 }
 
@@ -401,11 +411,6 @@ function PassPitch({
                 {id}
               </text>
             )}
-            {!opp && names[id] && (
-              <text y={4.4} textAnchor="middle" className="pg-name">
-                {names[id]}
-              </text>
-            )}
           </g>
         );
       })}
@@ -415,10 +420,16 @@ function PassPitch({
         <text y={0.6} textAnchor="middle">
           {pick(lang, "DU", "YOU")}
         </text>
-        {names.you && (
-          <text y={4.7} textAnchor="middle" className="pg-name is-you">
-            {names.you}
-          </text>
+      </g>
+
+      {/* Namen über allen Punkten, damit kein Gegner sie verdeckt */}
+      <g className="pg-names" aria-hidden="true">
+        {Object.entries(pos).map(([id, p]) =>
+          !isOpp(id) && names[id] ? (
+            <text key={id} x={p[0]} y={p[1] + (id === "you" ? 4.7 : 4.4)} textAnchor="middle" className={`pg-name ${id === "you" ? "is-you" : ""}`}>
+              {names[id]}
+            </text>
+          ) : null,
         )}
       </g>
 
@@ -484,12 +495,33 @@ export default function PassGame({ lang }: { lang: Lang }) {
   const raf = useRef(0);
   const focusChoices = useRef(false);
   const questionRef = useRef<HTMLParagraphElement>(null);
+  // Hervorhebung erst nach echter Mausbewegung – sonst wirkt die Option unter dem Zeiger wie vorgewählt
+  const moved = useRef(false);
+  const hoverIf = useCallback((oi: number | null) => {
+    if (oi === null || moved.current) setHover(oi);
+  }, []);
   const boxRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const skipRef = useRef<HTMLButtonElement>(null);
   const finalRef = useRef<HTMLHeadingElement>(null);
   const choicesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let last: [number, number] | null = null;
+    const onMove = (e: PointerEvent) => {
+      if (last && Math.hypot(e.clientX - last[0], e.clientY - last[1]) > 3) moved.current = true;
+      last = [e.clientX, e.clientY];
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
+  useEffect(() => {
+    if (phase === "choose") {
+      moved.current = false;
+      setHover(null);
+    }
+  }, [phase, idx]);
 
   // Szenen-Übersicht laden; Zufall erst im Browser – sonst passt das vorgerenderte HTML nicht
   useEffect(() => {
@@ -703,7 +735,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
 
       <div className="pg-layout">
         <div className="pg-intro">
-          <span className="league-kicker">{scene.title[lang]}</span>
+          <span className="league-kicker">{sceneTitle(scene, lang)}</span>
           <p className="pg-setup">{scene.setup[lang]}</p>
         </div>
 
@@ -715,7 +747,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
             order={round.order}
             phase={phase}
             hover={hover}
-            setHover={setHover}
+            setHover={hoverIf}
             onPick={pickOption}
             r={r}
             result={result}
@@ -758,7 +790,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
                     type="button"
                     className={`pg-choice ${hover === oi ? "is-active" : ""}`}
                     onClick={() => pickOption(oi)}
-                    onMouseEnter={() => setHover(oi)}
+                    onMouseEnter={() => hoverIf(oi)}
                     onMouseLeave={() => setHover(null)}
                     onFocus={(e) => e.currentTarget.matches(":focus-visible") && setHover(oi)}
                     onBlur={() => setHover(null)}
@@ -854,7 +886,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
             {played.map((p, i) => (
               <li key={i} className={`is-${VERDICT[p.outcome].tone}`}>
                 <span>
-                  {p.scene.title[lang]}
+                  {sceneTitle(p.scene, lang)}
                   {p.scene.meta && <small> · {p.scene.meta.minute}</small>}
                 </span>
                 <span>

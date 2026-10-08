@@ -20,7 +20,7 @@ PLAYERS = {
 META = {
     "slug": "test", "competition": "Premier League", "season": "2015/16",
     "home": "Arsenal", "away": "Leicester City", "home_id": 1, "away_id": 2,
-    "home_score": 2, "away_score": 1, "date": "2016-02-14", "teams": {"1": "Arsenal", "2": "Leicester City"},
+    "home_score": 2, "away_score": 1, "date": "2016-02-14", "teams": {"1": "Arsenal", "2": "Leicester City"}, "codes": {},
 }
 
 

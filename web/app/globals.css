@@ -4895,8 +4895,8 @@ td.name a {
     background 0.12s ease;
 }
 
-.pg-choice:hover,
-.pg-choice.is-active {
+.pg-choice.is-active,
+.pg-choice:focus-visible {
   border-color: var(--accent);
   background: var(--surface-2);
 }
@@ -5285,7 +5285,7 @@ td.name a {
 
 /* Echte Szenen: Namen, Bewerbsauswahl, „So lief es wirklich“ */
 .pg-name {
-  font-family: var(--body, inherit);
+  font-family: var(--font-body), system-ui, sans-serif;
   font-size: 1.75px;
   font-weight: 700;
   fill: #f3f4f6;
@@ -5296,14 +5296,7 @@ td.name a {
   pointer-events: none;
 }
 
-.pg-player .pg-name {
-  font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 1.75px;
-  font-weight: 700;
-  fill: #f3f4f6;
-}
-
-.pg-player .pg-name.is-you {
+.pg-names .pg-name.is-you {
   fill: var(--accent);
 }
 

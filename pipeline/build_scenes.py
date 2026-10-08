@@ -299,27 +299,30 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         else:
             opps[ref[1]] = p
 
-    for _ in range(12):
-        for n, ref in enumerate(movable):
-            p = get(ref)
-            others_now = [you] + [mates[k] for k in fixed if k != "you"] + [opps[0]] + [get(r) for r in movable if r != ref]
-            for q in others_now:
-                d = dist(p, q)
-                if d >= 3.0:
-                    continue
-                if d < 0.01:
-                    # genau übereinander: in eine feste, je Spieler andere Richtung schieben
-                    a = math.radians(n * 137.5)
-                    ux, uy = math.cos(a), math.sin(a)
-                else:
-                    ux, uy = (p[0] - q[0]) / d, (p[1] - q[1]) / d
-                p = [p[0] + ux * (3.0 - d), p[1] + uy * (3.0 - d)]
-                # am Rand nicht hinausschieben, sondern entlang der Linie ausweichen
-                if not (0.5 <= p[0] <= 120 and 0.5 <= p[1] <= 79.5):
-                    p = clamp_pitch(p)
-                    p = [p[0] - uy * 1.5, p[1] + ux * 1.5]
-                p = clamp_pitch(p)
+    # Wer zu nah an jemandem steht, rückt auf den nächsten freien Platz im Umkreis
+    placed: list[Pt] = [you] + [mates[k] for k in fixed if k != "you"] + [opps[0]]
+
+    def room(p) -> float:
+        return min((dist(p, q) for q in placed), default=99.0)
+
+    for ref in movable:
+        p = get(ref)
+        if room(p) < 3.0:
+            best_p, best_r = p, room(p)
+            for radius in (3.2, 4.5, 6.0, 8.0):
+                for step in range(16):
+                    a = math.radians(step * 22.5)
+                    c = [p[0] + math.cos(a) * radius, p[1] + math.sin(a) * radius]
+                    if not (0.5 <= c[0] <= 120 and 0.5 <= c[1] <= 79.5):
+                        continue
+                    r_ = room(c)
+                    if r_ > best_r:
+                        best_p, best_r = c, r_
+                if best_r >= 3.0:
+                    break
+            p = clamp_pitch(best_p)
             put(ref, p)
+        placed.append(p)
 
     pos = {"you": you, **mates}
     for i, o in enumerate(opps):
@@ -500,6 +503,11 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         "names": names,
         "meta": {
             "competition": {"de": comp_de, "en": comp_en},
+            "home": home,
+            "away": away,
+            # Nationalteams: Flaggen-Code, die Website zeigt daraus den Ländernamen in ihrer Sprache
+            **({"homeCode": meta["codes"][str(meta["home_id"])]} if str(meta["home_id"]) in meta["codes"] else {}),
+            **({"awayCode": meta["codes"][str(meta["away_id"])]} if str(meta["away_id"]) in meta["codes"] else {}),
             "date": meta["date"],
             "minute": when,
             "team": meta["teams"].get(str(g["team"]), ""),
@@ -545,6 +553,7 @@ def build_season_scenes(cfg: dict) -> list[dict]:
             "home_id": m["home"], "away_id": m["away"],
             "home_score": m["home_score"], "away_score": m["away_score"],
             "date": m["date"], "teams": teams,
+            "codes": {tid: c["code"] for tid, c in (season.get("teamCodes") or {}).items()},
         }
         for gid in sorted(by_match[mid]):
             g = data["goals"].get(gid)

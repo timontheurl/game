@@ -39,6 +39,11 @@ export interface Option {
 /** Spiel, aus dem eine echte Szene stammt */
 export interface SceneMeta {
   competition: Text;
+  home: string;
+  away: string;
+  /** Flaggen-Codes bei Nationalteams – die Seite zeigt daraus den Ländernamen in ihrer Sprache */
+  homeCode?: string;
+  awayCode?: string;
   date: string;
   minute: string; // wie auf der Website: 38', 45+2'
   team: string; // angreifendes Team
