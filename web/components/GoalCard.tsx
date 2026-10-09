@@ -3,6 +3,7 @@ import Pitch from "./Pitch";
 import ShareButton from "./ShareButton";
 import { describePass, formatClock, playerSlug, seasonLabel, type Goal, type Season } from "@/lib/data";
 import { LOCALE, num, passLabel, t, url, type Lang } from "@/lib/i18n";
+import { isOneTwo } from "@/lib/oneTwo";
 
 function PlayerName({ season, id, lang }: { season: Season; id: number; lang: Lang }) {
   const name = season.names[String(id)] ?? t(lang, "common.unknown");
@@ -43,6 +44,11 @@ export default function GoalCard({
         <span className="goal-meta">
           {date} · {formatClock(goal.period, goal.minute)} · {season.teams[String(goal.team)]}
         </span>
+        {isOneTwo(goal) && (
+          <span className="tag-onetwo" title={t(lang, "common.oneTwoNote", { name: season.names[String(goal.scorer)] ?? "" })}>
+            {t(lang, "common.oneTwo")}
+          </span>
+        )}
       </header>
       <Pitch goal={goal} lang={lang} />
       <ol className="chain">

@@ -265,6 +265,72 @@ export async function renderPlayerImage(p: PlayerShareInput, lang: Lang = "de"):
   return toBlob(el);
 }
 
+export interface ChallengeShareInput {
+  game: string; // z. B. „Finde den Pre-Assist“
+  score: string; // „17/24“ oder „12“
+  label: string; // „Punkte“ / „Serie“
+  verdict: string; // kurze Einordnung
+  boxes?: ("win" | "half" | "miss")[];
+  name?: string;
+  cta: string; // „Kannst du mich schlagen?“
+}
+
+/** Ergebnisbild für Duelle unter Freunden */
+export async function renderChallengeImage(p: ChallengeShareInput): Promise<Blob> {
+  await loadFonts();
+  const [el, ctx] = canvas();
+  frame(ctx);
+  ctx.textAlign = "center";
+  const cx = SHARE_W / 2;
+
+  ctx.fillStyle = C.orange;
+  ctx.font = "700 40px ShareCondensed";
+  ctx.fillText(p.game.toUpperCase(), cx, 250);
+  if (p.name) {
+    ctx.fillStyle = C.text;
+    fitText(ctx, p.name.toUpperCase(), (n) => `italic 800 ${n}px ShareDisplay`, 84, SHARE_W - 160);
+    ctx.fillText(p.name.toUpperCase(), cx, 340);
+  }
+
+  ctx.strokeStyle = C.orange;
+  ctx.lineWidth = 6;
+  roundRect(ctx, 64, 400, SHARE_W - 128, 420, 28);
+  const grad = ctx.createLinearGradient(0, 400, 0, 820);
+  grad.addColorStop(0, "rgba(255,122,26,0.28)");
+  grad.addColorStop(1, "rgba(20,20,24,0.9)");
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = C.orange;
+  fitText(ctx, p.score, (n) => `italic 800 ${n}px ShareDisplay`, 260, SHARE_W - 200);
+  ctx.fillText(p.score, cx, 690);
+  ctx.fillStyle = C.peach;
+  ctx.font = "700 46px ShareCondensed";
+  ctx.fillText(p.label.toUpperCase(), cx, 775);
+
+  ctx.fillStyle = C.text;
+  fitText(ctx, p.verdict, (n) => `700 ${n}px ShareCondensed`, 54, SHARE_W - 160);
+  ctx.fillText(p.verdict, cx, 905);
+
+  if (p.boxes?.length) {
+    const size = 84;
+    const gap = 18;
+    const total = p.boxes.length * size + (p.boxes.length - 1) * gap;
+    const colors = { win: "#3ecf8e", half: C.peach, miss: "#3a3f47" };
+    p.boxes.forEach((b, i) => {
+      ctx.fillStyle = colors[b];
+      roundRect(ctx, cx - total / 2 + i * (size + gap), 960, size, size, 14);
+      ctx.fill();
+    });
+  }
+
+  ctx.fillStyle = C.orange;
+  fitText(ctx, p.cta, (n) => `italic 800 ${n}px ShareDisplay`, 76, SHARE_W - 160);
+  ctx.fillText(p.cta, cx, 1180);
+  ctx.textAlign = "left";
+  return toBlob(el);
+}
+
 function toBlob(el: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => el.toBlob((b) => (b ? resolve(b) : reject(new Error("Bild fehlgeschlagen"))), "image/png"));
 }

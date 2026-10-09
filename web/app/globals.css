@@ -5435,3 +5435,132 @@ td.name a {
 .pg-final-list small {
   color: var(--muted);
 }
+
+/* Doppelpass-Tore */
+.tag-onetwo {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent) !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.goal-card header .tag-onetwo {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.onetwo-note {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 0.92rem;
+}
+
+.record-more {
+  display: inline-block;
+  margin-top: 12px;
+}
+
+/* Duell unter Freunden */
+.pg-duel {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: rgba(255, 122, 26, 0.08);
+  font-weight: 600;
+}
+
+.pg-duel b {
+  color: var(--accent);
+}
+
+.pg-duel-result {
+  margin: 4px 0 18px;
+}
+
+.pg-duel-score {
+  display: inline-block;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+}
+
+.pg-duel-score b {
+  color: var(--accent);
+  font-size: 2.2rem;
+}
+
+.pg-duel-result.is-win p {
+  color: #3ecf8e;
+}
+
+.pg-duel-result.is-lose p {
+  color: #ff6b6b;
+}
+
+.pg-duel-result p {
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+.pg-duel-them {
+  color: var(--muted);
+}
+
+.challenge-share {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.challenge-title {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.challenge-hint {
+  margin: 4px 0 12px;
+  color: var(--muted);
+}
+
+.challenge-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.challenge-name input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 20rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg, #121417);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.challenge-error {
+  margin: 10px 0 0;
+  color: #ff6b6b;
+}

@@ -8,6 +8,7 @@ import { describePass, formatClock } from "@/lib/cards";
 import { LOCALE, num, passLabel, t as tr, url, type Lang } from "@/lib/i18n";
 import type { ChainData } from "@/app/daten/[file]/route";
 import type { Goal } from "@/lib/data";
+import { isOneTwo } from "@/lib/oneTwo";
 import LogoLoader from "./LogoLoader";
 
 type Sort = "datum" | "xg" | "laenge";
@@ -27,6 +28,7 @@ export default function ChainExplorer({
   const [team, setTeam] = useState("alle");
   const [passType, setPassType] = useState("alle");
   const [onlyPre, setOnlyPre] = useState(true);
+  const [oneTwo, setOneTwo] = useState(false);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("datum");
   const [limit, setLimit] = useState(PAGE);
@@ -39,6 +41,7 @@ export default function ChainExplorer({
     if (liga && seasons.some((s) => s.slug === liga)) setSlug(liga);
     const tor = params.get("tor");
     if (tor) setSelected(tor);
+    if (params.get("doppelpass") === "1") setOneTwo(true);
   }, [seasons]);
 
   useEffect(() => {
@@ -71,6 +74,7 @@ export default function ChainExplorer({
     const q = query.trim().toLowerCase();
     const list = data.goals.filter((g) => {
       if (onlyPre && !g.pre) return false;
+      if (oneTwo && !isOneTwo(g)) return false;
       if (team !== "alle" && String(g.team) !== team) return false;
       if (passType !== "alle" && (!g.pre || describePass(g.pre) !== passType)) return false;
       if (q) {
@@ -87,9 +91,17 @@ export default function ChainExplorer({
           ? passLength(b) - passLength(a)
           : date(b).localeCompare(date(a)) || b.minute - a.minute,
     );
-  }, [data, onlyPre, team, passType, query, sort]);
+  }, [data, onlyPre, oneTwo, team, passType, query, sort]);
 
-  useEffect(() => setLimit(PAGE), [slug, team, passType, onlyPre, query, sort]);
+  useEffect(() => setLimit(PAGE), [slug, team, passType, onlyPre, oneTwo, query, sort]);
+
+  const toggleOneTwo = (on: boolean) => {
+    setOneTwo(on);
+    const u = new URL(window.location.href);
+    if (on) u.searchParams.set("doppelpass", "1");
+    else u.searchParams.delete("doppelpass");
+    window.history.replaceState(null, "", u);
+  };
 
   const current = goals.find((g) => g.id === selected) ?? goals[0];
 
@@ -163,6 +175,10 @@ export default function ChainExplorer({
           <input type="checkbox" checked={onlyPre} onChange={(e) => setOnlyPre(e.target.checked)} />
           {tr(lang, "ex.onlyPre")}
         </label>
+        <label className="toggle">
+          <input type="checkbox" checked={oneTwo} onChange={(e) => toggleOneTwo(e.target.checked)} />
+          {tr(lang, "ex.oneTwo")}
+        </label>
       </div>
 
       {!data ? (
@@ -204,6 +220,7 @@ export default function ChainExplorer({
                         <span className="c-goal">{name(g.scorer)}</span>
                       </span>
                       <span className="ci-tags">
+                        {isOneTwo(g) && <span className="tag-onetwo">{tr(lang, "common.oneTwo")}</span>}
                         {g.pre && <span>{passLabel(lang, describePass(g.pre))}</span>}
                         <span>xG {num(lang, g.xg, 2)}</span>
                       </span>
@@ -230,6 +247,7 @@ export default function ChainExplorer({
                     return `${new Date(m.date).toLocaleDateString(LOCALE[lang])} · ${data.teams[String(m.home)]} ${m.home_score}:${m.away_score} ${data.teams[String(m.away)]} · ${formatClock(current.period, current.minute)}`;
                   })()}
                 </p>
+                {isOneTwo(current) && <p className="onetwo-note">{tr(lang, "common.oneTwoNote", { name: name(current.scorer) })}</p>}
                 <ol className="chain">
                   {current.pre && (
                     <li className="chain-step pre">
