@@ -8,7 +8,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classify, isOpp, letterSpots, mirror, optionTarget, run, startPositions } from "../lib/passGame.ts";
+import { classify, inView, isOpp, mirror, optionTarget, run, sceneView, startPositions } from "../lib/passGame.ts";
 import type { Actor, Option, Outcome, Pt, Scene, Step } from "../lib/passGame.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -99,6 +99,14 @@ function checkScene(file: string, s: Scene) {
   text(`${w} title`, s.title, real ? 80 : 40, !real);
   text(`${w} setup`, s.setup, real ? 240 : 190, !real);
   if (real && !s.names?.you) errors.push(`${w}: echter Szene fehlt der Name des Vorbereiters (names.you)`);
+  if (s.names) {
+    const seen = new Map<string, string>();
+    for (const [k, n] of Object.entries(s.names)) {
+      if (seen.has(n)) errors.push(`${w}: Name „${n}“ steht für ${seen.get(n)} und ${k} – nicht unterscheidbar`);
+      seen.set(n, k);
+      if (k !== "you" && !(k in s.mates)) errors.push(`${w}: Name für ${k}, aber kein solcher Mitspieler`);
+    }
+  }
   if (s.restart !== undefined && !["corner", "throw-in", "free-kick"].includes(s.restart))
     errors.push(`${w}: restart muss corner, throw-in oder free-kick sein`);
   if (!inPitch(s.you)) errors.push(`${w}: „you“ außerhalb der gezeigten Hälfte (x 40–120, y 0–80)`);
@@ -166,21 +174,21 @@ function checkScene(file: string, s: Scene) {
   if (pre !== 1) errors.push(`${w}: genau eine Option muss ein Pre-Assist sein (gefunden: ${pre})`);
   if (new Set(outcomes).size < 3) warnings.push(`${w}: nur ${new Set(outcomes).size} verschiedene Ausgänge – abwechslungsreicher ist besser`);
 
-  // Echte Szenen werden nicht gespiegelt, ihre Positionen sind gemessen – hier endet die Prüfung
-  if (real) return;
-
-  // Buchstaben A–D dürfen niemanden verdecken – in beiden Spiegelungen
-  for (const v of [s, mirror(s)]) {
-    const targets = v.options.map((o) => optionTarget(v, o).at);
-    const spots = letterSpots(v, targets);
-    const players = Object.entries(startPositions(v));
-    spots.forEach((p, i) => {
-      for (const [id, q] of players) {
-        const gap = d(p, q);
-        if (gap < 2.8) warnings.push(`${w}${v === s ? "" : " (gespiegelt)"}: Buchstabe ${String.fromCharCode(65 + i)} verdeckt fast ${id} (${gap.toFixed(1)})`);
-      }
+  // Du und jedes Ziel (dort stehen im Spiel die Buchstaben A–D) müssen im Ausschnitt liegen – in beiden Spiegelungen
+  for (const v of real ? [s] : [s, mirror(s)]) {
+    const view = sceneView(v);
+    if (!view.every(Number.isFinite)) errors.push(`${w}: Ausschnitt ist ungültig (${view.join(", ")})`);
+    if (!inView(view, v.you, 2.4)) errors.push(`${w}${v === s ? "" : " (gespiegelt)"}: du stehst außerhalb des Ausschnitts`);
+    v.options.forEach((o, i) => {
+      const t = optionTarget(v, o);
+      if (!t.at || !inView(view, t.at, 2.4))
+        errors.push(`${w}${v === s ? "" : " (gespiegelt)"}: Ziel von Option ${i + 1} (${t.who}) liegt außerhalb des Ausschnitts`);
+      if (isOpp(t.who) || t.who === "you") errors.push(`${w}: Option ${i + 1} zielt nicht auf einen Mitspieler (${t.who})`);
     });
   }
+
+  // Echte Szenen werden nicht gespiegelt, ihre Positionen sind gemessen – hier endet die Prüfung
+  if (real) return;
 
   // Gespiegelt muss dasselbe herauskommen
   const m = mirror(s);

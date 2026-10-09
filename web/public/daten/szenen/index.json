@@ -5,7 +5,7 @@
    "de": "Bundesliga 2023/24",
    "en": "Bundesliga 2023/24"
   },
-  "count": 54
+  "count": 51
  },
  {
   "slug": "premier-league-2015-16",
@@ -13,7 +13,7 @@
    "de": "Premier League 2015/16",
    "en": "Premier League 2015/16"
   },
-  "count": 439
+  "count": 427
  },
  {
   "slug": "la-liga-2015-16",
@@ -21,7 +21,7 @@
    "de": "La Liga 2015/16",
    "en": "La Liga 2015/16"
   },
-  "count": 490
+  "count": 476
  },
  {
   "slug": "serie-a-2015-16",
@@ -29,7 +29,7 @@
    "de": "Serie A 2015/16",
    "en": "Serie A 2015/16"
   },
-  "count": 416
+  "count": 400
  },
  {
   "slug": "ligue-1-2015-16",
@@ -37,7 +37,7 @@
    "de": "Ligue 1 2015/16",
    "en": "Ligue 1 2015/16"
   },
-  "count": 397
+  "count": 385
  },
  {
   "slug": "frauen-bundesliga-2023-24",
@@ -45,7 +45,7 @@
    "de": "Frauen-Bundesliga 2023/24",
    "en": "Frauen-Bundesliga 2023/24"
   },
-  "count": 150
+  "count": 147
  },
  {
   "slug": "wm-2022",
@@ -53,7 +53,7 @@
    "de": "WM 2022",
    "en": "World Cup 2022"
   },
-  "count": 88
+  "count": 86
  },
  {
   "slug": "wm-2018",
@@ -61,7 +61,7 @@
    "de": "WM 2018",
    "en": "World Cup 2018"
   },
-  "count": 59
+  "count": 57
  },
  {
   "slug": "em-2024",
@@ -69,7 +69,7 @@
    "de": "EM 2024",
    "en": "Euro 2024"
   },
-  "count": 52
+  "count": 49
  },
  {
   "slug": "em-2020",
@@ -77,7 +77,7 @@
    "de": "EM 2020",
    "en": "Euro 2020"
   },
-  "count": 69
+  "count": 67
  },
  {
   "slug": "frauen-wm-2023",
@@ -85,6 +85,6 @@
    "de": "Frauen-WM 2023",
    "en": "Women's World Cup 2023"
   },
-  "count": 54
+  "count": 52
  }
 ]

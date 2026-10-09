@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -26,7 +27,7 @@ from build_data import OUT_DIR, ROOT, SEASONS, fetch_json, find_pre_assist  # no
 
 CACHE_DIR = Path(__file__).resolve().parent / ".cache" / "szenen"
 SCENE_DIR = ROOT / "web" / "public" / "daten" / "szenen"
-CACHE_VERSION = 4
+CACHE_VERSION = 5
 
 NAMES_EN = {
     "WM": "World Cup",
@@ -36,7 +37,34 @@ NAMES_EN = {
 }
 
 RESTART = {"Corner": "corner", "Throw-in": "throw-in", "Free Kick": "free-kick"}
-PARTICLES = {"van", "von", "de", "da", "dos", "das", "del", "der", "di", "du", "le", "la", "ter", "ten", "mac", "al", "el", "bin"}
+PARTICLES = {
+    "van", "von", "de", "den", "da", "dos", "das", "del", "der", "di", "du", "le", "la", "lo", "ter", "ten",
+    "mac", "al", "el", "bin", "ben", "abu", "aït", "san", "santa", "della", "dalla", "dal", "degli", "st", "st.",
+}
+SUFFIXES = {"jr", "jr.", "júnior", "junior", "filho", "neto", "ii", "iii"}
+# Koreanische Namen stehen bei StatsBomb oft Familienname zuerst („Son Heung-Min“)
+KOREAN = set("Son Ki Lee Kim Park Jung Hwang Cho Ji Choe Choi Jang Na Ju Yun Hong Kwon Paik Jeong Yoon Moon Ko Koo Oh Seo Shin Song Han Lim Kang Ryu Shim Woo Bae Yang Jo".split())
+# Spanischsprachige Namen: der erste Nachname ist der Rufname („Marco Asensio Willemsen“)
+SPANISH = {
+    "Spain", "Argentina", "Mexico", "Colombia", "Chile", "Uruguay", "Paraguay", "Peru", "Ecuador", "Venezuela",
+    "Bolivia", "Costa Rica", "Honduras", "Panama", "Guatemala", "El Salvador", "Cuba", "Dominican Republic",
+    "Nicaragua", "Equatorial Guinea",
+}
+# Bekannte Rufnamen, die sich aus dem vollen Namen nicht ableiten lassen
+OVERRIDES = {
+    "João Miranda de Souza Filho": "Miranda", "Anderson Hernanes de Carvalho Andrade": "Hernanes",
+    "Marco Asensio Willemsen": "Asensio", "Mauricio Ricardo Pinilla Ferreira": "Pinilla",
+    "Dieumerci Mbokani Bezua": "Mbokani", "Jacques Zoua Daogari": "Zoua",
+    "Théo Bongonda Mbul'Ofeko Batombo": "Bongonda", "Wanderson Maciel Sousa Campos": "Wanderson",
+    "Javier Hernández Balcázar": "Chicharito", "Yahia Attiyat allah": "Attiyat Allah",
+    "Andrei Burcă Andonie": "Burcă", "Jon Ansotegi Gorostola": "Ansotegi", "Jussiê Ferreira Vieira": "Jussiê",
+    "Beatriz Zaneratto João": "Bia Zaneratto", "Kerolin Nicoli Israel Ferraz": "Kerolin",
+    "Luana Bertolucci Paixão": "Luana", "Antonia Ronnycleide da Costa Silva": "Antônia",
+    "Lauren Eduarda Leal Costa": "Lauren", "Adriana Leal da Silva": "Adriana",
+    "Tamires Cássia Dias de Britto": "Tamires", "Leicy Maria Santos Herrera": "Leicy Santos",
+    "Ana María Guzmán Zapata": "Ana Guzmán", "Lorena Bedoya Durango": "Bedoya", "Randal Kolo": "Kolo Muani",
+    "Arthur Augusto de Matos Soares": "Arthur", "Vinícius José Paixão de Oliveira Júnior": "Vinícius",
+}
 
 Pt = list  # [x, y]
 
@@ -74,16 +102,33 @@ def angle_gap(a: float, b: float) -> float:
     return min(d, 360 - d)
 
 
-def short_name(name: str) -> str:
-    """„Mesut Özil“ -> „Özil“, „Virgil van Dijk“ -> „van Dijk“; Spitznamen bleiben."""
+def short_name(name: str, full: str | None = None, country: str | None = None) -> str:
+    """Rufname für das Spielfeld: „Mesut Özil“ -> „Özil“, „Virgil van Dijk“ -> „van Dijk“,
+    „Son Heung-Min“ -> „Son“, „Marco Asensio Willemsen“ -> „Asensio“, „Vinícius Júnior“ -> „Vinícius“."""
+    for n in (name, full):
+        if n and n in OVERRIDES:
+            return OVERRIDES[n]
     parts = name.split()
     if len(parts) <= 1:
         return name
+    # Koreanisch: Familienname vorn, Vorname mit Bindestrich
+    if len(parts) == 2 and parts[0] in KOREAN and ("-" in parts[1] or parts[1][:1].isupper()) and (
+            "-" in parts[1] or (full and full.split()[-1] == parts[0])):
+        return parts[0]
+    # Zusätze wie Júnior/Filho weglassen
+    if parts[-1].lower() in SUFFIXES:
+        rest = parts[:-1]
+        return rest[0] if len(rest) == 1 else short_name(" ".join(rest), None, country)
+    # Spanische Doppelnamen ohne Spitznamen: erster Nachname
+    if country in SPANISH and len(parts) >= 3 and parts[1].lower() not in PARTICLES and parts[-2].lower() not in PARTICLES:
+        return parts[1]
     out = [parts[-1]]
     i = len(parts) - 2
     while i > 0 and parts[i].lower() in PARTICLES:
         out.insert(0, parts[i])
         i -= 1
+    if i == 0 and parts[0].lower() in PARTICLES:
+        return name  # „De la Calzada“
     s = " ".join(out)
     return s if len(s) <= 16 else parts[-1]
 
@@ -111,9 +156,12 @@ def match_scenes(mid: int, goal_ids: set[str]) -> dict:
     """Lädt Events und Aufstellungen und liefert je Tor-ID die Rohdaten für die Szene."""
     cache_file = CACHE_DIR / f"{mid}.json"
     if cache_file.exists():
-        cached = json.loads(cache_file.read_text())
-        if cached.get("v") == CACHE_VERSION and set(cached["goals"]) >= goal_ids:
-            return cached
+        try:
+            cached = json.loads(cache_file.read_text())
+            if cached.get("v") == CACHE_VERSION and set(cached["goals"]) >= goal_ids:
+                return cached
+        except (json.JSONDecodeError, KeyError, OSError):
+            pass  # kaputte Datei: neu laden
 
     events = fetch_json(f"events/{mid}.json")
     lineups = fetch_json(f"lineups/{mid}.json")
@@ -126,6 +174,9 @@ def match_scenes(mid: int, goal_ids: set[str]) -> dict:
         for pl in team["lineup"]:
             players[str(pl["player_id"])] = {
                 "name": pl.get("player_nickname") or pl["player_name"],
+                "full": pl["player_name"],
+                "nick": bool(pl.get("player_nickname")),
+                "country": (pl.get("country") or {}).get("name"),
                 "number": pl.get("jersey_number"),
                 "team": team["team_id"],
             }
@@ -140,25 +191,23 @@ def match_scenes(mid: int, goal_ids: set[str]) -> dict:
             assist = by_id.get(shot.get("key_pass_id"))
             pre = find_pre_assist(events, position[assist["id"]]) if assist else None
             if assist and pre:
-                lo, hi = position[pre["id"]], position[e["id"]]
-                carries = [
-                    {"player": c["player"]["id"], "start": c["location"][:2], "end": c["carry"]["end_location"][:2]}
-                    for c in events[lo:hi]
-                    if c["type"]["name"] == "Carry" and c["team"]["id"] == e["team"]["id"]
-                ]
+                hi = position[e["id"]]
                 # Wo Mitspieler zuletzt am Ball waren (gleiche Ballbesitzphase) – echte Positionen
                 # für alle, die der Freeze Frame des Schusses nicht zeigt
-                touches: dict[int, list] = {}
+                touches: dict[int, dict] = {}
                 for t in events[:hi]:
                     if t.get("possession") == e["possession"] and t["team"]["id"] == e["team"]["id"] \
                             and t.get("player") and t.get("location"):
-                        touches[t["player"]["id"]] = t["location"][:2]
+                        touches[t["player"]["id"]] = {
+                            "at": t["location"][:2],
+                            "keeper": (t.get("position") or {}).get("name") == "Goalkeeper",
+                        }
                 goals[e["id"]] = {
                     "team": e["team"]["id"],
-                    "touches": [{"player": pid, "at": at} for pid, at in touches.items()],
+                    "touches": [{"player": pid, **t} for pid, t in touches.items()],
                     "period": e["period"],
                     "minute": e["minute"],
-                    "score": dict(score),
+                    "score": {str(k): v for k, v in score.items()},
                     "scorer": e["player"]["id"],
                     "shot": {"start": e["location"][:2], "end": (shot.get("end_location") or [120, 40])[:2]},
                     "assist": {
@@ -174,7 +223,6 @@ def match_scenes(mid: int, goal_ids: set[str]) -> dict:
                         "high": pre["pass"].get("height", {}).get("name") == "High Pass",
                         "type": (pre["pass"].get("type") or {}).get("name"),
                     },
-                    "carries": carries,
                     "frame": [
                         {
                             "player": f["player"]["id"],
@@ -194,7 +242,9 @@ def match_scenes(mid: int, goal_ids: set[str]) -> dict:
 
     result = {"v": CACHE_VERSION, "players": players, "goals": goals}
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_file.write_text(json.dumps(result))
+    tmp = cache_file.with_suffix(".tmp")
+    tmp.write_text(json.dumps(result))
+    os.replace(tmp, cache_file)  # nie eine halb geschriebene Datei hinterlassen
     return result
 
 
@@ -207,12 +257,21 @@ def label(kind: str, frm, to, name: str, restart: str | None, air: bool) -> dict
         return {"de": f"Einwurf zu {name}", "en": f"Throw-in to {name}"}
     if restart == "free-kick":
         return {"de": f"Freistoß auf {name}", "en": f"Free kick to {name}"}
-    dx = to[0] - frm[0]
-    if air and dist(frm, to) > 28:
-        return {"de": f"Hoch auf {name}", "en": f"Long ball to {name}"}
-    if dx > 8:
+    dx, dy = to[0] - frm[0], to[1] - frm[1]
+    # Richtung zuerst: steil nur, wenn der Pass wirklich nach vorn geht
+    forward = dx > 8 and dx >= 0.7 * abs(dy)
+    back = dx < -5
+    # Hohe Bälle: bei ausgedachten Optionen immer, beim echten Pass ab 28 m
+    lob = air and (kind != "real" or dist(frm, to) > 28)
+    if lob:
+        if back:
+            return {"de": f"Hoch zurück zu {name}", "en": f"Lofted back to {name}"}
+        if not forward and abs(dy) > 25:
+            return {"de": f"Diagonal auf {name}", "en": f"Switch to {name}"}
+        return {"de": f"Hoch auf {name}", "en": f"Lofted to {name}"}
+    if forward:
         return {"de": f"Steil auf {name}", "en": f"Forward to {name}"}
-    if dx < -5:
+    if back:
         return {"de": f"Zurück zu {name}", "en": f"Back to {name}"}
     return {"de": f"Quer zu {name}", "en": f"Across to {name}"}
 
@@ -223,7 +282,10 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
     if A == P or A == S:
         return None
     pl = lambda pid: players.get(str(pid)) or {}  # noqa: E731
-    name = lambda pid: short_name(pl(pid).get("name") or "?")  # noqa: E731
+    def name(pid) -> str:
+        p = pl(pid)
+        # Spanische Doppelnamen-Regel nur ohne StatsBomb-Spitznamen
+        return short_name(p.get("name") or "?", p.get("full"), None if p.get("nick") else p.get("country"))
 
     you = clamp_pitch(pre["start"])
     restart = RESTART.get(pre.get("type") or "")
@@ -258,6 +320,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
     opps: list[Pt] = []
     keeper: Pt | None = None
     others: list[str] = []
+    own_keepers: set[str] = set()  # eigener Torwart steht auf dem Feld, ist aber keine Passoption
     for f in g["frame"]:
         pid = str(f["player"])
         at = clamp_pitch(f["at"])
@@ -269,6 +332,8 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
             mates[k] = at
             names[k] = name(pid)
             others.append(k)
+            if f["keeper"]:
+                own_keepers.add(k)
         elif f["keeper"]:
             keeper = at
         else:
@@ -282,6 +347,22 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         mates[k] = clamp_pitch(t["at"])
         names[k] = name(pid)
         others.append(k)
+        if t.get("keeper"):
+            own_keepers.add(k)
+    others = [k for k in others if k not in own_keepers]
+
+    # Gleiche Kurznamen in einer Szene unterscheiden: „E. Hazard“ / „T. Hazard“
+    pid_of = {k: pid for pid, k in key_of.items()}
+    by_name: dict[str, list[str]] = defaultdict(list)
+    for k, n in names.items():
+        by_name[n].append(k)
+    for n, ks in by_name.items():
+        if len(ks) > 1:
+            firsts = {k: (pl(pid_of[k]).get("full") or pl(pid_of[k]).get("name") or n).split()[0] for k in ks}
+            initials = {f[0] for f in firsts.values()}
+            for k in ks:
+                # Gleiche Initiale („Lucas/Luka …“): ganzer Vorname
+                names[k] = f"{firsts[k][0]}. {n}" if len(initials) == len(ks) else f"{firsts[k]} {n}"
     if keeper is None:
         keeper = [118.5, r1(min(44, max(36, shot["end"][1])))]
     opps = [keeper] + opps
@@ -352,14 +433,29 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
     def lane_blocked(a, b) -> bool:
         return any(lane_dist(o, a, b)[0] < 2.2 for o in opps[1:])
 
+    # Wie eng steht ein Gegner an der echten Passbahn? Ein Fehlpass muss klar enger sein,
+    # sonst rollt der echte Ball sichtbar durch einen Gegner, während eine Option „Fehlpass“ heißt
+    real_lane = math.inf if pre["high"] else min(
+        (lane_dist(o, you, pos[kA], 0.2, 0.85)[0] for o in opps[1:] if dist(o, you) > 3), default=math.inf)
+
     P_, A_, S_ = names["you"], names[kA], names[kS]
     when = clock(g["period"], g["minute"])
+    first_de = {
+        "throw-in": f"{P_} wirft zu {A_}",
+        "corner": f"{P_} bringt die Ecke auf {A_}",
+        "free-kick": f"{P_} spielt den Freistoß auf {A_}",
+    }.get(restart or "", f"{P_} spielt {A_} an")
+    first_en = {
+        "throw-in": f"{P_} throws it to {A_}",
+        "corner": f"{P_} plays the corner to {A_}",
+        "free-kick": f"{P_} plays the free kick to {A_}",
+    }.get(restart or "", f"{P_} finds {A_}")
     if S != P:
-        real_de = f"Pre-Assist! So war's: {P_} spielt {A_} an, {A_} legt auf (Assist), {S_} trifft ({when})."
-        real_en = f"Pre-assist! That's how it went: {P_} finds {A_}, {A_} sets it up (assist), {S_} scores ({when})."
+        real_de = f"Pre-Assist! So war's: {first_de}, {A_} legt auf (Assist), {S_} trifft ({when})."
+        real_en = f"Pre-assist! That's how it went: {first_en}, {A_} sets it up (assist), {S_} scores ({when})."
     else:
-        real_de = f"Pre-Assist! So war's: {P_} spielt {A_} an, {A_} spielt zurück (Assist), {P_} trifft selbst ({when})."
-        real_en = f"Pre-assist! That's how it went: {P_} finds {A_}, {A_} plays it back (assist), {P_} scores ({when})."
+        real_de = f"Pre-Assist! So war's: {first_de}, {A_} spielt zurück (Assist), {P_} trifft selbst ({when})."
+        real_en = f"Pre-assist! That's how it went: {first_en}, {A_} plays it back (assist), {P_} scores ({when})."
 
     real_steps = [{"k": "pass", "from": "you", "to": kA, **({"air": True} if pre["high"] else {})}] + finish_from_assist()
     real_option = {
@@ -374,8 +470,11 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         options = [real_option]
         targets = [pos[kA]]
 
+        # Ausgedachte Einwürfe und Ecken müssen machbar sein
+        max_len = 30 if restart == "throw-in" else 45 if restart == "corner" else 80
+
         def separated(p) -> bool:
-            if dist(you, p) < 4:
+            if dist(you, p) < 4 or dist(you, p) > max_len:
                 return False
             return all(dist(p, q) >= min_d and angle_gap(angle(you, p), angle(you, q)) >= min_ang for q in targets)
 
@@ -393,7 +492,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
                 "expect": "assist",
                 "steps": [step, {"k": "shot", "who": kS, "to": goal_at, "result": "goal"}],
                 "explain": {
-                    "de": f"Das wäre schon der Assist gewesen: Ein direkter Pass auf {S_} ist selbst die Vorlage. Wirklich lief es über {A_}.",
+                    "de": f"Das wäre schon der Assist gewesen: Ein direkter Pass auf {S_} ist selbst die Vorlage. Tatsächlich lief es über {A_}.",
                     "en": f"That would already have been the assist: a direct pass to {S_} is the assist itself. In reality it went via {A_}.",
                 },
             })
@@ -401,22 +500,22 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         else:
             # Sonst: ein anderer Mitspieler nah am Tor schießt selbst -> Assist
             near = sorted(
-                (k for k in others if dist(pos[k], [120, 40]) < near_goal and separated(pos[k])),
-                key=lambda k: dist(pos[k], [120, 40]),
+                (k for k in others if dist(pos[k], [120, 40]) < min(near_goal, 28) and pos[k][0] >= 94 and separated(pos[k])),
+                key=lambda k: (lane_blocked(you, pos[k]), dist(pos[k], [120, 40])),
             )
             if near:
                 k = near[0]
                 used.add(k)
                 step, air = pass_to(k)
-                how_de = f"Wirklich spielte {P_} den Doppelpass mit {A_}." if S == P else f"Wirklich lief es über {A_} zu {S_}."
+                how_de = f"Tatsächlich spielte {P_} den Doppelpass mit {A_}." if S == P else f"Tatsächlich lief es über {A_} zu {S_}."
                 how_en = f"In reality {P_} played a one-two with {A_}." if S == P else f"In reality it went via {A_} to {S_}."
                 options.append({
                     "label": label("assist", you, pos[k], names[k], restart, air),
                     "expect": "assist",
                     "steps": [step, {"k": "shot", "who": k, "to": goal_at, "result": "goal"}],
                     "explain": {
-                        "de": f"Das wäre schon der Assist gewesen, wenn {names[k]} direkt trifft. {how_de}",
-                        "en": f"That would already have been the assist if {names[k]} scores first time. {how_en}",
+                        "de": f"Das wäre schon der Assist gewesen, wenn {names[k]} direkt getroffen hätte. {how_de}",
+                        "en": f"That would already have been the assist if {names[k]} had scored first time. {how_en}",
                     },
                 })
                 targets.append(pos[k])
@@ -428,7 +527,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
 
         cands = sorted(
             (k for k in others if early_ok(k)),
-            key=lambda k: (lane_blocked(pos[k], pos[kA]), abs(dist(you, pos[k]) - 18)),
+            key=lambda k: (lane_blocked(you, pos[k]) or lane_blocked(pos[k], pos[kA]), abs(dist(you, pos[k]) - 18)),
         )
         if cands:
             k = cands[0]
@@ -440,7 +539,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
                 "expect": "early",
                 "steps": [step, {"k": "pass", "from": k, "to": kA, **({"air": True} if on_air else {})}] + finish_from_assist(),
                 "explain": {
-                    "de": f"Zu früh: Dann wäre der Pass von {names[k]} auf {A_} der Pre-Assist gewesen. Wirklich spielte {P_} direkt auf {A_}.",
+                    "de": f"Zu früh: Dann wäre der Pass von {names[k]} auf {A_} der Pre-Assist gewesen. Tatsächlich spielte {P_} direkt auf {A_}.",
                     "en": f"Too early: then {names[k]}'s pass to {A_} would have been the pre-assist. In reality {P_} found {A_} directly.",
                 },
             })
@@ -453,7 +552,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
                 continue
             for i, o in enumerate(opps[1:], start=1):
                 d, t = lane_dist(o, you, pos[k], 0.2, 0.85)
-                if d < lost_lane and dist(o, you) > 3:
+                if d < lost_lane and d + 1.0 < real_lane and dist(o, you) > 3:
                     score_ = d + abs(t - 0.5)
                     if best is None or score_ < best[0]:
                         vx, vy = pos[k][0] - you[0], pos[k][1] - you[1]
@@ -465,7 +564,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
                 "expect": "lost",
                 "steps": [{"k": "pass", "from": "you", "to": f"o{i}", "aim": k, "at": at}],
                 "explain": {
-                    "de": f"Fehlpass: Ein Gegenspieler steht in der Passbahn zu {names[k]}. Wirklich spielte {P_} auf {A_}.",
+                    "de": f"Fehlpass: Ein Gegenspieler steht in der Passbahn zu {names[k]}. Tatsächlich spielte {P_} auf {A_}.",
                     "en": f"Misplaced pass: an opponent is standing in the lane to {names[k]}. In reality {P_} played it to {A_}.",
                 },
             })
@@ -480,7 +579,9 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
         return None
 
     home, away = meta["home"], meta["away"]
-    h, a = g["score"].get(meta["home_id"], 0), g["score"].get(meta["away_id"], 0)
+    # Spielstand vor dem Tor; Schlüssel sind Team-IDs als Text (auch nach dem Zwischenspeichern)
+    sc = {str(k): v for k, v in g["score"].items()}
+    h, a = sc.get(str(meta["home_id"]), 0), sc.get(str(meta["away_id"]), 0)
     comp_de = f"{meta['competition']} {meta['season']}"
     comp_en = f"{NAMES_EN.get(meta['competition'], meta['competition'])} {meta['season']}"
     setup_de = f"{comp_de}, {when}, Stand {h}:{a}. {P_} hat den Ball."
@@ -521,7 +622,7 @@ def build_scene(gid: str, g: dict, players: dict, meta: dict) -> dict | None:
 
 # ---------- Ablauf ----------
 
-def build_season_scenes(cfg: dict) -> list[dict]:
+def build_season_scenes(cfg: dict, failed: list[int] | None = None) -> list[dict]:
     season = json.loads((OUT_DIR / "seasons" / f"{cfg['slug']}.json").read_text())
     by_match: dict[int, set[str]] = defaultdict(set)
     for g in season["goals"]:
@@ -545,6 +646,8 @@ def build_season_scenes(cfg: dict) -> list[dict]:
         data = raw.get(mid)
         if not data:
             skipped += len(by_match[mid])
+            if failed is not None:
+                failed.append(mid)
             continue
         m = season["matches"][str(mid)]
         meta = {
@@ -569,9 +672,11 @@ def build_season_scenes(cfg: dict) -> list[dict]:
 def main():
     SCENE_DIR.mkdir(parents=True, exist_ok=True)
     index = []
+    failed: list[int] = []
     for cfg in SEASONS:
-        scenes = build_season_scenes(cfg)
+        scenes = build_season_scenes(cfg, failed)
         if not scenes:
+            (SCENE_DIR / f"{cfg['slug']}.json").unlink(missing_ok=True)
             continue
         (SCENE_DIR / f"{cfg['slug']}.json").write_text(json.dumps(scenes, ensure_ascii=False, separators=(",", ":")))
         index.append({
@@ -580,6 +685,10 @@ def main():
             "count": len(scenes),
         })
     (SCENE_DIR / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1))
+    if failed:
+        # Lieber den Daten-PR anhalten als still Szenen verlieren.
+        print(f"{len(failed)} Spiele fehlgeschlagen: {failed[:20]}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

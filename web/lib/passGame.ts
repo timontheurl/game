@@ -154,32 +154,43 @@ export function optionTarget(scene: Scene, option: Option): { who: Actor; at: Pt
   return { who: first.to, at: first.at ?? pos[first.to] };
 }
 
+/** Ausschnitt des Spielfelds: [x, y, Kantenlänge] des quadratischen viewBox */
+export type View = [number, number, number];
+
 /**
- * Wo die Buchstaben A–D stehen: bevorzugt 4,2 über dem Ziel, sonst dort, wo sie
- * niemanden verdecken und nicht über den Rand ragen (z. B. bei Ecken an der Torlinie).
+ * Ausschnitt je Szene: alles, was in irgendeiner Option passiert, plus Tor – quadratisch und
+ * mit etwas Rand. So ist das Geschehen am Handy deutlich größer als mit der ganzen Hälfte.
+ * Dazu jedes Ziel der Pfeile samt Platz für den Namen darunter, auch bei Fehlpässen.
  */
-export function letterSpots(scene: Scene, targets: Pt[]): Pt[] {
-  const players = Object.values(startPositions(scene));
-  const taken: Pt[] = [];
-  const OFFSETS: Pt[] = [
-    [0, -4.2],
-    [0, 4.2],
-    [-4.2, 0],
-    [4.2, 0],
-    [-3, -3],
-    [3, -3],
-    [-3, 3],
-    [3, 3],
-  ];
-  const inside = (p: Pt) => p[0] >= 41.5 && p[0] <= 121.5 && p[1] >= 1 && p[1] <= 79;
-  const room = (p: Pt) => Math.min(...[...players, ...taken].map((q) => dist(p, q)));
-  return targets.map((t) => {
-    const cands = OFFSETS.map(([dx, dy]): Pt => [t[0] + dx, t[1] + dy]).filter(inside);
-    const spot = cands.find((c, i) => i === 0 && room(c) >= 3.6) ?? cands.reduce((a, b) => (room(b) > room(a) ? b : a), cands[0]);
-    taken.push(spot);
-    return spot;
-  });
+export function sceneView(scene: Scene): View {
+  const pts: Pt[] = [scene.you, [scene.you[0], scene.you[1] + 5], [121.6, 36], [121.6, 44]];
+  for (const o of scene.options) {
+    const r = run(scene, o);
+    for (const seg of r.segments) {
+      pts.push(...seg.ball);
+      for (const m of seg.movers) pts.push(m.to);
+    }
+    const at = optionTarget(scene, o).at;
+    pts.push(at, [at[0], at[1] + 6]);
+  }
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const pad = 7;
+  const minX = Math.min(...xs) - pad;
+  const maxX = Math.max(...xs) + pad - 3; // hinter dem Tor reicht weniger Rand
+  const minY = Math.min(...ys) - pad;
+  const maxY = Math.max(...ys) + pad;
+  const size = Math.min(124, Math.max(52, maxX - minX, maxY - minY));
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const clamp = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+  const x0 = clamp(cx - size / 2, -2, 124 - size);
+  const y0 = size >= 88 ? 40 - size / 2 : clamp(cy - size / 2, -4, 84 - size);
+  return [x0, y0, size];
 }
+
+/** Liegt p mit Rand m im Ausschnitt? */
+export const inView = (v: View, p: Pt, m = 0) => p[0] >= v[0] + m && p[0] <= v[0] + v[2] - m && p[1] >= v[1] + m && p[1] <= v[1] + v[2] - m;
 
 // ---------- Ablauf für Animation und Prüfung ----------
 
