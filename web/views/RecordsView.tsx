@@ -47,6 +47,11 @@ export default function RecordsView({ lang }: { lang: Lang }) {
                   </li>
                 ))}
               </ol>
+              {r.more && (
+                <Link href={r.more.href} className="text-link record-more">
+                  {r.more.label} ›
+                </Link>
+              )}
             </article>
           );
         })}

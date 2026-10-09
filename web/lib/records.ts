@@ -1,6 +1,7 @@
 import { clubSlug } from "./cards";
 import { getSeason, getSeasons, playerSlug, seasonLabel, type Goal, type PlayerRow, type Season } from "./data";
 import { LOCALE, url, type Lang } from "./i18n";
+import { isOneTwo } from "./oneTwo";
 
 // StatsBomb misst in Yards (Feld 120 × 80); für die Anzeige in Metern umrechnen.
 const YARD = 0.9144;
@@ -18,6 +19,8 @@ export interface RecordList {
   unit: string;
   note: string;
   entries: RecordEntry[];
+  /** Link zu allen Treffern, z. B. im Torketten-Explorer */
+  more?: { href: string; label: string };
 }
 
 const passLen = (g: Goal) => (g.pre ? Math.hypot(g.pre.end[0] - g.pre.start[0], g.pre.end[1] - g.pre.start[1]) * YARD : 0);
@@ -35,6 +38,7 @@ const TEXT: Record<Lang, Record<string, [string, string, string]>> = {
     laengster: ["Längster Pre-Assist", "Meter", "Gemessen vom Abspiel bis zur Annahme."],
     trio: ["Eingespieltestes Trio", "Tore", "Immer gleiche Kette: Pre-Assist › Assist › Tor."],
     spiel: ["Spiel mit den meisten", "Pre-Assists", "Tore mit Pre-Assist in einem einzigen Spiel (beide Teams)."],
+    doppelpass: ["Doppelpass-Könige", "Doppelpass-Tore", "Erst den Pre-Assist gespielt, dann die Vorlage zurückbekommen und selbst getroffen."],
   },
   en: {
     meiste: ["Most pre-assists", "pre-assists", "In a single season."],
@@ -47,6 +51,7 @@ const TEXT: Record<Lang, Record<string, [string, string, string]>> = {
     laengster: ["Longest pre-assist", "metres", "Measured from the pass to where it was received."],
     trio: ["Best-drilled trio", "goals", "Always the same chain: pre-assist › assist › goal."],
     spiel: ["Match with the most", "pre-assists", "Goals with a pre-assist in a single match (both teams)."],
+    doppelpass: ["One-two kings", "one-two goals", "Played the pre-assist, got the ball back from the assister and scored themselves."],
   },
 };
 
@@ -114,6 +119,18 @@ function playerEntries(
     deep.set(key, d);
   }
 
+  // Doppelpass-Tore je Spieler und Saison
+  const oneTwo = new Map<string, { season: Season; row: PlayerRow; value: number }>();
+  for (const { season, g } of goals) {
+    if (!isOneTwo(g)) continue;
+    const row = season.players.find((p) => p.id === g.scorer);
+    if (!row) continue;
+    const key = `${season.meta.slug}-${row.id}`;
+    const d = oneTwo.get(key) ?? { season, row, value: 0 };
+    d.value++;
+    oneTwo.set(key, d);
+  }
+
   const txt = (key: string) => {
     const [title, unit, note] = TEXT[lang][key];
     return { title, unit, note };
@@ -157,6 +174,19 @@ function playerEntries(
       key: "tief",
       ...txt("tief"),
       entries: playerEntries([...deep.values()]),
+    },
+    {
+      key: "doppelpass",
+      ...txt("doppelpass"),
+      entries: playerEntries([...oneTwo.values()]),
+      more: {
+        // In der Saison des Spitzenreiters öffnen – dort gibt es die meisten Doppelpass-Tore zu sehen
+        href: `${url(lang, "torketten")}?${(() => {
+          const top = [...oneTwo.values()].sort((a, b) => b.value - a.value)[0];
+          return top ? `liga=${top.season.meta.slug}&` : "";
+        })()}doppelpass=1`,
+        label: lang === "en" ? "Watch one-two goals" : "Doppelpass-Tore ansehen",
+      },
     },
     {
       key: "laengster",

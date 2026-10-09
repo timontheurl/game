@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CardFace, Flag } from "./PlayerCard";
 import { initials } from "@/lib/cards";
 import { pick, url, type Lang } from "@/lib/i18n";
 import type { CompareEntry } from "@/lib/indexes";
 import LogoLoader from "./LogoLoader";
+import ChallengeShare from "./ChallengeShare";
+import { cleanCount, cleanName, fingerprint, newSeed, seeded } from "@/lib/challenge";
 
 type Mode = "duell" | "raten";
 
@@ -54,13 +56,38 @@ function GameCard({ entry, shown, state }: { entry: CompareEntry; shown: boolean
 
 // ---------- Modus 1: Mehr oder weniger ----------
 
-function Duel({ pool, lang }: { pool: CompareEntry[]; lang: Lang }) {
+/** Herausforderung aus einem Duell-Link: gleicher Startwert = gleiche Spielerfolge */
+interface DuelChallenge {
+  seed: string;
+  name: string;
+  streak: number;
+  /** Fingerabdruck der Spieler-Auswahl beim Herausforderer */
+  version: string | null;
+}
+
+const poolKey = (pool: CompareEntry[]) => fingerprint(pool.map((e) => `${e.key}:${e.preAssists}`));
+
+function Duel({
+  pool,
+  lang,
+  challenge,
+  onLeave,
+}: {
+  pool: CompareEntry[];
+  lang: Lang;
+  challenge: DuelChallenge | null;
+  /** Herausforderung beenden (Link aus der Adresszeile, Eltern-Zustand zurücksetzen) */
+  onLeave: () => void;
+}) {
   const BEST = "preassists-spiel-duell";
+  const [duel, setDuel] = useState(challenge);
+  const seed = useRef(challenge?.seed ?? "");
+  const rng = useRef<() => number>(Math.random);
   const draw = useCallback(
     (other?: CompareEntry) => {
       // Gleichstand vermeiden, sonst gibt es keine richtige Antwort
       const options = other ? pool.filter((e) => e.preAssists !== other.preAssists && e.slug !== other.slug) : pool;
-      return random(options);
+      return options[Math.floor(rng.current() * options.length)];
     },
     [pool],
   );
@@ -71,7 +98,10 @@ function Duel({ pool, lang }: { pool: CompareEntry[]; lang: Lang }) {
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
 
-  const start = useCallback(() => {
+  const start = useCallback((fresh = false) => {
+    // Jede Runde hat einen Startwert – so kann ein Freund genau dieselbe Spielerfolge spielen
+    if (fresh || !seed.current) seed.current = newSeed();
+    rng.current = seeded(seed.current);
     const a = draw();
     setLeft(a);
     setRight(draw(a));
@@ -111,6 +141,16 @@ function Duel({ pool, lang }: { pool: CompareEntry[]; lang: Lang }) {
 
   return (
     <div className="game">
+      {duel && phase !== "wrong" && (
+        <p className="pg-duel">
+          <b>⚔</b>{" "}
+          {pick(
+            lang,
+            `${duel.name || "Dein Freund"} hat eine Serie von ${duel.streak} geschafft. Gleiche Spieler – schaffst du mehr?`,
+            `${duel.name || "Your friend"} got a streak of ${duel.streak}. Same players – can you beat it?`,
+          )}
+        </p>
+      )}
       <div className="game-score" aria-live="polite">
         <span>
           {pick(lang, "Serie", "Streak")} <b>{streak}</b>
@@ -170,8 +210,49 @@ function Duel({ pool, lang }: { pool: CompareEntry[]; lang: Lang }) {
               `${right.name} had ${right.preAssists} pre-assists, ${left.name} ${left.preAssists}. Your streak: ${streak}.`,
             )}
           </p>
+          {duel && (
+            <div className={`pg-duel-result is-${streak > duel.streak ? "win" : streak === duel.streak ? "draw" : "lose"}`}>
+              <span className="pg-duel-score">
+                {duel.name || pick(lang, "Freund", "Friend")} <b>{duel.streak}</b> : <b>{streak}</b> {pick(lang, "Du", "You")}
+              </span>
+            </div>
+          )}
+          <ChallengeShare
+            lang={lang}
+            filename="pre-assist-serie.png"
+            link={(name) => {
+              const q = new URLSearchParams({ modus: "duell", duell: seed.current, s: String(streak), v: poolKey(pool) });
+              if (name) q.set("n", name);
+              return `${window.location.origin}${window.location.pathname}?${q}`;
+            }}
+            text={(name) =>
+              pick(
+                lang,
+                `${name ? `${name} hat` : "Ich habe"} eine Serie von ${streak} bei „Mehr oder weniger“ – dieselben Spieler, schaffst du mehr?`,
+                `${name ? `${name} got` : "I got"} a streak of ${streak} in "Higher or lower" – same players, can you beat it?`,
+              )
+            }
+            image={(name) => ({
+              game: pick(lang, "Mehr oder weniger", "Higher or lower"),
+              score: String(streak),
+              label: pick(lang, "richtige in Folge", "in a row"),
+              verdict: pick(lang, "Wer hat mehr Pre-Assists?", "Who has more pre-assists?"),
+              name: name || undefined,
+              cta: pick(lang, "Kannst du mich schlagen?", "Can you beat me?"),
+            })}
+          />
           <div className="player-actions">
-            <button type="button" className="btn" onClick={start}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                if (duel) {
+                  setDuel(null);
+                  onLeave();
+                }
+                start(true);
+              }}
+            >
               {pick(lang, "Nochmal spielen", "Play again")}
             </button>
             <Link href={url(lang, "spieler", right.slug)} className="btn btn-ghost">
@@ -382,9 +463,14 @@ function Guess({ pool, all, lang }: { pool: CompareEntry[]; all: CompareEntry[];
 export default function PlayerGame({ lang }: { lang: Lang }) {
   const [entries, setEntries] = useState<CompareEntry[] | null>(null);
   const [mode, setMode] = useState<Mode>("duell");
+  const [challenge, setChallenge] = useState<DuelChallenge | null>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("modus") === "raten") setMode("raten");
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("modus") === "raten") setMode("raten");
+    const seed = q.get("duell");
+    if (seed && /^[0-9a-z]{1,12}$/.test(seed))
+      setChallenge({ seed, name: cleanName(q.get("n")), streak: cleanCount(q.get("s"), 9999), version: q.get("v") });
     fetch(lang === "en" ? "/daten/spieler-en.json" : "/daten/spieler.json")
       .then((r) => r.json())
       .then(setEntries);
@@ -399,6 +485,14 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
 
   // Für das Duell genügen ein paar Pre-Assists; zum Raten nur bekanntere Spieler mit vielen
   const duelPool = useMemo(() => entries?.filter((e) => e.preAssists >= 2) ?? [], [entries]);
+  // Ein Duell-Link gilt nur für dieselben Daten – sonst käme eine andere Spielerfolge heraus
+  const stale = !!challenge && !!entries && challenge.version !== poolKey(duelPool);
+  const leave = useCallback(() => {
+    setChallenge(null);
+    const u = new URL(window.location.href);
+    for (const k of ["duell", "s", "n", "v"]) u.searchParams.delete(k);
+    window.history.replaceState(null, "", u);
+  }, []);
   const guessPool = useMemo(() => entries?.filter((e) => e.preAssists >= 5) ?? [], [entries]);
 
   return (
@@ -426,7 +520,24 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
       {!entries ? (
         <LogoLoader label={pick(lang, "Lade Spieler …", "Loading players …")} />
       ) : mode === "duell" ? (
-        <Duel pool={duelPool} lang={lang} />
+        <>
+          {stale && (
+            <p className="pg-duel is-stale" role="status">
+              {pick(
+                lang,
+                "Dieser Duell-Link ist veraltet, weil die Daten inzwischen aktualisiert wurden. Spiel eine neue Runde und fordere deinen Freund danach neu heraus.",
+                "This duel link is out of date because the data has been updated. Play a new round and send your friend a new challenge afterwards.",
+              )}
+            </p>
+          )}
+          <Duel
+            key={stale ? "frei" : (challenge?.seed ?? "frei")}
+            pool={duelPool}
+            lang={lang}
+            challenge={stale ? null : challenge}
+            onLeave={leave}
+          />
+        </>
       ) : (
         <Guess pool={guessPool} all={entries} lang={lang} />
       )}

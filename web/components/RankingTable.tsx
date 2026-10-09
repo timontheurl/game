@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { clubSlug } from "@/lib/cards";
 import type { PlayerRow } from "@/lib/data";
 import { LOCALE, num, t, url, type Lang, type TKey } from "@/lib/i18n";
@@ -61,6 +61,49 @@ export default function RankingTable({
       .sort((a, b) => value(b, sort) - value(a, sort) || b.preAssists - a.preAssists || a.name.localeCompare(b.name));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [players, team, query, sort, per90, minMinutes]);
+
+  // Umsortieren sichtbar machen (FLIP): Zeilen gleiten an ihren neuen Platz,
+  // wer deutlich steigt, leuchtet kurz grün, wer fällt, kurz rot – mit Pfeil und Anzahl Plätze.
+  const bodyRef = useRef<HTMLTableSectionElement>(null);
+  const before = useRef<{ tops: Map<number, number>; order: Map<number, number>; key: string } | null>(null);
+  const [moves, setMoves] = useState<Map<number, number>>(new Map());
+  const moveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const animKey = `${sort}|${per90}|${minMinutes}|${team}`;
+
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const trs = [...body.querySelectorAll<HTMLTableRowElement>("tr[data-id]")];
+    const tops = new Map<number, number>();
+    const order = new Map<number, number>();
+    trs.forEach((tr, i) => {
+      const id = Number(tr.dataset.id);
+      tops.set(id, tr.offsetTop);
+      order.set(id, i);
+    });
+    const prev = before.current;
+    before.current = { tops, order, key: animKey };
+    // Nur bei neuer Sortierung oder neuem Filter animieren, nicht beim Tippen in der Suche
+    if (!prev || prev.key === animKey || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const moved = new Map<number, number>();
+    for (const tr of trs) {
+      const id = Number(tr.dataset.id);
+      const oldTop = prev.tops.get(id);
+      if (oldTop === undefined) {
+        tr.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: "ease-out" });
+        continue;
+      }
+      const dy = oldTop - tr.offsetTop;
+      if (dy) tr.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 650, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
+      const delta = prev.order.get(id)! - order.get(id)!;
+      if (Math.abs(delta) >= 3) moved.set(id, delta);
+    }
+    setMoves(moved);
+    clearTimeout(moveTimer.current);
+    moveTimer.current = setTimeout(() => setMoves(new Map()), 2600);
+  }, [rows, showAll, animKey]);
+
+  useLayoutEffect(() => () => clearTimeout(moveTimer.current), []);
 
   const fmt = (p: PlayerRow, key: SortKey) => {
     const v = value(p, key);
@@ -132,16 +175,25 @@ export default function RankingTable({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody ref={bodyRef}>
             {(showAll ? rows : rows.slice(0, PAGE_SIZE)).map((p, i) => {
               const v = value(p, sort);
               if (v !== prev) rank = i + 1;
               prev = v;
               return (
-                <tr key={p.id}>
+                <tr
+                  key={p.id}
+                  data-id={p.id}
+                  className={moves.has(p.id) ? (moves.get(p.id)! > 0 ? "is-up" : "is-down") : undefined}
+                >
                   <td className="num muted">{rank}</td>
                   <td className="name">
                     <Link href={url(lang, "spieler", p.slug)}>{p.name}</Link>
+                    {moves.has(p.id) && (
+                      <span className="rank-move" aria-hidden="true">
+                        {moves.get(p.id)! > 0 ? "▲" : "▼"} {Math.abs(moves.get(p.id)!)}
+                      </span>
+                    )}
                     {!hideTeam && <div className="sub show-sm">{teams[String(p.team)]}</div>}
                   </td>
                   {!hideTeam && (

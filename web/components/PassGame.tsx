@@ -25,6 +25,8 @@ import {
   type View,
 } from "@/lib/passGame";
 import LogoLoader from "./LogoLoader";
+import ChallengeShare from "./ChallengeShare";
+import { cleanCount, cleanName } from "@/lib/challenge";
 
 // Spiel „Finde den Pre-Assist“: Du hast den Ball und entscheidest, wohin du passt.
 // Ziel ist der Pass, der zum Pre-Assist wird – nicht gleich der Assist und kein Fehlpass.
@@ -106,6 +108,50 @@ async function newDeck(index: SceneIndex[], filter: string): Promise<Round[]> {
 }
 
 const ALL = "alle";
+
+// ---------- Duell-Link: dieselben Situationen für Freunde ----------
+
+/** Ergebnis des Herausforderers aus dem Link */
+interface Duel {
+  name: string;
+  points: number;
+  results: (Outcome | undefined)[];
+}
+
+const CODE: Record<Outcome, string> = { pre: "p", assist: "a", early: "e", nocount: "n", lost: "l", nogoal: "g" };
+const DECODE = Object.fromEntries(Object.entries(CODE).map(([k, v]) => [v, k as Outcome])) as Record<string, Outcome>;
+
+/** Runde als kurzer Text: Bewerb-Nummer, Tor-Kennung und Reihenfolge der Optionen je Situation */
+function encodeDeck(index: SceneIndex[], deck: Round[]) {
+  return deck
+    .map((r) => {
+      const m = r.scene.id.match(/^(.+)-([0-9a-f]{8})$/);
+      const i = m ? index.findIndex((s) => s.slug === m[1]) : -1;
+      // Bewerb über seinen Namen, nicht seine Position – die kann sich mit den Daten verschieben
+      return i < 0 || !m ? null : `${m[1]}.${m[2]}.${r.order.join("")}`;
+    })
+    .filter(Boolean)
+    .join("_");
+}
+
+async function decodeDeck(index: SceneIndex[], code: string): Promise<Round[] | null> {
+  // Ältere Links nannten den Bewerb mit seiner Nummer in index.json
+  const slugOf = (s: string) => (/^\d+$/.test(s) ? index[Number(s)]?.slug : index.find((x) => x.slug === s)?.slug);
+  const parts = code.split("_").slice(0, ROUND).map((p) => p.split("."));
+  if (!parts.length || parts.some((p) => p.length !== 3 || !slugOf(p[0]) || !/^[0-9a-f]{8}$/.test(p[1]))) return null;
+  const slugs = [...new Set(parts.map((p) => slugOf(p[0])!))];
+  const seasons = new Map(await Promise.all(slugs.map(async (slug) => [slug, await loadSeason(slug)] as const)));
+  const rounds: Round[] = [];
+  for (const [i, hex, ord] of parts) {
+    const slug = slugOf(i)!;
+    const scene = seasons.get(slug)?.find((s) => s.id === `${slug}-${hex}`);
+    const order = [...ord].map(Number);
+    // Reihenfolge muss genau die Optionen der Szene treffen – sonst ist der Link kaputt oder veraltet
+    if (!scene || order.length !== scene.options.length || [...order].sort().join("") !== scene.options.map((_, k) => k).join("")) return null;
+    rounds.push({ scene: mirror(scene), order });
+  }
+  return rounds;
+}
 
 /** „Heim – Gast“; Nationalteams in der Sprache der Seite */
 function sceneTitle(scene: Scene, lang: Lang) {
@@ -536,6 +582,8 @@ export default function PassGame({ lang }: { lang: Lang }) {
   const [filter, setFilter] = useState(ALL);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [duel, setDuel] = useState<Duel | null>(null);
+  const [staleDuel, setStaleDuel] = useState(false);
   const raf = useRef(0);
   const req = useRef(0);
   // Nach „Weiter“, „Nochmal“ oder Bewerbswechsel: hinscrollen und ggf. die Frage fokussieren – erst nach dem Neuzeichnen
@@ -590,8 +638,27 @@ export default function PassGame({ lang }: { lang: Lang }) {
         if (!r.ok) throw new Error(String(r.status));
         return r.json() as Promise<SceneIndex[]>;
       })
-      .then((list) => {
+      .then(async (list) => {
         setIndex(list);
+        // Duell-Link: dieselben Situationen wie der Freund
+        const q = new URLSearchParams(window.location.search);
+        const code = q.get("d");
+        if (code) {
+          const preset = await decodeDeck(list, code).catch(() => null);
+          if (preset?.length) {
+            setDuel({
+              name: cleanName(q.get("n")),
+              points: cleanCount(q.get("p"), preset.length * POINTS.pre),
+              // Position bleibt erhalten: ein unbekanntes Zeichen gilt nur für seine Runde
+              results: [...(q.get("r") ?? "")].slice(0, preset.length).map((c) => DECODE[c]),
+            });
+            setDeck(preset);
+            return;
+          }
+          // Link kaputt oder veraltet: nicht still eine Zufallsrunde starten, sondern Bescheid geben
+          setStaleDuel(true);
+          window.history.replaceState(null, "", window.location.pathname);
+        }
         return load(list, ALL, null);
       })
       .catch(() => setFailed(true));
@@ -733,6 +800,11 @@ export default function PassGame({ lang }: { lang: Lang }) {
 
   const restart = (nextFilter = filter, after: "question" | "scroll" = "question") => {
     if (!index) return;
+    // Neue Runde: das Duell ist vorbei, der Link in der Adresszeile auch
+    if (duel) {
+      setDuel(null);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     setFilter(nextFilter);
     load(index, nextFilter, after);
   };
@@ -793,6 +865,25 @@ export default function PassGame({ lang }: { lang: Lang }) {
         )}
       </div>
       {errorBox}
+      {staleDuel && !duel && (
+        <p className="pg-duel is-stale" role="status">
+          {pick(
+            lang,
+            "Dieser Duell-Link ist veraltet, weil die Daten inzwischen aktualisiert wurden. Hier ist eine neue Runde – fordere deinen Freund danach einfach neu heraus.",
+            "This duel link is out of date because the data has been updated. Here's a new round – just send your friend a new challenge afterwards.",
+          )}
+        </p>
+      )}
+      {duel && !over && (
+        <p className="pg-duel">
+          <b>⚔</b>{" "}
+          {pick(
+            lang,
+            `${duel.name || "Dein Freund"} hat ${duel.points} von ${max} Punkten geholt. Gleiche Situationen – schaffst du mehr?`,
+            `${duel.name || "Your friend"} scored ${duel.points} of ${max} points. Same situations – can you beat that?`,
+          )}
+        </p>
+      )}
 
       <div className={`pg-layout ${loading ? "is-loading" : ""}`} inert={loading} aria-busy={loading}>
         {loading && <div className="pg-loading">{loader}</div>}
@@ -957,7 +1048,22 @@ export default function PassGame({ lang }: { lang: Lang }) {
           <h2 ref={finalRef} tabIndex={-1}>
             {score} / {max} {pick(lang, "Punkte", "points")}
           </h2>
-          <p>{rating(score, max, lang)}</p>
+          {duel ? (
+            <div className={`pg-duel-result is-${score > duel.points ? "win" : score === duel.points ? "draw" : "lose"}`}>
+              <span className="pg-duel-score">
+                {duel.name || pick(lang, "Freund", "Friend")} <b>{duel.points}</b> : <b>{score}</b> {pick(lang, "Du", "You")}
+              </span>
+              <p>
+                {score > duel.points
+                  ? pick(lang, "Gewonnen! Du liest das Spiel besser.", "You win! You read the game better.")
+                  : score === duel.points
+                    ? pick(lang, "Unentschieden – Revanche?", "A draw – rematch?")
+                    : pick(lang, "Knapp daneben. Schick eine Revanche!", "Not quite. Send a rematch!")}
+              </p>
+            </div>
+          ) : (
+            <p>{rating(score, max, lang)}</p>
+          )}
           <ol className="pg-final-list">
             {played.map((p, i) => (
               <li key={i} className={`is-${VERDICT[p.outcome].tone}`}>
@@ -967,15 +1073,51 @@ export default function PassGame({ lang }: { lang: Lang }) {
                 </span>
                 <span>
                   {VERDICT[p.outcome][lang]} · +{p.points}
+                  {duel?.results[i] && (
+                    <small className="pg-duel-them">
+                      {" "}
+                      ({duel.name || pick(lang, "Freund", "Friend")}: {VERDICT[duel.results[i]][lang]})
+                    </small>
+                  )}
                 </span>
               </li>
             ))}
           </ol>
+          {index && (
+            <ChallengeShare
+              lang={lang}
+              filename="pre-assist-duell.png"
+              link={(name) => {
+                const q = new URLSearchParams({
+                  d: encodeDeck(index, deck.slice(0, played.length)),
+                  r: played.map((p) => CODE[p.outcome]).join(""),
+                  p: String(score),
+                });
+                if (name) q.set("n", name);
+                return `${window.location.origin}${window.location.pathname}?${q}`;
+              }}
+              text={(name) =>
+                pick(
+                  lang,
+                  `${name ? `${name} hat` : "Ich habe"} ${score}/${max} Punkte bei „Finde den Pre-Assist“ – dieselben 8 Tore, schaffst du mehr?`,
+                  `${name ? `${name} scored` : "I scored"} ${score}/${max} in "Find the pre-assist" – same 8 goals, can you beat it?`,
+                )
+              }
+              image={(name) => ({
+                game: pick(lang, "Finde den Pre-Assist", "Find the pre-assist"),
+                score: `${score}/${max}`,
+                label: pick(lang, "Punkte", "points"),
+                verdict: rating(score, max, lang),
+                boxes: played.map((p) => VERDICT[p.outcome].tone),
+                name: name || undefined,
+                cta: pick(lang, "Kannst du mich schlagen?", "Can you beat me?"),
+              })}
+            />
+          )}
           <div className="player-actions">
-            <button type="button" className="btn" onClick={() => restart()}>
-              {pick(lang, "Nochmal spielen", "Play again")}
+            <button type="button" className="btn btn-ghost" onClick={() => restart()}>
+              {pick(lang, "Neue Runde", "New round")}
             </button>
-            <ShareResult played={played} score={score} max={max} lang={lang} />
             <Link href={url(lang, "spiele")} className="btn btn-ghost">
               {pick(lang, "Alle Spiele", "All games")}
             </Link>
@@ -983,33 +1125,6 @@ export default function PassGame({ lang }: { lang: Lang }) {
         </div>
       )}
     </div>
-  );
-}
-
-/** Ergebnis als Text teilen – wie bei Wordle mit farbigen Kästchen je Situation */
-function ShareResult({ played, score, max, lang }: { played: Played[]; score: number; max: number; lang: Lang }) {
-  const [state, setState] = useState<"idle" | "copied">("idle");
-  const share = async () => {
-    const boxes = played.map((p) => (p.outcome === "pre" ? "🟩" : p.outcome === "assist" ? "🟨" : "⬛")).join("");
-    const title = pick(lang, "Finde den Pre-Assist", "Find the pre-assist");
-    const text = `${title}: ${score}/${max} ${boxes}`;
-    const link = window.location.origin + window.location.pathname;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text, url: link });
-        return;
-      }
-      await navigator.clipboard.writeText(`${text}\n${link}`);
-      setState("copied");
-      setTimeout(() => setState("idle"), 2000);
-    } catch {
-      /* abgebrochen */
-    }
-  };
-  return (
-    <button type="button" className="btn btn-ghost" onClick={share}>
-      {state === "copied" ? pick(lang, "Kopiert!", "Copied!") : pick(lang, "Ergebnis teilen", "Share result")}
-    </button>
   );
 }
 
