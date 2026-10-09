@@ -27,12 +27,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Zwischenspeicher der bereits ausgewerteten Spiele – ändert sich nur mit der Cache-Version der Pipeline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Zwischenspeicher der bereits ausgewerteten Spiele. Die Lauf-ID im Schlüssel sorgt dafür,
+      # dass neu geladene Spiele jedes Mal mitgespeichert werden; die Pipeline prüft selbst ihre Cache-Version.
       - uses: actions/cache@v4
         with:
           path: pipeline/.cache
-          key: pipeline-${{ hashFiles('pipeline/build_data.py') }}
-          restore-keys: pipeline-
+          key: pipeline-${{ hashFiles('pipeline/*.py') }}-${{ github.run_id }}
+          restore-keys: |
+            pipeline-${{ hashFiles('pipeline/*.py') }}-
+            pipeline-
 
       - name: Tests
         run: python -m unittest discover -s pipeline
@@ -40,12 +47,22 @@ jobs:
       - name: Pre-Assists berechnen
         run: python pipeline/build_data.py
 
+      - name: Spielszenen für „Finde den Pre-Assist“ erzeugen
+        run: python pipeline/build_scenes.py
+
+      # Kaputte Szenen sollen gar nicht erst in einen Pull Request kommen
+      - name: Spielszenen prüfen
+        working-directory: web
+        run: node --experimental-strip-types --no-warnings scripts/check-scenes.mts
+
       - name: Pull Request bei Änderungen
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automatisch/daten-update
           delete-branch: true
-          add-paths: web/data
+          add-paths: |
+            web/data
+            web/public/daten/szenen
           commit-message: "Daten-Update: Pre-Assists neu berechnet"
           title: "Daten-Update: Pre-Assists neu berechnet"
           body: |

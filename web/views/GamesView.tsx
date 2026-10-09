@@ -37,8 +37,8 @@ export default function GamesView({ lang }: { lang: Lang }) {
       title: pick(lang, "Finde den Pre-Assist", "Find the pre-assist"),
       text: pick(
         lang,
-        "Du hast den Ball. Spielst du gleich den Assist, einen Fehlpass – oder den Pass davor? Entscheide, wohin der Ball geht, und schau, was daraus wird.",
-        "You have the ball. Do you go straight for the assist, misplace it – or play the pass before? Choose where the ball goes and watch what happens.",
+        "Über 2.200 echte Tore: Du bist der Vorbereiter. Erkennst du die Szene und findest den Pass, aus dem der Pre-Assist wurde?",
+        "Over 2,200 real goals: you are the playmaker. Do you recognise the move and find the pass that became the pre-assist?",
       ),
       cta: pick(lang, "Jetzt spielen", "Play now"),
       art: <MiniPitch />,

@@ -4895,8 +4895,8 @@ td.name a {
     background 0.12s ease;
 }
 
-.pg-choice:hover,
-.pg-choice.is-active {
+.pg-choice.is-active,
+.pg-choice:focus-visible {
   border-color: var(--accent);
   background: var(--surface-2);
 }
@@ -5281,4 +5281,157 @@ td.name a {
   .games-card:hover {
     translate: none;
   }
+}
+
+/* Echte Szenen: Namen, Bewerbsauswahl, „So lief es wirklich“ */
+.pg-name {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1.75px;
+  font-weight: 700;
+  fill: #f3f4f6;
+  paint-order: stroke;
+  stroke: rgba(11, 12, 14, 0.85);
+  stroke-width: 0.55px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.pg-names .pg-name.is-you {
+  fill: var(--accent);
+}
+
+.pg-score {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 10px;
+}
+
+.pg-filter {
+  display: flex;
+  flex: 1 1 12rem;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  text-transform: none;
+  font-size: 0.9rem;
+}
+
+.pg-filter select {
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+@media (max-width: 860px) {
+  .pg-filter {
+    justify-content: flex-start;
+  }
+
+  .pg-filter select {
+    flex: 1 1 auto;
+  }
+}
+
+.pg-yours {
+  color: var(--accent);
+}
+
+.pg-layout {
+  position: relative;
+}
+
+.pg-layout.is-loading > :not(.pg-loading) {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+.pg-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: start center;
+  padding-top: 18vh;
+}
+
+.pg-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #ff6b6b;
+  border-radius: 10px;
+}
+
+.pg-error p {
+  margin: 0;
+}
+
+/* Ziel-Spieler tragen im Auswahlschritt den Buchstaben ihrer Option */
+.pg-hit {
+  fill: transparent;
+  stroke: none !important;
+}
+
+.pg-ring {
+  fill: none;
+  stroke: #fff !important;
+  stroke-width: 0.45 !important;
+}
+
+.pg-player.is-target .pg-letter-text {
+  font-size: 2.5px;
+  fill: #1f0c00;
+}
+
+.pg-player.is-target.is-active circle:not(.pg-hit):not(.pg-ring) {
+  fill: var(--accent);
+}
+
+.pg-player.is-target.is-active .pg-ring {
+  fill: none;
+  stroke: var(--accent) !important;
+}
+
+@media (min-width: 861px) {
+  .pg-pitch {
+    max-height: calc(100vh - 150px);
+  }
+}
+
+.pg-filter select {
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  max-width: 100%;
+}
+
+.pg-tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.pg-tag.is-real {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.pg-final-list small {
+  color: var(--muted);
 }

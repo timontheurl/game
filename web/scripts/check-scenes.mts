@@ -1,4 +1,5 @@
-// Prüft die Szenen des Spiels „Finde den Pre-Assist“ (lib/scenes/*.json).
+// Prüft die Szenen des Spiels „Finde den Pre-Assist“ (public/daten/szenen/*.json, erzeugt von
+// pipeline/build_scenes.py aus echten Toren).
 //   node --experimental-strip-types scripts/check-scenes.mts            → Fehler und Warnungen
 //   node --experimental-strip-types scripts/check-scenes.mts --html x.html [datei.json …]
 //                                                                    → zusätzlich Vorschau aller Abläufe
@@ -7,16 +8,16 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classify, isOpp, letterSpots, mirror, optionTarget, run, startPositions } from "../lib/passGame.ts";
+import { classify, inView, isOpp, mirror, optionTarget, run, sceneView, startPositions } from "../lib/passGame.ts";
 import type { Actor, Option, Outcome, Pt, Scene, Step } from "../lib/passGame.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const dir = join(here, "..", "lib", "scenes");
+const dir = join(here, "..", "public", "daten", "szenen");
 const args = process.argv.slice(2);
 const htmlAt = args.indexOf("--html");
 const htmlOut = htmlAt >= 0 ? args[htmlAt + 1] : null;
 const only = args.filter((a, i) => a.endsWith(".json") && (htmlAt < 0 || i !== htmlAt + 1));
-const files = (only.length ? only.map((f) => f.split("/").pop()!) : readdirSync(dir).filter((f) => f.endsWith(".json"))).sort();
+const files = (only.length ? only.map((f) => f.split("/").pop()!) : readdirSync(dir).filter((f) => f.endsWith(".json") && f !== "index.json")).sort();
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -32,7 +33,9 @@ function laneDist(p: Pt, a: Pt, b: Pt, from = 0.12, to = 0.88) {
   if (t < from || t > to) return Infinity;
   return Math.hypot(a[0] + vx * t - p[0], a[1] + vy * t - p[1]);
 }
-const inPitch = (p: Pt) => Array.isArray(p) && p.length === 2 && p[0] >= 40 && p[0] <= 120 && p[1] >= 0 && p[1] <= 80;
+// Echte Szenen dürfen das ganze Feld nutzen, ausgedachte nur die Angriffshälfte
+let minX = 40;
+const inPitch = (p: Pt) => Array.isArray(p) && p.length === 2 && p[0] >= minX && p[0] <= 120 && p[1] >= 0 && p[1] <= 80;
 const SIDE =
   /\b(links|rechts|linke[nmrs]?|rechte[nmrs]?|left-footed|right-footed|left-back|right-back)\b|\b(left|right)[- ](wing|side|flank|back|foot|winger|channel|post|corner|half-space)|\b(on|to|from|down) the (left|right)\b/i;
 const OUTCOMES: Outcome[] = ["pre", "assist", "early", "nocount", "lost", "nogoal"];
@@ -55,11 +58,17 @@ for (const file of files) {
   }
 }
 
-// Jede Szenendatei muss im Spiel eingebunden sein (lib/scenes/index.ts)
+// Jede Szenendatei muss in index.json stehen – mit der richtigen Anzahl, sonst lädt das Spiel falsche Szenen
 if (!only.length) {
-  const idx = readFileSync(join(dir, "index.ts"), "utf8");
-  const registered = new Set([...idx.matchAll(/from "\.\/([\w-]+\.json)"/g)].map((m) => m[1]));
-  for (const f of files) if (!registered.has(f)) errors.push(`${f}: nicht in lib/scenes/index.ts eingetragen – die Szenen kämen nie ins Spiel`);
+  const index: { slug: string; count: number }[] = JSON.parse(readFileSync(join(dir, "index.json"), "utf8"));
+  const counts = new Map<string, number>();
+  for (const { file } of all) counts.set(file, (counts.get(file) ?? 0) + 1);
+  for (const f of files) {
+    const entry = index.find((e) => `${e.slug}.json` === f);
+    if (!entry) errors.push(`${f}: nicht in index.json eingetragen – die Szenen kämen nie ins Spiel`);
+    else if (entry.count !== counts.get(f)) errors.push(`${f}: index.json nennt ${entry.count} Szenen, die Datei hat ${counts.get(f)}`);
+  }
+  for (const e of index) if (!files.includes(`${e.slug}.json`)) errors.push(`index.json: ${e.slug}.json fehlt`);
 }
 
 // IDs über alle Dateien eindeutig
@@ -69,7 +78,7 @@ for (const { file, scene } of all) {
   ids.set(scene.id, file);
 }
 
-function text(where: string, t: unknown, max: number) {
+function text(where: string, t: unknown, max: number, sides = true) {
   const v = t as { de?: string; en?: string };
   for (const lang of ["de", "en"] as const) {
     const s = v?.[lang];
@@ -77,7 +86,7 @@ function text(where: string, t: unknown, max: number) {
     else {
       if (s.length > max) errors.push(`${where}: Text (${lang}) zu lang (${s.length} > ${max})`);
       // Szenen werden gespiegelt – Seitenangaben würden dann nicht mehr stimmen
-      if (SIDE.test(s)) errors.push(`${where}: keine Seitenangaben (links/rechts) – Szenen werden gespiegelt: „${s}“`);
+      if (sides && SIDE.test(s)) errors.push(`${where}: keine Seitenangaben (links/rechts) – Szenen werden gespiegelt: „${s}“`);
     }
   }
 }
@@ -85,21 +94,32 @@ function text(where: string, t: unknown, max: number) {
 function checkScene(file: string, s: Scene) {
   const w = `${file}/${s.id ?? "?"}`;
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.id ?? "")) errors.push(`${w}: ID nur aus Kleinbuchstaben, Ziffern und Bindestrichen`);
-  text(`${w} title`, s.title, 40);
-  text(`${w} setup`, s.setup, 190);
+  const real = !!s.meta;
+  minX = real ? 0 : 40;
+  text(`${w} title`, s.title, real ? 80 : 40, !real);
+  text(`${w} setup`, s.setup, real ? 240 : 190, !real);
+  if (real && !s.names?.you) errors.push(`${w}: echter Szene fehlt der Name des Vorbereiters (names.you)`);
+  if (s.names) {
+    const seen = new Map<string, string>();
+    for (const [k, n] of Object.entries(s.names)) {
+      if (seen.has(n)) errors.push(`${w}: Name „${n}“ steht für ${seen.get(n)} und ${k} – nicht unterscheidbar`);
+      seen.set(n, k);
+      if (k !== "you" && !(k in s.mates)) errors.push(`${w}: Name für ${k}, aber kein solcher Mitspieler`);
+    }
+  }
   if (s.restart !== undefined && !["corner", "throw-in", "free-kick"].includes(s.restart))
     errors.push(`${w}: restart muss corner, throw-in oder free-kick sein`);
   if (!inPitch(s.you)) errors.push(`${w}: „you“ außerhalb der gezeigten Hälfte (x 40–120, y 0–80)`);
   const mates = Object.entries(s.mates ?? {});
-  if (mates.length < 3 || mates.length > 8) errors.push(`${w}: 3–8 Mitspieler erwartet (${mates.length})`);
+  if (mates.length < (real ? 1 : 3) || mates.length > (real ? 11 : 8)) errors.push(`${w}: zu wenige oder zu viele Mitspieler (${mates.length})`);
   for (const [id, p] of mates) {
     if (!/^\d{1,2}$/.test(id)) errors.push(`${w}: Mitspieler-ID „${id}“ muss eine Rückennummer sein`);
     if (!inPitch(p)) errors.push(`${w}: Mitspieler ${id} außerhalb der gezeigten Hälfte`);
   }
-  if (!Array.isArray(s.opps) || s.opps.length < 3 || s.opps.length > 9) errors.push(`${w}: 3–9 Gegner erwartet`);
+  if (!Array.isArray(s.opps) || s.opps.length < (real ? 1 : 3) || s.opps.length > (real ? 11 : 9)) errors.push(`${w}: zu wenige oder zu viele Gegner`);
   s.opps?.forEach((p, i) => !inPitch(p) && errors.push(`${w}: Gegner o${i} außerhalb der gezeigten Hälfte`));
   const gk = s.opps?.[0];
-  if (gk && !(gk[0] >= 110 && gk[1] >= 30 && gk[1] <= 50)) errors.push(`${w}: o0 ist der Torwart und steht nahe am Tor (x ≥ 110, y 30–50)`);
+  if (gk && !real && !(gk[0] >= 110 && gk[1] >= 30 && gk[1] <= 50)) errors.push(`${w}: o0 ist der Torwart und steht nahe am Tor (x ≥ 110, y 30–50)`);
 
   // Niemand steht auf jemand anderem
   const start = startPositions(s);
@@ -107,7 +127,7 @@ function checkScene(file: string, s: Scene) {
   for (let i = 0; i < actors.length; i++)
     for (let j = i + 1; j < actors.length; j++) {
       const gap = d(start[actors[i]], start[actors[j]]);
-      if (gap < 3) errors.push(`${w}: ${actors[i]} und ${actors[j]} stehen zu nah (${gap.toFixed(1)} < 3)`);
+      if (gap < (real ? 0.3 : 3)) errors.push(`${w}: ${actors[i]} und ${actors[j]} stehen zu nah (${gap.toFixed(1)})`);
     }
 
   if (!Array.isArray(s.options) || s.options.length < 3 || s.options.length > 4) {
@@ -119,8 +139,8 @@ function checkScene(file: string, s: Scene) {
   let broken = false;
   s.options.forEach((o, i) => {
     const ow = `${w} Option ${String.fromCharCode(65 + i)}`;
-    text(`${ow} label`, o.label, 34);
-    text(`${ow} explain`, o.explain, 240);
+    text(`${ow} label`, o.label, real ? 44 : 34, !real);
+    text(`${ow} explain`, o.explain, real ? 280 : 240, !real);
     if (!OUTCOMES.includes(o.expect)) errors.push(`${ow}: expect muss eins von ${OUTCOMES.join(", ")} sein`);
     if (!checkSteps(ow, s, o)) {
       // Fehlerhafte Option: Folgeprüfungen würden nur abstürzen
@@ -134,6 +154,7 @@ function checkScene(file: string, s: Scene) {
     const res = classify(s, o);
     outcomes.push(res.outcome);
     if (res.outcome !== o.expect) errors.push(`${ow}: Auswertung ergibt „${res.outcome}“, erwartet war „${o.expect}“`);
+    if (real && !!o.real !== (res.outcome === "pre")) errors.push(`${ow}: nur der echte Pass („real“) darf der Pre-Assist sein`);
     checkGeometry(ow, s, o);
   });
   // Optionen müssen sich im Spielfeld klar unterscheiden lassen
@@ -146,25 +167,28 @@ function checkScene(file: string, s: Scene) {
       if (!a || !b) continue;
       const angle = Math.abs(Math.atan2(a[1] - s.you[1], a[0] - s.you[0]) - Math.atan2(b[1] - s.you[1], b[0] - s.you[0])) * (180 / Math.PI);
       const sep = Math.min(angle, 360 - angle);
-      if (d(a, b) < 6) errors.push(`${w}: Ziele der Optionen ${i + 1} und ${j + 1} liegen zu nah beieinander`);
-      else if (sep < 9) warnings.push(`${w}: Pfeile der Optionen ${i + 1} und ${j + 1} zeigen fast in dieselbe Richtung (${sep.toFixed(0)}°)`);
+      if (d(a, b) < (s.meta ? 2.5 : 6)) errors.push(`${w}: Ziele der Optionen ${i + 1} und ${j + 1} liegen zu nah beieinander`);
+      else if (sep < 9 && !s.meta) warnings.push(`${w}: Pfeile der Optionen ${i + 1} und ${j + 1} zeigen fast in dieselbe Richtung (${sep.toFixed(0)}°)`);
     }
   const pre = outcomes.filter((x) => x === "pre").length;
   if (pre !== 1) errors.push(`${w}: genau eine Option muss ein Pre-Assist sein (gefunden: ${pre})`);
   if (new Set(outcomes).size < 3) warnings.push(`${w}: nur ${new Set(outcomes).size} verschiedene Ausgänge – abwechslungsreicher ist besser`);
 
-  // Buchstaben A–D dürfen niemanden verdecken – in beiden Spiegelungen
-  for (const v of [s, mirror(s)]) {
-    const targets = v.options.map((o) => optionTarget(v, o).at);
-    const spots = letterSpots(v, targets);
-    const players = Object.entries(startPositions(v));
-    spots.forEach((p, i) => {
-      for (const [id, q] of players) {
-        const gap = d(p, q);
-        if (gap < 2.8) warnings.push(`${w}${v === s ? "" : " (gespiegelt)"}: Buchstabe ${String.fromCharCode(65 + i)} verdeckt fast ${id} (${gap.toFixed(1)})`);
-      }
+  // Du und jedes Ziel (dort stehen im Spiel die Buchstaben A–D) müssen im Ausschnitt liegen – in beiden Spiegelungen
+  for (const v of real ? [s] : [s, mirror(s)]) {
+    const view = sceneView(v);
+    if (!view.every(Number.isFinite)) errors.push(`${w}: Ausschnitt ist ungültig (${view.join(", ")})`);
+    if (!inView(view, v.you, 2.4)) errors.push(`${w}${v === s ? "" : " (gespiegelt)"}: du stehst außerhalb des Ausschnitts`);
+    v.options.forEach((o, i) => {
+      const t = optionTarget(v, o);
+      if (!t.at || !inView(view, t.at, 2.4))
+        errors.push(`${w}${v === s ? "" : " (gespiegelt)"}: Ziel von Option ${i + 1} (${t.who}) liegt außerhalb des Ausschnitts`);
+      if (isOpp(t.who) || t.who === "you") errors.push(`${w}: Option ${i + 1} zielt nicht auf einen Mitspieler (${t.who})`);
     });
   }
+
+  // Echte Szenen werden nicht gespiegelt, ihre Positionen sind gemessen – hier endet die Prüfung
+  if (real) return;
 
   // Gespiegelt muss dasselbe herauskommen
   const m = mirror(s);
@@ -265,6 +289,8 @@ function checkGeometry(w: string, s: Scene, o: Option) {
   const r = run(s, o);
   o.steps.forEach((st, i) => {
     const sw = `${w} Schritt ${i + 1}`;
+    // Echte Szenen: gemessene Positionen, nur das Tor selbst muss im Tor landen
+    if (s.meta && st.k !== "shot") return;
     const pos = r.before[i];
     const seg = r.segments.find((x) => x.step === i)!;
     const from = seg.ball[0];
@@ -333,7 +359,7 @@ function checkGeometry(w: string, s: Scene, o: Option) {
         if (st.by === undefined) errors.push(`${sw}: geblockt – Gegner als "by" angeben`);
         else if (d(pos[`o${st.by}`], st.to) > 8) errors.push(`${sw}: blockender Gegner zu weit weg`);
       }
-      if (d(pos[st.who], [120, 40]) > 36) warnings.push(`${sw}: Schuss aus über 36 m`);
+      if (!s.meta && d(pos[st.who], [120, 40]) > 36) warnings.push(`${sw}: Schuss aus über 36 m`);
     }
   });
 }

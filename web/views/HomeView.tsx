@@ -171,8 +171,8 @@ export default function HomeView({ lang }: { lang: Lang }) {
           <p className="muted">
             {pick(
               lang,
-              "Du hast den Ball – welcher Pass wird zum Pre-Assist? Entscheide auf dem Spielfeld. Dazu: „Mehr oder weniger?“ und „Wer ist es?“",
-              "You have the ball – which pass becomes the pre-assist? Decide on the pitch. Plus: “Higher or lower?” and “Who is it?”",
+              "Echte Tore, echte Spieler: Du hast den Ball – welcher Pass wurde zum Pre-Assist? Dazu: „Mehr oder weniger?“ und „Wer ist es?“",
+              "Real goals, real players: you have the ball – which pass became the pre-assist? Plus: “Higher or lower?” and “Who is it?”",
             )}
           </p>
         </div>

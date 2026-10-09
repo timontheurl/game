@@ -13,8 +13,8 @@ export default function PassGameView({ lang }: { lang: Lang }) {
         <p>
           {pick(
             lang,
-            "Du hast den Ball. Such den Pass, aus dem der Pre-Assist wird – also den Pass zu dem Mitspieler, der dann das Tor vorbereitet. Gleich den Assist zu spielen bringt nur einen Punkt.",
-            "You have the ball. Find the pass that becomes the pre-assist – the pass to the teammate who then sets up the goal. Going straight for the assist only earns one point.",
+            "Echte Tore, echte Spieler: Du bist der Vorbereiter und hast den Ball. Erkennst du die Szene? Such den Pass, aus dem der Pre-Assist wurde – den Pass zu dem Mitspieler, der dann das Tor vorbereitet hat.",
+            "Real goals, real players: you are the playmaker on the ball. Do you recognise the move? Find the pass that became the pre-assist – the pass to the teammate who then set up the goal.",
           )}
         </p>
       </section>
@@ -45,6 +45,13 @@ export default function PassGameView({ lang }: { lang: Lang }) {
             )}
           </li>
         </ul>
+        <p className="muted">
+          {pick(
+            lang,
+            "Alle Situationen sind echte Tore aus den StatsBomb-Daten. Der richtige Pass ist der, der wirklich gespielt wurde; die anderen Optionen zeigen, was nach unseren Regeln passiert wäre. Die übrigen Spieler stehen dort, wo sie beim Torschuss waren.",
+            "Every situation is a real goal from the StatsBomb data. The right pass is the one that was really played; the other options show what would have happened under our rules. The other players stand where they were at the moment of the shot.",
+          )}
+        </p>
         <p className="muted">
           {pick(lang, "Die Regeln sind dieselben wie in unseren Ranglisten –", "The rules are the same as in our rankings –")}{" "}
           <Link href={url(lang, "methodik")} className="text-link">
