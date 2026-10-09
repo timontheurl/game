@@ -5564,3 +5564,60 @@ td.name a {
   margin: 10px 0 0;
   color: #ff6b6b;
 }
+
+/* Ranglisten: Auf- und Absteiger beim Umsortieren */
+.ranking tr.is-up td {
+  animation: rank-up 2.6s ease-out;
+}
+
+.ranking tr.is-down td {
+  animation: rank-down 2.6s ease-out;
+}
+
+@keyframes rank-up {
+  0%,
+  35% {
+    background: rgba(62, 207, 142, 0.18);
+  }
+}
+
+@keyframes rank-down {
+  0%,
+  35% {
+    background: rgba(255, 107, 107, 0.16);
+  }
+}
+
+.rank-move {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: rank-chip 2.6s ease-out forwards;
+}
+
+.ranking tr.is-up .rank-move {
+  color: #3ecf8e;
+}
+
+.ranking tr.is-down .rank-move {
+  color: #ff6b6b;
+}
+
+@keyframes rank-chip {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ranking tr.is-up td,
+  .ranking tr.is-down td,
+  .rank-move {
+    animation: none;
+  }
+}
