@@ -25,6 +25,7 @@ export default function ChallengeShare({
 }) {
   const [name, setName] = useState("");
   const [state, setState] = useState<"idle" | "busy" | "copied" | "shared" | "failed">("idle");
+  const [manual, setManual] = useState<string | null>(null);
   useEffect(() => setName(loadName()), []);
 
   const clean = cleanName(name);
@@ -33,8 +34,11 @@ export default function ChallengeShare({
 
   const sendLink = async () => {
     remember();
-    const r = await shareLink(link(clean), title, text(clean));
-    setState(r === "copied" ? "copied" : r === "failed" ? "failed" : "idle");
+    const url = link(clean);
+    const r = await shareLink(url, title, text(clean));
+    setState(r === "copied" ? "copied" : "idle");
+    // Weder Teilen noch Zwischenablage erlaubt: Link zum Markieren anzeigen
+    setManual(r === "failed" ? url : null);
     if (r === "copied") setTimeout(() => setState("idle"), 2500);
   };
 
@@ -72,6 +76,15 @@ export default function ChallengeShare({
           {state === "busy" ? pick(lang, "Bild entsteht …", "Creating image …") : pick(lang, "Ergebnisbild teilen", "Share result image")}
         </button>
       </div>
+      <p className="sr-only" role="status" aria-live="polite">
+        {state === "copied" ? pick(lang, "Link kopiert", "Link copied") : ""}
+      </p>
+      {manual && (
+        <label className="challenge-manual">
+          <span>{pick(lang, "Kopiere diesen Link und schick ihn deinem Freund:", "Copy this link and send it to your friend:")}</span>
+          <input type="text" readOnly value={manual} onFocus={(e) => e.currentTarget.select()} autoFocus />
+        </label>
+      )}
       {state === "failed" && (
         <p className="challenge-error" role="alert">
           {pick(lang, "Das hat leider nicht geklappt. Bitte nochmal versuchen.", "That didn't work. Please try again.")}

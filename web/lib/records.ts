@@ -180,7 +180,11 @@ function playerEntries(
       ...txt("doppelpass"),
       entries: playerEntries([...oneTwo.values()]),
       more: {
-        href: `${url(lang, "torketten")}?doppelpass=1`,
+        // In der Saison des Spitzenreiters öffnen – dort gibt es die meisten Doppelpass-Tore zu sehen
+        href: `${url(lang, "torketten")}?${(() => {
+          const top = [...oneTwo.values()].sort((a, b) => b.value - a.value)[0];
+          return top ? `liga=${top.season.meta.slug}&` : "";
+        })()}doppelpass=1`,
         label: lang === "en" ? "Watch one-two goals" : "Doppelpass-Tore ansehen",
       },
     },

@@ -26,7 +26,7 @@ import {
 } from "@/lib/passGame";
 import LogoLoader from "./LogoLoader";
 import ChallengeShare from "./ChallengeShare";
-import { cleanName } from "@/lib/challenge";
+import { cleanCount, cleanName } from "@/lib/challenge";
 
 // Spiel „Finde den Pre-Assist“: Du hast den Ball und entscheidest, wohin du passt.
 // Ziel ist der Pass, der zum Pre-Assist wird – nicht gleich der Assist und kein Fehlpass.
@@ -115,7 +115,7 @@ const ALL = "alle";
 interface Duel {
   name: string;
   points: number;
-  results: Outcome[];
+  results: (Outcome | undefined)[];
 }
 
 const CODE: Record<Outcome, string> = { pre: "p", assist: "a", early: "e", nocount: "n", lost: "l", nogoal: "g" };
@@ -127,20 +127,23 @@ function encodeDeck(index: SceneIndex[], deck: Round[]) {
     .map((r) => {
       const m = r.scene.id.match(/^(.+)-([0-9a-f]{8})$/);
       const i = m ? index.findIndex((s) => s.slug === m[1]) : -1;
-      return i < 0 || !m ? null : `${i}.${m[2]}.${r.order.join("")}`;
+      // Bewerb über seinen Namen, nicht seine Position – die kann sich mit den Daten verschieben
+      return i < 0 || !m ? null : `${m[1]}.${m[2]}.${r.order.join("")}`;
     })
     .filter(Boolean)
     .join("_");
 }
 
 async function decodeDeck(index: SceneIndex[], code: string): Promise<Round[] | null> {
+  // Ältere Links nannten den Bewerb mit seiner Nummer in index.json
+  const slugOf = (s: string) => (/^\d+$/.test(s) ? index[Number(s)]?.slug : index.find((x) => x.slug === s)?.slug);
   const parts = code.split("_").slice(0, ROUND).map((p) => p.split("."));
-  if (!parts.length || parts.some((p) => p.length !== 3 || !index[Number(p[0])] || !/^[0-9a-f]{8}$/.test(p[1]))) return null;
-  const slugs = [...new Set(parts.map((p) => index[Number(p[0])].slug))];
+  if (!parts.length || parts.some((p) => p.length !== 3 || !slugOf(p[0]) || !/^[0-9a-f]{8}$/.test(p[1]))) return null;
+  const slugs = [...new Set(parts.map((p) => slugOf(p[0])!))];
   const seasons = new Map(await Promise.all(slugs.map(async (slug) => [slug, await loadSeason(slug)] as const)));
   const rounds: Round[] = [];
   for (const [i, hex, ord] of parts) {
-    const slug = index[Number(i)].slug;
+    const slug = slugOf(i)!;
     const scene = seasons.get(slug)?.find((s) => s.id === `${slug}-${hex}`);
     const order = [...ord].map(Number);
     // Reihenfolge muss genau die Optionen der Szene treffen – sonst ist der Link kaputt oder veraltet
@@ -580,6 +583,7 @@ export default function PassGame({ lang }: { lang: Lang }) {
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [duel, setDuel] = useState<Duel | null>(null);
+  const [staleDuel, setStaleDuel] = useState(false);
   const raf = useRef(0);
   const req = useRef(0);
   // Nach „Weiter“, „Nochmal“ oder Bewerbswechsel: hinscrollen und ggf. die Frage fokussieren – erst nach dem Neuzeichnen
@@ -644,12 +648,16 @@ export default function PassGame({ lang }: { lang: Lang }) {
           if (preset?.length) {
             setDuel({
               name: cleanName(q.get("n")),
-              points: Math.max(0, Math.min(preset.length * POINTS.pre, Number(q.get("p")) || 0)),
-              results: [...(q.get("r") ?? "")].map((c) => DECODE[c]).filter(Boolean),
+              points: cleanCount(q.get("p"), preset.length * POINTS.pre),
+              // Position bleibt erhalten: ein unbekanntes Zeichen gilt nur für seine Runde
+              results: [...(q.get("r") ?? "")].slice(0, preset.length).map((c) => DECODE[c]),
             });
             setDeck(preset);
             return;
           }
+          // Link kaputt oder veraltet: nicht still eine Zufallsrunde starten, sondern Bescheid geben
+          setStaleDuel(true);
+          window.history.replaceState(null, "", window.location.pathname);
         }
         return load(list, ALL, null);
       })
@@ -857,6 +865,15 @@ export default function PassGame({ lang }: { lang: Lang }) {
         )}
       </div>
       {errorBox}
+      {staleDuel && !duel && (
+        <p className="pg-duel is-stale" role="status">
+          {pick(
+            lang,
+            "Dieser Duell-Link ist veraltet, weil die Daten inzwischen aktualisiert wurden. Hier ist eine neue Runde – fordere deinen Freund danach einfach neu heraus.",
+            "This duel link is out of date because the data has been updated. Here's a new round – just send your friend a new challenge afterwards.",
+          )}
+        </p>
+      )}
       {duel && !over && (
         <p className="pg-duel">
           <b>⚔</b>{" "}

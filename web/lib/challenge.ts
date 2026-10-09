@@ -34,6 +34,19 @@ export function saveName(name: string) {
   }
 }
 
+/** Kurzer Fingerabdruck einer Liste (z. B. der Spieler-Auswahl): ändert sich mit den Daten */
+export function fingerprint(parts: string[]): string {
+  let h = 2166136261;
+  for (const s of parts) for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return (h >>> 0).toString(36);
+}
+
+/** Ganze Zahl aus dem Link, begrenzt */
+export const cleanCount = (s: string | null, max: number) => {
+  const n = Math.floor(Number(s));
+  return Number.isFinite(n) ? Math.max(0, Math.min(max, n)) : 0;
+};
+
 /** Name aus dem Link: kurz und ohne Steuerzeichen */
 export const cleanName = (s: string | null) => (s ?? "").replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 24);
 

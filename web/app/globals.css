@@ -5621,3 +5621,27 @@ td.name a {
     animation: none;
   }
 }
+
+.pg-duel.is-stale {
+  border-color: var(--line);
+  background: var(--surface);
+  font-weight: 400;
+}
+
+.challenge-manual {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.challenge-manual input {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 0;
+}

@@ -8,7 +8,7 @@ import { pick, url, type Lang } from "@/lib/i18n";
 import type { CompareEntry } from "@/lib/indexes";
 import LogoLoader from "./LogoLoader";
 import ChallengeShare from "./ChallengeShare";
-import { cleanName, newSeed, seeded } from "@/lib/challenge";
+import { cleanCount, cleanName, fingerprint, newSeed, seeded } from "@/lib/challenge";
 
 type Mode = "duell" | "raten";
 
@@ -61,9 +61,24 @@ interface DuelChallenge {
   seed: string;
   name: string;
   streak: number;
+  /** Fingerabdruck der Spieler-Auswahl beim Herausforderer */
+  version: string | null;
 }
 
-function Duel({ pool, lang, challenge }: { pool: CompareEntry[]; lang: Lang; challenge: DuelChallenge | null }) {
+const poolKey = (pool: CompareEntry[]) => fingerprint(pool.map((e) => `${e.key}:${e.preAssists}`));
+
+function Duel({
+  pool,
+  lang,
+  challenge,
+  onLeave,
+}: {
+  pool: CompareEntry[];
+  lang: Lang;
+  challenge: DuelChallenge | null;
+  /** Herausforderung beenden (Link aus der Adresszeile, Eltern-Zustand zurücksetzen) */
+  onLeave: () => void;
+}) {
   const BEST = "preassists-spiel-duell";
   const [duel, setDuel] = useState(challenge);
   const seed = useRef(challenge?.seed ?? "");
@@ -206,7 +221,7 @@ function Duel({ pool, lang, challenge }: { pool: CompareEntry[]; lang: Lang; cha
             lang={lang}
             filename="pre-assist-serie.png"
             link={(name) => {
-              const q = new URLSearchParams({ modus: "duell", duell: seed.current, s: String(streak) });
+              const q = new URLSearchParams({ modus: "duell", duell: seed.current, s: String(streak), v: poolKey(pool) });
               if (name) q.set("n", name);
               return `${window.location.origin}${window.location.pathname}?${q}`;
             }}
@@ -231,7 +246,10 @@ function Duel({ pool, lang, challenge }: { pool: CompareEntry[]; lang: Lang; cha
               type="button"
               className="btn btn-ghost"
               onClick={() => {
-                setDuel(null);
+                if (duel) {
+                  setDuel(null);
+                  onLeave();
+                }
                 start(true);
               }}
             >
@@ -452,7 +470,7 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
     if (q.get("modus") === "raten") setMode("raten");
     const seed = q.get("duell");
     if (seed && /^[0-9a-z]{1,12}$/.test(seed))
-      setChallenge({ seed, name: cleanName(q.get("n")), streak: Math.max(0, Number(q.get("s")) || 0) });
+      setChallenge({ seed, name: cleanName(q.get("n")), streak: cleanCount(q.get("s"), 9999), version: q.get("v") });
     fetch(lang === "en" ? "/daten/spieler-en.json" : "/daten/spieler.json")
       .then((r) => r.json())
       .then(setEntries);
@@ -467,6 +485,14 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
 
   // Für das Duell genügen ein paar Pre-Assists; zum Raten nur bekanntere Spieler mit vielen
   const duelPool = useMemo(() => entries?.filter((e) => e.preAssists >= 2) ?? [], [entries]);
+  // Ein Duell-Link gilt nur für dieselben Daten – sonst käme eine andere Spielerfolge heraus
+  const stale = !!challenge && !!entries && challenge.version !== poolKey(duelPool);
+  const leave = useCallback(() => {
+    setChallenge(null);
+    const u = new URL(window.location.href);
+    for (const k of ["duell", "s", "n", "v"]) u.searchParams.delete(k);
+    window.history.replaceState(null, "", u);
+  }, []);
   const guessPool = useMemo(() => entries?.filter((e) => e.preAssists >= 5) ?? [], [entries]);
 
   return (
@@ -494,7 +520,24 @@ export default function PlayerGame({ lang }: { lang: Lang }) {
       {!entries ? (
         <LogoLoader label={pick(lang, "Lade Spieler …", "Loading players …")} />
       ) : mode === "duell" ? (
-        <Duel key={challenge?.seed ?? "frei"} pool={duelPool} lang={lang} challenge={challenge} />
+        <>
+          {stale && (
+            <p className="pg-duel is-stale" role="status">
+              {pick(
+                lang,
+                "Dieser Duell-Link ist veraltet, weil die Daten inzwischen aktualisiert wurden. Spiel eine neue Runde und fordere deinen Freund danach neu heraus.",
+                "This duel link is out of date because the data has been updated. Play a new round and send your friend a new challenge afterwards.",
+              )}
+            </p>
+          )}
+          <Duel
+            key={stale ? "frei" : (challenge?.seed ?? "frei")}
+            pool={duelPool}
+            lang={lang}
+            challenge={stale ? null : challenge}
+            onLeave={leave}
+          />
+        </>
       ) : (
         <Guess pool={guessPool} all={entries} lang={lang} />
       )}
